@@ -1,0 +1,996 @@
+app\adapters\adapter_base.py:9:class EvidenceSummary:
+app\adapters\adapter_base.py:16:class EvidenceAggregator:
+app\adapters\adapter_base.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\adapter_base.py:45:        return EvidenceSummary(
+app\adapters\adapter_base.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\binance\binance_client.py:9:class EvidenceSummary:
+app\adapters\binance\binance_client.py:16:class EvidenceAggregator:
+app\adapters\binance\binance_client.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\binance\binance_client.py:45:        return EvidenceSummary(
+app\adapters\binance\binance_client.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\binance\binance_market_data.py:9:class EvidenceSummary:
+app\adapters\binance\binance_market_data.py:16:class EvidenceAggregator:
+app\adapters\binance\binance_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\binance\binance_market_data.py:45:        return EvidenceSummary(
+app\adapters\binance\binance_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\binance\binance_orders.py:9:class EvidenceSummary:
+app\adapters\binance\binance_orders.py:16:class EvidenceAggregator:
+app\adapters\binance\binance_orders.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\binance\binance_orders.py:45:        return EvidenceSummary(
+app\adapters\binance\binance_orders.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\bybit\bybit_client.py:9:class EvidenceSummary:
+app\adapters\bybit\bybit_client.py:16:class EvidenceAggregator:
+app\adapters\bybit\bybit_client.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\bybit\bybit_client.py:45:        return EvidenceSummary(
+app\adapters\bybit\bybit_client.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\bybit\bybit_market_data.py:9:class EvidenceSummary:
+app\adapters\bybit\bybit_market_data.py:16:class EvidenceAggregator:
+app\adapters\bybit\bybit_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\bybit\bybit_market_data.py:45:        return EvidenceSummary(
+app\adapters\bybit\bybit_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\bybit\bybit_orders.py:9:class EvidenceSummary:
+app\adapters\bybit\bybit_orders.py:16:class EvidenceAggregator:
+app\adapters\bybit\bybit_orders.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\bybit\bybit_orders.py:45:        return EvidenceSummary(
+app\adapters\bybit\bybit_orders.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\commodity\commodity_market_data.py:9:class EvidenceSummary:
+app\adapters\commodity\commodity_market_data.py:16:class EvidenceAggregator:
+app\adapters\commodity\commodity_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\commodity\commodity_market_data.py:45:        return EvidenceSummary(
+app\adapters\commodity\commodity_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\dhan\dhan_client.py:9:class EvidenceSummary:
+app\adapters\dhan\dhan_client.py:16:class EvidenceAggregator:
+app\adapters\dhan\dhan_client.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\dhan\dhan_client.py:45:        return EvidenceSummary(
+app\adapters\dhan\dhan_client.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\dhan\dhan_market_data.py:9:class EvidenceSummary:
+app\adapters\dhan\dhan_market_data.py:16:class EvidenceAggregator:
+app\adapters\dhan\dhan_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\dhan\dhan_market_data.py:45:        return EvidenceSummary(
+app\adapters\dhan\dhan_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\dhan\dhan_orders.py:9:class EvidenceSummary:
+app\adapters\dhan\dhan_orders.py:16:class EvidenceAggregator:
+app\adapters\dhan\dhan_orders.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\dhan\dhan_orders.py:45:        return EvidenceSummary(
+app\adapters\dhan\dhan_orders.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\dhan\dhan_positions.py:9:class EvidenceSummary:
+app\adapters\dhan\dhan_positions.py:16:class EvidenceAggregator:
+app\adapters\dhan\dhan_positions.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\dhan\dhan_positions.py:45:        return EvidenceSummary(
+app\adapters\dhan\dhan_positions.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\fx\fx_market_data.py:9:class EvidenceSummary:
+app\adapters\fx\fx_market_data.py:16:class EvidenceAggregator:
+app\adapters\fx\fx_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\fx\fx_market_data.py:45:        return EvidenceSummary(
+app\adapters\fx\fx_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\kotak\kotak_client.py:9:class EvidenceSummary:
+app\adapters\kotak\kotak_client.py:16:class EvidenceAggregator:
+app\adapters\kotak\kotak_client.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\kotak\kotak_client.py:45:        return EvidenceSummary(
+app\adapters\kotak\kotak_client.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\adapters\kotak\kotak_market_data.py:9:class EvidenceSummary:
+app\adapters\kotak\kotak_market_data.py:16:class EvidenceAggregator:
+app\adapters\kotak\kotak_market_data.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\adapters\kotak\kotak_market_data.py:45:        return EvidenceSummary(
+app\adapters\kotak\kotak_market_data.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\admin\admin_service.py:11:    Standard result returned by administrative operations.
+app\admin\admin_service.py:68:    This service provides a controlled administrative boundary.
+app\admin\admin_service.py:91:        normalized = operation.strip().upper().replace(" ", "_")
+app\admin\deployment_admin.py:62:    Administrative boundary for deployment lifecycle operations.
+app\admin\experiment_admin.py:120:        Create a new experiment in PLANNED state.
+app\admin\experiment_admin.py:132:            status="PLANNED",
+app\admin\experiment_admin.py:232:        Cancel a planned or running experiment.
+app\admin\research_admin.py:53:            "PLANNED",
+app\admin\research_admin.py:119:        Create a new research activity in PLANNED state.
+app\admin\research_admin.py:131:            status="PLANNED",
+app\admin\research_admin.py:147:        Move a planned research activity into RUNNING state.
+app\admin\stress_test_admin.py:121:        Create a new stress test in PLANNED state.
+app\admin\stress_test_admin.py:133:            status="PLANNED",
+app\admin\stress_test_admin.py:149:        Move a planned stress test into RUNNING state.
+app\admin\stress_test_admin.py:264:        Cancel a planned or running stress test.
+app\admin\validation_admin.py:120:        Create a new validation in PLANNED state.
+app\admin\validation_admin.py:132:            status="PLANNED",
+app\admin\validation_admin.py:147:        Move a planned validation into RUNNING state.
+app\admin\validation_admin.py:305:        Cancel a planned or running validation.
+app\api\v1\account_api.py:54:    Account API boundary for account/profile operations.
+app\api\v1\account_api.py:58:    remain outside this boundary.
+app\api\v1\admin_api.py:48:    API-facing boundary for administrative operations.
+app\api\v1\auth_api.py:37:    API-facing authentication boundary.
+app\api\v1\automation_api.py:40:    API-facing boundary for AUTOROBOMLM automation requests.
+app\api\v1\buyer_api.py:44:    API-facing boundary for ROBOMLM buyer intelligence operations.
+app\api\v1\discovery_api.py:44:    API-facing boundary for ROBOMLM opportunity discovery.
+app\api\v1\memory_api.py:42:    API-facing boundary for ROBOMLM Market Memory operations.
+app\api\v1\research_api.py:44:    API-facing boundary for ROBOMLM Research operations.
+app\api\v1\terminal_api.py:47:    API-facing boundary for the ROBOMLM professional terminal.
+app\api\websocket\market_stream.py:46:    In-process market streaming boundary.
+app\api\websocket\market_stream.py:50:    this boundary without coupling the core stream contract to a vendor.
+app\auth\auth_service.py:48:    Core authentication service boundary.
+app\auth\login_service.py:37:    Authentication login service boundary.
+app\auth\password_service.py:25:    Password hashing and verification boundary.
+app\auth\signup_service.py:36:    Account registration service boundary.
+app\autorobimlm\execution\order_manager.py:337:            "Order placed in pending state",
+app\autorobimlm\positions\position_manager.py:16:    opened_at: datetime
+app\autorobimlm\positions\position_manager.py:22:        data["opened_at"] = self.opened_at.isoformat()
+app\autorobimlm\positions\position_manager.py:101:                "Combined position quantity must be greater than zero"
+app\autorobimlm\positions\position_manager.py:137:                opened_at=timestamp,
+app\autorobimlm\positions\position_manager.py:152:                    message="Position opened",
+app\autorobimlm\positions\position_manager.py:223:                    opened_at=position.opened_at,
+app\autorobimlm\positions\position_manager.py:266:                    opened_at=position.opened_at,
+app\autorobimlm\risk\automation_risk.py:39:    limits. It does not place orders, modify positions, authorize
+app\autorobimlm\strategy_runner.py:49:    This layer generates signals only. It does not directly place
+app\core\logging\application_logger.py:7:    Application-level logging interface for ROBOMLM PLUS.
+app\core\logging\application_logger.py:109:        Log an exception with traceback information.
+app\core\logging\blackbox_logger.py:7:    Immutable-style event recording interface for ROBOMLM PLUS.
+app\core\logging\logger.py:9:    Provides one common interface for application diagnostics,
+app\core\logging\logger.py:50:        BlackboxLogger     -> reconstruction/event trace
+app\core\logging\logger.py:148:        """Log an exception with traceback information."""
+app\core\security\secrets.py:81:    The returned value is suitable for application-level API
+app\core\security\secrets.py:214:    The original secret is never returned.
+app\core\security\security_utils.py:136:        - contain no leading/trailing whitespace
+app\core\security\security_utils.py:179:    No password value is included in the returned messages.
+app\core\security\security_utils.py:200:            "Password must not start or end with whitespace."
+app\core\security\security_utils.py:285:    The original secret is never returned in full.
+app\core\security\security_utils.py:368:    Unsafe characters are replaced with underscores.
+app\core\startup\dependency_check.py:93:        ("Python Standard Library", "sys"),
+app\core\startup\shutdown.py:3:Graceful Shutdown Manager
+app\core\startup\shutdown.py:52:    Central graceful shutdown coordinator.
+app\core\startup\shutdown.py:240:    """Request graceful shutdown."""
+app\core\startup\shutdown.py:246:    """Execute graceful shutdown."""
+app\database\migrations\migration_base.py:12:    - Keeps schema evolution versioned and auditable.
+app\database\migrations\migration_manager.py:158:            temp_file.replace(
+app\database\migrations\__init__.py:11:    - Provides a clean package boundary for future migrations.
+app\database\models\audit_model.py:114:            return value.replace(tzinfo=timezone.utc)
+app\database\models\decision_model.py:176:            return value.replace(tzinfo=timezone.utc)
+app\database\models\evidence_model.py:209:            return value.replace(tzinfo=timezone.utc)
+app\database\models\market_model.py:305:            return value.replace(tzinfo=timezone.utc)
+app\database\models\subscription_model.py:163:            return value.replace(
+app\database\models\subscription_model.py:274:        """Change the assigned plan."""
+app\database\models\subscription_model.py:305:        """Add or replace a metadata value."""
+app\database\models\trade_model.py:13:    - Does not place, modify or cancel orders.
+app\database\models\trade_model.py:80:    opened_at: Optional[datetime] = None
+app\database\models\trade_model.py:259:        self.opened_at = self._normalize_optional_datetime(
+app\database\models\trade_model.py:260:            self.opened_at
+app\database\models\trade_model.py:284:        cleaned = str(value).strip()
+app\database\models\trade_model.py:286:        return cleaned or None
+app\database\models\trade_model.py:342:            return value.replace(
+app\database\models\trade_model.py:401:        opened_at: Optional[datetime] = None,
+app\database\models\trade_model.py:403:        """Mark the trade as opened."""
+app\database\models\trade_model.py:410:        self.opened_at = (
+app\database\models\trade_model.py:411:            self._normalize_datetime(opened_at)
+app\database\models\trade_model.py:412:            if opened_at is not None
+app\database\models\trade_model.py:529:        """Add or replace trade metadata."""
+app\database\models\trade_model.py:554:            "opened_at",
+app\database\models\trade_model.py:581:            "opened_at",
+app\database\models\user_model.py:190:        cleaned = str(value).strip()
+app\database\models\user_model.py:192:        return cleaned or None
+app\database\models\user_model.py:206:            return value.replace(
+app\database\models\user_model.py:414:        """Add or replace user metadata."""
+app\database\repositories\decision_repository.py:575:    def replace(
+app\database\repositories\decision_repository.py:580:        Replace an existing decision record.
+app\database\repositories\decision_repository.py:640:        return self.replace(
+app\database\repositories\decision_repository.py:659:        return self.replace(
+app\database\repositories\decision_repository.py:690:            temp_path.replace(
+app\database\repositories\evidence_repository.py:187:            temp_path.replace(
+app\database\repositories\evidence_repository.py:701:    def replace(
+app\database\repositories\evidence_repository.py:705:        """Replace an existing evidence record."""
+app\database\repositories\evidence_repository.py:764:        return self.replace(
+app\database\repositories\evidence_repository.py:783:        return self.replace(
+app\database\repositories\trade_repository.py:10:    - No order placement or execution logic.
+app\database\repositories\trade_repository.py:187:            temp_path.replace(
+app\database\repositories\trade_repository.py:693:                or record.opened_at
+app\database\repositories\trade_repository.py:700:    def replace(
+app\database\repositories\trade_repository.py:704:        """Replace an existing trade record."""
+app\database\repositories\trade_repository.py:753:        """Mark an existing trade as opened."""
+app\database\repositories\trade_repository.py:763:        return self.replace(
+app\database\repositories\trade_repository.py:786:        return self.replace(
+app\database\repositories\trade_repository.py:805:        return self.replace(
+app\database\repositories\trade_repository.py:826:        return self.replace(
+app\database\repositories\trade_repository.py:845:        return self.replace(
+app\database\repositories\user_repository.py:183:            temp_path.replace(
+app\database\repositories\user_repository.py:526:        """Replace an existing user record."""
+app\database\repositories\user_repository.py:578:    def replace(
+app\database\__init__.py:12:    - No database connection is opened on package import.
+app\data_quality\data_quality_engine.py:45:    """Combined result produced by the data-quality engine."""
+app\data_quality\data_quality_engine.py:374:                        f"{name.replace('_', ' ').title()} "
+app\data_quality\data_quality_engine.py:432:        """Return the combined quality score."""
+app\data_quality\data_quality_engine.py:481:    """Convenience function for combined data-quality evaluation."""
+app\data_quality\freshness_check.py:186:            result = result.replace(
+app\data_quality\freshness_check.py:214:            value = value.replace(
+app\data_quality\latency_check.py:202:            result = result.replace(
+app\intelligence\cas\cas_audit.py:142:        # Critical architecture boundary:
+app\intelligence\cas\cas_orchestrator.py:9:class EvidenceSummary:
+app\intelligence\cas\cas_orchestrator.py:16:class EvidenceAggregator:
+app\intelligence\cas\cas_orchestrator.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\cas_orchestrator.py:45:        return EvidenceSummary(
+app\intelligence\cas\cas_orchestrator.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\compliance_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\compliance_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\compliance_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\compliance_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\compliance_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\execution_safety_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\execution_safety_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\execution_safety_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\execution_safety_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\execution_safety_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\exposure_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\exposure_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\exposure_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\exposure_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\exposure_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\position_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\position_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\position_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\position_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\position_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\restriction_engine.py:9:class EvidenceSummary:
+app\intelligence\cas\restriction_engine.py:16:class EvidenceAggregator:
+app\intelligence\cas\restriction_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\restriction_engine.py:45:        return EvidenceSummary(
+app\intelligence\cas\restriction_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\risk_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\risk_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\risk_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\risk_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\risk_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\cas\suitability_gate.py:9:class EvidenceSummary:
+app\intelligence\cas\suitability_gate.py:16:class EvidenceAggregator:
+app\intelligence\cas\suitability_gate.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\cas\suitability_gate.py:45:        return EvidenceSummary(
+app\intelligence\cas\suitability_gate.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\commitment_engine.py:281:        # not a replacement for commitment_score.
+app\intelligence\decision\decision_explainer.py:9:class EvidenceSummary:
+app\intelligence\decision\decision_explainer.py:16:class EvidenceAggregator:
+app\intelligence\decision\decision_explainer.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\decision\decision_explainer.py:45:        return EvidenceSummary(
+app\intelligence\decision\decision_explainer.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\decision\decision_state.py:9:class EvidenceSummary:
+app\intelligence\decision\decision_state.py:16:class EvidenceAggregator:
+app\intelligence\decision\decision_state.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\decision\decision_state.py:45:        return EvidenceSummary(
+app\intelligence\decision\decision_state.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\decision\opportunity_ranker.py:9:class EvidenceSummary:
+app\intelligence\decision\opportunity_ranker.py:16:class EvidenceAggregator:
+app\intelligence\decision\opportunity_ranker.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\decision\opportunity_ranker.py:45:        return EvidenceSummary(
+app\intelligence\decision\opportunity_ranker.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\decision\timing_engine.py:9:class EvidenceSummary:
+app\intelligence\decision\timing_engine.py:16:class EvidenceAggregator:
+app\intelligence\decision\timing_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\decision\timing_engine.py:45:        return EvidenceSummary(
+app\intelligence\decision\timing_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\decision_orchestrator.py:64:    They do not silently replace the core Decision Cortex score.
+app\intelligence\decision_orchestrator.py:71:        - place orders
+app\intelligence\evidence\ace.py:9:class EvidenceSummary:
+app\intelligence\evidence\ace.py:16:class EvidenceAggregator:
+app\intelligence\evidence\ace.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\ace.py:45:        return EvidenceSummary(
+app\intelligence\evidence\ace.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\dar.py:9:class EvidenceSummary:
+app\intelligence\evidence\dar.py:16:class EvidenceAggregator:
+app\intelligence\evidence\dar.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\dar.py:45:        return EvidenceSummary(
+app\intelligence\evidence\dar.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\dcs.py:9:class EvidenceSummary:
+app\intelligence\evidence\dcs.py:16:class EvidenceAggregator:
+app\intelligence\evidence\dcs.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\dcs.py:45:        return EvidenceSummary(
+app\intelligence\evidence\dcs.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\evidence_confidence.py:9:class EvidenceSummary:
+app\intelligence\evidence\evidence_confidence.py:16:class EvidenceAggregator:
+app\intelligence\evidence\evidence_confidence.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\evidence_confidence.py:45:        return EvidenceSummary(
+app\intelligence\evidence\evidence_confidence.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\evidence_conflict.py:9:class EvidenceSummary:
+app\intelligence\evidence\evidence_conflict.py:16:class EvidenceAggregator:
+app\intelligence\evidence\evidence_conflict.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\evidence_conflict.py:45:        return EvidenceSummary(
+app\intelligence\evidence\evidence_conflict.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\evidence_engine_base.py:9:class EvidenceSummary:
+app\intelligence\evidence\evidence_engine_base.py:16:class EvidenceAggregator:
+app\intelligence\evidence\evidence_engine_base.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\evidence_engine_base.py:45:        return EvidenceSummary(
+app\intelligence\evidence\evidence_engine_base.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\evidence_normalizer.py:9:class EvidenceSummary:
+app\intelligence\evidence\evidence_normalizer.py:16:class EvidenceAggregator:
+app\intelligence\evidence\evidence_normalizer.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\evidence_normalizer.py:45:        return EvidenceSummary(
+app\intelligence\evidence\evidence_normalizer.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\evidence_package.py:9:class EvidenceSummary:
+app\intelligence\evidence\evidence_package.py:16:class EvidenceAggregator:
+app\intelligence\evidence\evidence_package.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\evidence_package.py:45:        return EvidenceSummary(
+app\intelligence\evidence\evidence_package.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\mbc.py:9:class EvidenceSummary:
+app\intelligence\evidence\mbc.py:16:class EvidenceAggregator:
+app\intelligence\evidence\mbc.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\mbc.py:45:        return EvidenceSummary(
+app\intelligence\evidence\mbc.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\mdil.py:9:class EvidenceSummary:
+app\intelligence\evidence\mdil.py:16:class EvidenceAggregator:
+app\intelligence\evidence\mdil.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\mdil.py:45:        return EvidenceSummary(
+app\intelligence\evidence\mdil.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\mkn.py:9:class EvidenceSummary:
+app\intelligence\evidence\mkn.py:16:class EvidenceAggregator:
+app\intelligence\evidence\mkn.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\mkn.py:45:        return EvidenceSummary(
+app\intelligence\evidence\mkn.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\msdl.py:9:class EvidenceSummary:
+app\intelligence\evidence\msdl.py:16:class EvidenceAggregator:
+app\intelligence\evidence\msdl.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\msdl.py:45:        return EvidenceSummary(
+app\intelligence\evidence\msdl.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\ned.py:9:class EvidenceSummary:
+app\intelligence\evidence\ned.py:16:class EvidenceAggregator:
+app\intelligence\evidence\ned.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\ned.py:45:        return EvidenceSummary(
+app\intelligence\evidence\ned.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\oxe.py:9:class EvidenceSummary:
+app\intelligence\evidence\oxe.py:16:class EvidenceAggregator:
+app\intelligence\evidence\oxe.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\oxe.py:45:        return EvidenceSummary(
+app\intelligence\evidence\oxe.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\source_reliability.py:9:class EvidenceSummary:
+app\intelligence\evidence\source_reliability.py:16:class EvidenceAggregator:
+app\intelligence\evidence\source_reliability.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\source_reliability.py:45:        return EvidenceSummary(
+app\intelligence\evidence\source_reliability.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\evidence\tv.py:9:class EvidenceSummary:
+app\intelligence\evidence\tv.py:16:class EvidenceAggregator:
+app\intelligence\evidence\tv.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\evidence\tv.py:45:        return EvidenceSummary(
+app\intelligence\evidence\tv.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\intelligence_orchestrator.py:669:        secondary: Mapping[str, Any],
+app\intelligence\intelligence_orchestrator.py:673:        for source in (primary, secondary):
+app\intelligence\magnitude_engine.py:123:    IMPORTANT ENGINE BOUNDARIES
+app\intelligence\market_context.py:149:    def _signed_score(cls, value: Any) -> float:
+app\intelligence\market_context.py:195:            slope = self._signed_score(
+app\intelligence\market_context.py:412:            flow = self._signed_score(
+app\intelligence\market_context.py:606:    def _direction_from_signed(value: float) -> str:
+app\intelligence\memory\decision_memory.py:9:class EvidenceSummary:
+app\intelligence\memory\decision_memory.py:16:class EvidenceAggregator:
+app\intelligence\memory\decision_memory.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\decision_memory.py:45:        return EvidenceSummary(
+app\intelligence\memory\decision_memory.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\evidence_memory.py:9:class EvidenceSummary:
+app\intelligence\memory\evidence_memory.py:16:class EvidenceAggregator:
+app\intelligence\memory\evidence_memory.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\evidence_memory.py:45:        return EvidenceSummary(
+app\intelligence\memory\evidence_memory.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\market_memory.py:9:class EvidenceSummary:
+app\intelligence\memory\market_memory.py:16:class EvidenceAggregator:
+app\intelligence\memory\market_memory.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\market_memory.py:45:        return EvidenceSummary(
+app\intelligence\memory\market_memory.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\memory_retrieval.py:9:class EvidenceSummary:
+app\intelligence\memory\memory_retrieval.py:16:class EvidenceAggregator:
+app\intelligence\memory\memory_retrieval.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\memory_retrieval.py:45:        return EvidenceSummary(
+app\intelligence\memory\memory_retrieval.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\memory_service.py:9:class EvidenceSummary:
+app\intelligence\memory\memory_service.py:16:class EvidenceAggregator:
+app\intelligence\memory\memory_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\memory_service.py:45:        return EvidenceSummary(
+app\intelligence\memory\memory_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\outcome_memory.py:9:class EvidenceSummary:
+app\intelligence\memory\outcome_memory.py:16:class EvidenceAggregator:
+app\intelligence\memory\outcome_memory.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\outcome_memory.py:45:        return EvidenceSummary(
+app\intelligence\memory\outcome_memory.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\memory\pattern_memory.py:9:class EvidenceSummary:
+app\intelligence\memory\pattern_memory.py:16:class EvidenceAggregator:
+app\intelligence\memory\pattern_memory.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\memory\pattern_memory.py:45:        return EvidenceSummary(
+app\intelligence\memory\pattern_memory.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\eqe.py:9:class EvidenceSummary:
+app\intelligence\metrics\eqe.py:16:class EvidenceAggregator:
+app\intelligence\metrics\eqe.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\eqe.py:45:        return EvidenceSummary(
+app\intelligence\metrics\eqe.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\lqs.py:9:class EvidenceSummary:
+app\intelligence\metrics\lqs.py:16:class EvidenceAggregator:
+app\intelligence\metrics\lqs.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\lqs.py:45:        return EvidenceSummary(
+app\intelligence\metrics\lqs.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\mcs.py:9:class EvidenceSummary:
+app\intelligence\metrics\mcs.py:16:class EvidenceAggregator:
+app\intelligence\metrics\mcs.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\mcs.py:45:        return EvidenceSummary(
+app\intelligence\metrics\mcs.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\mct.py:9:class EvidenceSummary:
+app\intelligence\metrics\mct.py:16:class EvidenceAggregator:
+app\intelligence\metrics\mct.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\mct.py:45:        return EvidenceSummary(
+app\intelligence\metrics\mct.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\mts.py:9:class EvidenceSummary:
+app\intelligence\metrics\mts.py:16:class EvidenceAggregator:
+app\intelligence\metrics\mts.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\mts.py:45:        return EvidenceSummary(
+app\intelligence\metrics\mts.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\pfs.py:9:class EvidenceSummary:
+app\intelligence\metrics\pfs.py:16:class EvidenceAggregator:
+app\intelligence\metrics\pfs.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\pfs.py:45:        return EvidenceSummary(
+app\intelligence\metrics\pfs.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\rds.py:9:class EvidenceSummary:
+app\intelligence\metrics\rds.py:16:class EvidenceAggregator:
+app\intelligence\metrics\rds.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\rds.py:45:        return EvidenceSummary(
+app\intelligence\metrics\rds.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\metrics\tps.py:9:class EvidenceSummary:
+app\intelligence\metrics\tps.py:16:class EvidenceAggregator:
+app\intelligence\metrics\tps.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\metrics\tps.py:45:        return EvidenceSummary(
+app\intelligence\metrics\tps.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\favorites_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\favorites_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\favorites_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\favorites_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\favorites_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\intraday_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\intraday_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\intraday_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\intraday_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\intraday_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\liquidity_filter.py:9:class EvidenceSummary:
+app\intelligence\opportunity\liquidity_filter.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\liquidity_filter.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\liquidity_filter.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\liquidity_filter.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\opportunity_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\opportunity_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\opportunity_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\opportunity_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\opportunity_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\opportunity_explainer.py:9:class EvidenceSummary:
+app\intelligence\opportunity\opportunity_explainer.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\opportunity_explainer.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\opportunity_explainer.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\opportunity_explainer.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\ranking_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\ranking_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\ranking_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\ranking_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\ranking_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\risk_filter.py:9:class EvidenceSummary:
+app\intelligence\opportunity\risk_filter.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\risk_filter.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\risk_filter.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\risk_filter.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\scanner_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\scanner_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\scanner_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\scanner_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\scanner_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\timing_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\timing_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\timing_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\timing_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\timing_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\top10_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\top10_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\top10_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\top10_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\top10_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity\universe_engine.py:9:class EvidenceSummary:
+app\intelligence\opportunity\universe_engine.py:16:class EvidenceAggregator:
+app\intelligence\opportunity\universe_engine.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\opportunity\universe_engine.py:45:        return EvidenceSummary(
+app\intelligence\opportunity\universe_engine.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\opportunity_intelligence.py:122:        - replace Decision Cortex
+app\intelligence\regime_intelligence.py:57:    Secondary structural states:
+app\intelligence\regime_intelligence.py:136:    def _signed(
+app\intelligence\regime_intelligence.py:155:        signed = cls._signed(value)
+app\intelligence\regime_intelligence.py:156:        return abs(signed), signed
+app\intelligence\regime_intelligence.py:201:                self._signed(
+app\intelligence\regime_intelligence.py:232:        signed = strength
+app\intelligence\regime_intelligence.py:240:            signed = -strength
+app\intelligence\regime_intelligence.py:243:            signed,
+app\intelligence\regime_intelligence.py:410:        signed = score
+app\intelligence\regime_intelligence.py:418:            signed = -score
+app\intelligence\regime_intelligence.py:421:            signed,
+app\intelligence\regime_intelligence.py:442:            strength, signed = self._direction_strength(
+app\intelligence\regime_intelligence.py:445:            return strength, signed
+app\intelligence\regime_intelligence.py:455:        signed = self._signed(raw)
+app\intelligence\regime_intelligence.py:457:        return abs(signed), signed
+app\intelligence\regime_intelligence.py:486:        flow = self._signed(
+app\intelligence\regime_intelligence.py:531:            raw = self._signed(
+app\intelligence\regime_intelligence.py:789:        # A range is characterized by weak trend and contained volatility.
+app\intelligence\regime_intelligence.py:1204:    # Memory / transition interface
+app\intelligence\relationship_intelligence.py:65:        - place orders
+app\intelligence\relationship_intelligence.py:143:    def _signed(
+app\intelligence\relationship_intelligence.py:227:            signed_correlation [-100,100]
+app\intelligence\relationship_intelligence.py:250:            raw_signed = (
+app\intelligence\relationship_intelligence.py:251:                self._signed(raw)
+app\intelligence\relationship_intelligence.py:256:            if raw_signed != 0.0:
+app\intelligence\relationship_intelligence.py:257:                if abs(raw_signed) <= 1.0:
+app\intelligence\relationship_intelligence.py:258:                    raw_signed *= 100.0
+app\intelligence\relationship_intelligence.py:260:                raw_signed = score
+app\intelligence\relationship_intelligence.py:262:            return score, self._signed(
+app\intelligence\relationship_intelligence.py:263:                raw_signed
+app\intelligence\relationship_intelligence.py:278:            signed = correlation * 100.0
+app\intelligence\relationship_intelligence.py:280:            signed = max(
+app\intelligence\relationship_intelligence.py:286:            abs(signed),
+app\intelligence\relationship_intelligence.py:287:            signed,
+app\intelligence\relationship_intelligence.py:317:            signed = self._signed(
+app\intelligence\relationship_intelligence.py:321:            if abs(signed) <= 1.0:
+app\intelligence\relationship_intelligence.py:322:                signed *= 100.0
+app\intelligence\relationship_intelligence.py:325:                abs(signed),
+app\intelligence\relationship_intelligence.py:326:                self._signed(signed),
+app\intelligence\relationship_intelligence.py:389:        A positive signed lead/lag score means the related instrument
+app\intelligence\relationship_intelligence.py:419:            signed = self._signed(
+app\intelligence\relationship_intelligence.py:423:            if abs(signed) <= 1.0:
+app\intelligence\relationship_intelligence.py:424:                signed *= 100.0
+app\intelligence\relationship_intelligence.py:426:            score = abs(signed)
+app\intelligence\relationship_intelligence.py:575:        correlation_signed: float,
+app\intelligence\relationship_intelligence.py:576:        relative_signed: float,
+app\intelligence\relationship_intelligence.py:607:            correlation_signed >= 40.0
+app\intelligence\relationship_intelligence.py:614:                abs(correlation_signed)
+app\intelligence\relationship_intelligence.py:620:            correlation_signed <= -40.0
+app\intelligence\relationship_intelligence.py:627:                abs(correlation_signed)
+app\intelligence\relationship_intelligence.py:633:            abs(relative_signed) >= 30.0
+app\intelligence\relationship_intelligence.py:644:                relative_signed * expected_sign
+app\intelligence\relationship_intelligence.py:648:                    abs(relative_signed)
+app\intelligence\relationship_intelligence.py:712:        correlation_signed: float,
+app\intelligence\relationship_intelligence.py:713:        relative_signed: float,
+app\intelligence\relationship_intelligence.py:721:            if relative_signed > 25.0:
+app\intelligence\relationship_intelligence.py:724:            if relative_signed < -25.0:
+app\intelligence\relationship_intelligence.py:741:        if correlation_signed >= 40.0:
+app\intelligence\relationship_intelligence.py:747:        if correlation_signed <= -40.0:
+app\intelligence\relationship_intelligence.py:753:        if relative_signed > 30.0:
+app\intelligence\relationship_intelligence.py:756:        if relative_signed < -30.0:
+app\intelligence\relationship_intelligence.py:768:        correlation_signed: float,
+app\intelligence\relationship_intelligence.py:778:            correlation_signed >= 50.0
+app\intelligence\relationship_intelligence.py:789:            correlation_signed <= -50.0
+app\intelligence\relationship_intelligence.py:847:                != self._history_direction_placeholder(
+app\intelligence\relationship_intelligence.py:856:    def _history_direction_placeholder(
+app\intelligence\relationship_intelligence.py:1033:        correlation_score, correlation_signed = (
+app\intelligence\relationship_intelligence.py:1039:        relative_score, relative_signed = (
+app\intelligence\relationship_intelligence.py:1086:            correlation_signed=correlation_signed,
+app\intelligence\relationship_intelligence.py:1087:            relative_signed=relative_signed,
+app\intelligence\relationship_intelligence.py:1105:                correlation_signed=correlation_signed,
+app\intelligence\relationship_intelligence.py:1106:                relative_signed=relative_signed,
+app\intelligence\relationship_intelligence.py:1114:                correlation_signed=correlation_signed,
+app\intelligence\relationship_intelligence.py:1168:            "correlation_signed": round(
+app\intelligence\relationship_intelligence.py:1169:                correlation_signed,
+app\intelligence\relationship_intelligence.py:1172:            "relative_strength_signed": round(
+app\intelligence\relationship_intelligence.py:1173:                relative_signed,
+app\intelligence\research\candidate_manager.py:9:class EvidenceSummary:
+app\intelligence\research\candidate_manager.py:16:class EvidenceAggregator:
+app\intelligence\research\candidate_manager.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\candidate_manager.py:45:        return EvidenceSummary(
+app\intelligence\research\candidate_manager.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\dataset.py:9:class EvidenceSummary:
+app\intelligence\research\dataset.py:16:class EvidenceAggregator:
+app\intelligence\research\dataset.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\dataset.py:45:        return EvidenceSummary(
+app\intelligence\research\dataset.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\deployment_manager.py:9:class EvidenceSummary:
+app\intelligence\research\deployment_manager.py:16:class EvidenceAggregator:
+app\intelligence\research\deployment_manager.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\deployment_manager.py:45:        return EvidenceSummary(
+app\intelligence\research\deployment_manager.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\experiment.py:9:class EvidenceSummary:
+app\intelligence\research\experiment.py:16:class EvidenceAggregator:
+app\intelligence\research\experiment.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\experiment.py:45:        return EvidenceSummary(
+app\intelligence\research\experiment.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\hypothesis.py:9:class EvidenceSummary:
+app\intelligence\research\hypothesis.py:16:class EvidenceAggregator:
+app\intelligence\research\hypothesis.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\hypothesis.py:45:        return EvidenceSummary(
+app\intelligence\research\hypothesis.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\research_service.py:9:class EvidenceSummary:
+app\intelligence\research\research_service.py:16:class EvidenceAggregator:
+app\intelligence\research\research_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\research_service.py:45:        return EvidenceSummary(
+app\intelligence\research\research_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\stress_testing.py:9:class EvidenceSummary:
+app\intelligence\research\stress_testing.py:16:class EvidenceAggregator:
+app\intelligence\research\stress_testing.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\stress_testing.py:45:        return EvidenceSummary(
+app\intelligence\research\stress_testing.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\validation.py:9:class EvidenceSummary:
+app\intelligence\research\validation.py:16:class EvidenceAggregator:
+app\intelligence\research\validation.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\validation.py:45:        return EvidenceSummary(
+app\intelligence\research\validation.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\research\version_manager.py:9:class EvidenceSummary:
+app\intelligence\research\version_manager.py:16:class EvidenceAggregator:
+app\intelligence\research\version_manager.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\research\version_manager.py:45:        return EvidenceSummary(
+app\intelligence\research\version_manager.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\advanced_decision.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\advanced_decision.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\advanced_decision.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\advanced_decision.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\advanced_decision.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\emergency_control.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\emergency_control.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\emergency_control.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\emergency_control.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\emergency_control.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\execution_preparation.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\execution_preparation.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\execution_preparation.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\execution_preparation.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\execution_preparation.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\halt_controller.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\halt_controller.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\halt_controller.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\halt_controller.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\halt_controller.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\plus_orchestrator.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\plus_orchestrator.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\plus_orchestrator.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\plus_orchestrator.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\plus_orchestrator.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\position_monitor.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\position_monitor.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\position_monitor.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\position_monitor.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\position_monitor.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\protection.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\protection.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\protection.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\protection.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\protection.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\robomlm_plus\reconciliation.py:9:class EvidenceSummary:
+app\intelligence\robomlm_plus\reconciliation.py:16:class EvidenceAggregator:
+app\intelligence\robomlm_plus\reconciliation.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\intelligence\robomlm_plus\reconciliation.py:45:        return EvidenceSummary(
+app\intelligence\robomlm_plus\reconciliation.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\intelligence\strategy_intelligence.py:85:        - strategy/regime contradiction is explicitly retained
+app\intelligence\strategy_intelligence.py:814:            reasons.append("market_regime_misaligned")
+app\intelligence\timing_intelligence.py:90:        VolumeRatio = CurrentVolume / BaselineVolume
+app\intelligence\verdict_engine.py:60:        - place orders
+app\intelligence\verdict_engine.py:649:                "directionally_aligned",
+app\markets\contracts\contract_registry.py:56:    Identity is determined by ContractIdentity.identity_key.
+app\markets\contracts\contract_registry.py:77:        replace: bool = False,
+app\markets\contracts\contract_registry.py:82:        By default duplicate identities are rejected. Set replace=True
+app\markets\contracts\contract_registry.py:83:        when an explicit replacement is intended.
+app\markets\contracts\contract_registry.py:88:        if key in self._contracts and not replace:
+app\markets\contracts\contract_registry.py:100:        replace: bool = False,
+app\markets\contracts\contract_registry.py:109:                    replace=replace,
+app\markets\contracts\contract_registry.py:400:    replace: bool = False,
+app\markets\contracts\contract_registry.py:405:        replace=replace,
+app\markets\contracts\contract_service.py:89:        replace: bool = False,
+app\markets\contracts\contract_service.py:113:            replace=replace,
+app\markets\contracts\contract_service.py:120:        replace: bool = False,
+app\markets\contracts\contract_service.py:130:            replace=replace,
+app\markets\contracts\contract_service.py:137:        replace: bool = False,
+app\markets\contracts\contract_service.py:142:            replace=replace,
+app\markets\contracts\contract_service.py:334:    replace: bool = False,
+app\markets\contracts\contract_service.py:339:        replace=replace,
+app\markets\instruments\instrument_registry.py:66:        replace: bool = False,
+app\markets\instruments\instrument_registry.py:74:            if key in self._items and not replace:
+app\markets\instruments\instrument_registry.py:88:        replace: bool = False,
+app\markets\instruments\instrument_registry.py:102:                if key in self._items and not replace:
+app\markets\instruments\instrument_registry.py:426:    replace: bool = False,
+app\markets\instruments\instrument_registry.py:431:        replace=replace,
+app\markets\instruments\instrument_service.py:106:        replace: bool = False,
+app\markets\instruments\instrument_service.py:133:            replace=replace,
+app\markets\instruments\instrument_service.py:140:        replace: bool = False,
+app\markets\instruments\instrument_service.py:147:            replace=replace,
+app\markets\instruments\instrument_service.py:154:        replace: bool = False,
+app\markets\instruments\instrument_service.py:164:            replace=replace,
+app\markets\instruments\instrument_service.py:305:        Replace the registered instrument with a metadata-merged copy.
+app\markets\instruments\instrument_service.py:315:            replace=True,
+app\markets\instruments\instrument_service.py:403:    replace: bool = False,
+app\markets\instruments\instrument_service.py:408:        replace=replace,
+app\markets\market_service.py:8:This layer does not place orders and does not perform broker
+app\markets\market_service.py:23:class MarketValidationError(MarketServiceError):
+app\markets\market_service.py:50:            raise MarketValidationError("market is required")
+app\markets\market_service.py:133:            raise MarketValidationError("market is required")
+app\markets\market_service.py:138:        """Register or replace a market context."""
+app\markets\market_service.py:140:            raise MarketValidationError(
+app\markets\market_service.py:254:            raise MarketValidationError(
+app\markets\market_service.py:345:        raise MarketValidationError(
+app\markets\market_service.py:350:        value = value.replace(tzinfo=timezone.utc)
+app\markets\market_service.py:373:                datetime.fromisoformat(text.replace("Z", "+00:00"))
+app\markets\market_service.py:376:            raise MarketValidationError(
+app\markets\market_service.py:380:    raise MarketValidationError(
+app\markets\market_service.py:410:    "MarketValidationError",
+app\markets\market_session.py:7:broker/exchange and does not place orders.
+app\markets\market_session.py:74:        current = local_time.replace(tzinfo=None)
+app\markets\market_session.py:75:        opening = self.open_time.replace(tzinfo=None)
+app\markets\market_session.py:76:        closing = self.close_time.replace(tzinfo=None)
+app\markets\market_session.py:139:    or registry layer. No external calendar or network access is
+app\markets\market_session.py:197:        """Replace the configured holiday set."""
+app\markets\market_session.py:234:        handling. The configured timezone name is retained as metadata;
+app\markets\market_session.py:348:        current = evaluated_at.time().replace(tzinfo=None)
+app\markets\market_session.py:353:            if window.open_time.replace(tzinfo=None) > current
+app\markets\market_session.py:408:        """Register or replace a market-session evaluator."""
+app\markets\market_session.py:483:        value = value.replace(tzinfo=timezone.utc)
+app\markets\market_state.py:529:        value = value.replace(tzinfo=timezone.utc)
+app\markets\market_state.py:550:                text.replace("Z", "+00:00")
+app\markets\registry\market_registry.py:30:class MarketValidationError(MarketRegistryError):
+app\markets\registry\market_registry.py:79:            raise MarketValidationError(
+app\markets\registry\market_registry.py:143:            raise MarketValidationError(
+app\markets\registry\market_registry.py:178:            raise MarketValidationError(
+app\markets\registry\market_registry.py:232:        replace: bool = False,
+app\markets\registry\market_registry.py:240:            if key in self._items and not replace:
+app\markets\registry\market_registry.py:254:        replace: bool = False,
+app\markets\registry\market_registry.py:268:                if key in self._items and not replace:
+app\markets\registry\market_registry.py:291:        replace: bool = False,
+app\markets\registry\market_registry.py:308:            replace=replace,
+app\markets\registry\market_registry.py:387:            raise MarketValidationError(
+app\markets\registry\market_registry.py:485:            raise MarketValidationError(
+app\markets\registry\market_registry.py:668:            raise MarketValidationError(
+app\markets\registry\market_registry.py:679:        raise MarketValidationError(
+app\markets\registry\market_registry.py:686:        raise MarketValidationError(
+app\markets\registry\market_registry.py:729:    replace: bool = False,
+app\markets\registry\market_registry.py:734:        replace=replace,
+app\markets\registry\market_registry.py:770:    "MarketValidationError",
+app\markets\registry\registry_loader.py:41:    replaced: int
+app\markets\registry\registry_loader.py:55:            + self.replaced
+app\markets\registry\registry_loader.py:65:            "replaced": self.replaced,
+app\markets\registry\registry_loader.py:99:        replace: bool = False,
+app\markets\registry\registry_loader.py:118:        replaced = 0
+app\markets\registry\registry_loader.py:134:                    replace=replace,
+app\markets\registry\registry_loader.py:138:                    replaced += 1
+app\markets\registry\registry_loader.py:155:            replaced=replaced,
+app\markets\registry\registry_loader.py:164:        replace: bool = False,
+app\markets\registry\registry_loader.py:171:            replace=replace,
+app\markets\registry\registry_loader.py:178:        replace: bool = False,
+app\markets\registry\registry_loader.py:225:                replace=replace,
+app\markets\registry\registry_loader.py:231:            replace=replace,
+app\markets\registry\registry_loader.py:244:        The returned result reports valid definitions as loaded and
+app\markets\registry\registry_loader.py:269:            replaced=0,
+app\markets\registry\registry_loader.py:308:                    replace=False,
+app\markets\registry\registry_loader.py:319:            replaced=0,
+app\markets\registry\registry_loader.py:388:    replace: bool = False,
+app\markets\registry\registry_loader.py:394:        replace=replace,
+app\markets\registry\registry_loader.py:402:    replace: bool = False,
+app\markets\registry\registry_loader.py:407:        replace=replace,
+app\markets\registry\venue_registry.py:285:        replace: bool = False,
+app\markets\registry\venue_registry.py:297:            if key in self._venues and not replace:
+app\markets\registry\venue_registry.py:310:        replace: bool = False,
+app\markets\registry\venue_registry.py:324:                    replace=replace,
+app\markets\registry\venue_registry.py:345:        replace: bool = False,
+app\markets\registry\venue_registry.py:365:            replace=replace,
+app\markets\registry\venue_registry.py:706:    replace: bool = False,
+app\markets\registry\venue_registry.py:711:        replace=replace,
+app\markets\registry\venue_registry.py:729:    replace: bool = False,
+app\markets\registry\venue_registry.py:745:        replace=replace,
+app\markets\venues\venue_service.py:92:        replace: bool = False,
+app\markets\venues\venue_service.py:109:                replace=replace,
+app\markets\venues\venue_service.py:120:        replace: bool = False,
+app\markets\venues\venue_service.py:126:                replace=replace,
+app\markets\venues\venue_service.py:137:        replace: bool = False,
+app\markets\venues\venue_service.py:143:                replace=replace,
+app\markets\venues\venue_service.py:413:    replace: bool = False,
+app\markets\venues\venue_service.py:429:        replace=replace,
+app\markets\venues\venue_service.py:436:    replace: bool = False,
+app\markets\venues\venue_service.py:441:        replace=replace,
+app\subscription\entitlement_service.py:9:class EvidenceSummary:
+app\subscription\entitlement_service.py:16:class EvidenceAggregator:
+app\subscription\entitlement_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\subscription\entitlement_service.py:45:        return EvidenceSummary(
+app\subscription\entitlement_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\subscription\plan_service.py:9:class EvidenceSummary:
+app\subscription\plan_service.py:16:class EvidenceAggregator:
+app\subscription\plan_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\subscription\plan_service.py:45:        return EvidenceSummary(
+app\subscription\plan_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\subscription\subscription_service.py:9:class EvidenceSummary:
+app\subscription\subscription_service.py:16:class EvidenceAggregator:
+app\subscription\subscription_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\subscription\subscription_service.py:45:        return EvidenceSummary(
+app\subscription\subscription_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\cas_status.py:9:class EvidenceSummary:
+app\terminal\cas_status.py:16:class EvidenceAggregator:
+app\terminal\cas_status.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\cas_status.py:45:        return EvidenceSummary(
+app\terminal\cas_status.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\decision_outlook.py:9:class EvidenceSummary:
+app\terminal\decision_outlook.py:16:class EvidenceAggregator:
+app\terminal\decision_outlook.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\decision_outlook.py:45:        return EvidenceSummary(
+app\terminal\decision_outlook.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\evidence_strip.py:9:class EvidenceSummary:
+app\terminal\evidence_strip.py:16:class EvidenceAggregator:
+app\terminal\evidence_strip.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\evidence_strip.py:45:        return EvidenceSummary(
+app\terminal\evidence_strip.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\intelligence_panel.py:9:class EvidenceSummary:
+app\terminal\intelligence_panel.py:16:class EvidenceAggregator:
+app\terminal\intelligence_panel.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\intelligence_panel.py:45:        return EvidenceSummary(
+app\terminal\intelligence_panel.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\market_context.py:9:class EvidenceSummary:
+app\terminal\market_context.py:16:class EvidenceAggregator:
+app\terminal\market_context.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\market_context.py:45:        return EvidenceSummary(
+app\terminal\market_context.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\risk_panel.py:9:class EvidenceSummary:
+app\terminal\risk_panel.py:16:class EvidenceAggregator:
+app\terminal\risk_panel.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\risk_panel.py:45:        return EvidenceSummary(
+app\terminal\risk_panel.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\terminal\terminal_service.py:9:class EvidenceSummary:
+app\terminal\terminal_service.py:16:class EvidenceAggregator:
+app\terminal\terminal_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\terminal\terminal_service.py:45:        return EvidenceSummary(
+app\terminal\terminal_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\account\account_page.py:9:class EvidenceSummary:
+app\ui\account\account_page.py:16:class EvidenceAggregator:
+app\ui\account\account_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\account\account_page.py:45:        return EvidenceSummary(
+app\ui\account\account_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\account\billing_page.py:9:class EvidenceSummary:
+app\ui\account\billing_page.py:16:class EvidenceAggregator:
+app\ui\account\billing_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\account\billing_page.py:45:        return EvidenceSummary(
+app\ui\account\billing_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\account\notification_page.py:9:class EvidenceSummary:
+app\ui\account\notification_page.py:16:class EvidenceAggregator:
+app\ui\account\notification_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\account\notification_page.py:45:        return EvidenceSummary(
+app\ui\account\notification_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\account\settings_page.py:9:class EvidenceSummary:
+app\ui\account\settings_page.py:16:class EvidenceAggregator:
+app\ui\account\settings_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\account\settings_page.py:45:        return EvidenceSummary(
+app\ui\account\settings_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\app.py:9:class EvidenceSummary:
+app\ui\app.py:16:class EvidenceAggregator:
+app\ui\app.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\app.py:45:        return EvidenceSummary(
+app\ui\app.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\automation\automation_page.py:9:class EvidenceSummary:
+app\ui\automation\automation_page.py:16:class EvidenceAggregator:
+app\ui\automation\automation_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\automation\automation_page.py:45:        return EvidenceSummary(
+app\ui\automation\automation_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\buyer_page.py:9:class EvidenceSummary:
+app\ui\buyer\buyer_page.py:16:class EvidenceAggregator:
+app\ui\buyer\buyer_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\buyer_page.py:45:        return EvidenceSummary(
+app\ui\buyer\buyer_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\cas_view.py:9:class EvidenceSummary:
+app\ui\buyer\cas_view.py:16:class EvidenceAggregator:
+app\ui\buyer\cas_view.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\cas_view.py:45:        return EvidenceSummary(
+app\ui\buyer\cas_view.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\contract_selector.py:9:class EvidenceSummary:
+app\ui\buyer\contract_selector.py:16:class EvidenceAggregator:
+app\ui\buyer\contract_selector.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\contract_selector.py:45:        return EvidenceSummary(
+app\ui\buyer\contract_selector.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\decision_view.py:9:class EvidenceSummary:
+app\ui\buyer\decision_view.py:16:class EvidenceAggregator:
+app\ui\buyer\decision_view.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\decision_view.py:45:        return EvidenceSummary(
+app\ui\buyer\decision_view.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\instrument_selector.py:9:class EvidenceSummary:
+app\ui\buyer\instrument_selector.py:16:class EvidenceAggregator:
+app\ui\buyer\instrument_selector.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\instrument_selector.py:45:        return EvidenceSummary(
+app\ui\buyer\instrument_selector.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\intelligence_view.py:9:class EvidenceSummary:
+app\ui\buyer\intelligence_view.py:16:class EvidenceAggregator:
+app\ui\buyer\intelligence_view.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\intelligence_view.py:45:        return EvidenceSummary(
+app\ui\buyer\intelligence_view.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\market_selector.py:9:class EvidenceSummary:
+app\ui\buyer\market_selector.py:16:class EvidenceAggregator:
+app\ui\buyer\market_selector.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\market_selector.py:45:        return EvidenceSummary(
+app\ui\buyer\market_selector.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\plus_view.py:9:class EvidenceSummary:
+app\ui\buyer\plus_view.py:16:class EvidenceAggregator:
+app\ui\buyer\plus_view.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\plus_view.py:45:        return EvidenceSummary(
+app\ui\buyer\plus_view.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\risk_view.py:9:class EvidenceSummary:
+app\ui\buyer\risk_view.py:16:class EvidenceAggregator:
+app\ui\buyer\risk_view.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\risk_view.py:45:        return EvidenceSummary(
+app\ui\buyer\risk_view.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\strategy_preview.py:9:class EvidenceSummary:
+app\ui\buyer\strategy_preview.py:16:class EvidenceAggregator:
+app\ui\buyer\strategy_preview.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\strategy_preview.py:45:        return EvidenceSummary(
+app\ui\buyer\strategy_preview.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\buyer\strategy_selector.py:9:class EvidenceSummary:
+app\ui\buyer\strategy_selector.py:16:class EvidenceAggregator:
+app\ui\buyer\strategy_selector.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\buyer\strategy_selector.py:45:        return EvidenceSummary(
+app\ui\buyer\strategy_selector.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\commodity_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\commodity_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\commodity_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\commodity_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\commodity_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\crypto_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\crypto_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\crypto_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\crypto_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\crypto_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\discovery_page.py:9:class EvidenceSummary:
+app\ui\discovery\discovery_page.py:16:class EvidenceAggregator:
+app\ui\discovery\discovery_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\discovery_page.py:45:        return EvidenceSummary(
+app\ui\discovery\discovery_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\favorites.py:9:class EvidenceSummary:
+app\ui\discovery\favorites.py:16:class EvidenceAggregator:
+app\ui\discovery\favorites.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\favorites.py:45:        return EvidenceSummary(
+app\ui\discovery\favorites.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\fx_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\fx_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\fx_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\fx_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\fx_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\index_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\index_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\index_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\index_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\index_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\stock_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\stock_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\stock_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\stock_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\stock_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\discovery\universal_scanner.py:9:class EvidenceSummary:
+app\ui\discovery\universal_scanner.py:16:class EvidenceAggregator:
+app\ui\discovery\universal_scanner.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\discovery\universal_scanner.py:45:        return EvidenceSummary(
+app\ui\discovery\universal_scanner.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\memory\memory_page.py:9:class EvidenceSummary:
+app\ui\memory\memory_page.py:16:class EvidenceAggregator:
+app\ui\memory\memory_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\memory\memory_page.py:45:        return EvidenceSummary(
+app\ui\memory\memory_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\research\research_page.py:9:class EvidenceSummary:
+app\ui\research\research_page.py:16:class EvidenceAggregator:
+app\ui\research\research_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\research\research_page.py:45:        return EvidenceSummary(
+app\ui\research\research_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\router.py:9:class EvidenceSummary:
+app\ui\router.py:16:class EvidenceAggregator:
+app\ui\router.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\router.py:45:        return EvidenceSummary(
+app\ui\router.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\ui\terminal\terminal_page.py:9:class EvidenceSummary:
+app\ui\terminal\terminal_page.py:16:class EvidenceAggregator:
+app\ui\terminal\terminal_page.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\ui\terminal\terminal_page.py:45:        return EvidenceSummary(
+app\ui\terminal\terminal_page.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\users\profile_service.py:9:class EvidenceSummary:
+app\users\profile_service.py:16:class EvidenceAggregator:
+app\users\profile_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\users\profile_service.py:45:        return EvidenceSummary(
+app\users\profile_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\users\user_service.py:9:class EvidenceSummary:
+app\users\user_service.py:16:class EvidenceAggregator:
+app\users\user_service.py:17:    def summarize(self, events: list[Any]) -> EvidenceSummary:
+app\users\user_service.py:45:        return EvidenceSummary(
+app\users\user_service.py:52:    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+app\v6_bridge\v6_blackbox_bridge.py:6:    Controlled boundary between the newly engineered V6 layer
+app\v6_bridge\v6_blackbox_bridge.py:31:    Controlled V6 interface for BlackBox event recording.
+app\v6_bridge\v6_bridge.py:5:    Provide the central compatibility boundary between the completed V6
+app\v6_bridge\v6_bridge.py:40:    Configuration for the V6 compatibility boundary.
+app\v6_bridge\v6_bridge.py:108:        - Order placement.
+app\v6_bridge\v6_bridge.py:486:        Set an optional application-owned translation handler.
+app\v6_bridge\v6_bridge.py:506:        No handler means the translated result is returned directly.
+app\v6_bridge\v6_bridge.py:621:            return value.replace(
+app\v6_bridge\v6_bridge.py:641:                text.replace("Z", "+00:00")
+app\v6_bridge\v6_compatibility.py:6:Provides a controlled compatibility boundary around the completed V6 engine.
+app\v6_bridge\v6_compatibility.py:18:This module is intentionally lightweight and self-contained.
+app\v6_bridge\v6_compatibility.py:59:    Standard result returned by compatibility checks.
+app\v6_bridge\v6_compatibility.py:386:# Required Interface Checks
+app\v6_bridge\v6_mapper.py:7:at the V6 bridge boundary.
+app\v6_bridge\v6_mapper.py:484:        only a defined subset of fields.
+app\v6_bridge\v6_normalizer.py:6:Normalizes legacy/current V6 runtime objects at the V6 bridge boundary.
+app\v6_bridge\v6_normalizer.py:120:    """Result returned by a V6 normalization operation."""
+app\v6_bridge\v6_normalizer.py:538:            cleaned = value.strip()
+app\v6_bridge\v6_normalizer.py:540:            if not cleaned:
+app\v6_bridge\v6_normalizer.py:541:                return cleaned
+app\v6_bridge\v6_normalizer.py:544:                if "." in cleaned:
+app\v6_bridge\v6_normalizer.py:545:                    return float(cleaned)
+app\v6_bridge\v6_normalizer.py:547:                return int(cleaned)
+app\v6_bridge\v6_normalizer.py:550:                return cleaned
+app\v6_bridge\__init__.py:4:Compatibility and integration boundary for the completed V6 engine.

@@ -1,0 +1,193 @@
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from typing import Any, Mapping
+
+from schemas.market.market_snapshot import MarketSnapshot
+
+class AdapterBase(ABC):
+"""
+ROBOMLM canonical market-data adapter boundary.
+
+```
+Responsibility:
+
+    External provider/source
+        -> raw provider data
+        -> adapter normalization
+        -> Canonical Market Snapshot
+
+AdapterBase is intelligence-neutral.
+
+The adapter layer MUST NOT produce:
+
+    - BUY / SELL decisions
+    - signals
+    - rankings
+    - opportunities
+    - verdicts
+    - recommendations
+    - risk decisions
+    - CAS decisions
+
+The canonical output of market-data adapters is MarketSnapshot.
+"""
+
+ADAPTER_TYPE = "market_data"
+CANONICAL_OUTPUT = MarketSnapshot
+
+@property
+@abstractmethod
+def provider_name(self) -> str:
+    """
+    Return the external provider/source name.
+    """
+    raise NotImplementedError
+
+@abstractmethod
+def get_market_snapshot(
+    self,
+    symbol: str,
+    *,
+    metadata: Mapping[str, Any] | None = None,
+) -> MarketSnapshot:
+    """
+    Retrieve and normalize one market observation.
+
+    Implementations must:
+
+        1. access the external source,
+        2. retrieve raw market data,
+        3. normalize provider-specific fields,
+        4. construct a canonical MarketSnapshot,
+        5. return that snapshot.
+
+    Implementations must not perform downstream intelligence.
+    """
+    raise NotImplementedError
+
+@abstractmethod
+def connect(self) -> None:
+    """
+    Establish or validate the provider data connection.
+
+    Connection handling belongs to the adapter/provider boundary.
+    """
+    raise NotImplementedError
+
+@abstractmethod
+def close(self) -> None:
+    """
+    Release provider resources held by the adapter.
+    """
+    raise NotImplementedError
+
+@abstractmethod
+def is_connected(self) -> bool:
+    """
+    Report whether the adapter currently has a usable
+    provider connection.
+
+    This represents connection state only.
+
+    It is NOT:
+        - a market-quality score,
+        - an intelligence score,
+        - a confidence score,
+        - a decision.
+    """
+    raise NotImplementedError
+
+def adapter_identity(self) -> dict[str, str]:
+    """
+    Return structural adapter identity.
+
+    This method describes the adapter itself.
+    It does not evaluate market conditions.
+    """
+    return {
+        "adapter_type": self.ADAPTER_TYPE,
+        "provider": self.provider_name,
+        "canonical_output": self.CANONICAL_OUTPUT.__name__,
+    }
+
+def canonical_output_type(self) -> type[MarketSnapshot]:
+    """
+    Return the canonical output contract used by this adapter.
+
+    Every market-data adapter must terminate at the
+    canonical MarketSnapshot boundary before downstream
+    processing begins.
+    """
+    return self.CANONICAL_OUTPUT
+
+def validate_canonical_output(
+    self,
+    snapshot: MarketSnapshot,
+) -> MarketSnapshot:
+    """
+    Validate the adapter boundary output.
+
+    Only MarketSnapshot is permitted to leave the
+    market-data adapter boundary.
+
+    This validation does not create intelligence,
+    ranking, opportunity, signal, verdict, or decision.
+    """
+    if not isinstance(snapshot, self.CANONICAL_OUTPUT):
+        raise TypeError(
+            "Adapter output must be a MarketSnapshot"
+        )
+
+    return snapshot
+```
+    @abstractmethod
+    def fetch_raw_market_data(
+        self,
+        symbol: str,
+    ) -> Mapping[str, Any]:
+        """
+        Retrieve raw provider market data.
+
+        This method represents the provider-facing boundary.
+
+        Implementations may:
+            - call provider SDKs,
+            - call provider HTTP APIs,
+            - retrieve provider-native market fields.
+
+        Implementations must NOT:
+            - calculate trading signals,
+            - rank instruments,
+            - create opportunities,
+            - produce BUY/SELL decisions,
+            - produce verdicts,
+            - perform CAS decisions,
+            - perform risk decisions.
+
+        The returned mapping is provider-native/raw data.
+        Canonical normalization occurs downstream inside the
+        concrete adapter implementation.
+        """
+        raise NotImplementedError
+
+    def ensure_raw_mapping(
+        self,
+        raw_data: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        """
+        Validate the raw provider-data boundary.
+
+        Raw provider data must remain a mapping until the concrete
+        adapter converts it into MarketSnapshot.
+        """
+        if not isinstance(raw_data, Mapping):
+            raise TypeError(
+                "Raw adapter data must implement Mapping"
+            )
+
+        return raw_data
+
+**all** = [
+"AdapterBase",
+]

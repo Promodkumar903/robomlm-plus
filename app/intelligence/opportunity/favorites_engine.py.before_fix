@@ -1,0 +1,657 @@
+"""
+ROBOMLM_PLUS - Favorites Engine
+Role: Favorite/watchlist state management only.
+No market intelligence. No scoring. No decision.
+"""
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, Iterable, Optional, Tuple
+
+
+class FavoriteStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+
+
+class FavoriteSource(str, Enum):
+    USER = "USER"
+    SYSTEM = "SYSTEM"
+    IMPORT = "IMPORT"
+
+
+@dataclass(frozen=True)
+class FavoriteItem:
+    instrument_id: str
+    symbol: str = ""
+    market: str = ""
+    exchange: str = ""
+    status: FavoriteStatus = FavoriteStatus.ACTIVE
+    source: FavoriteSource = FavoriteSource.USER
+    priority: int = 0
+    tags: Tuple[str, ...] = field(default_factory=tuple)
+    note: str = ""
+    added_at: str = ""
+    updated_at: str = ""
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class FavoritesSnapshot:
+    items: Tuple[FavoriteItem, ...]
+    total: int
+    active_count: int
+    inactive_count: int
+    generated_at: str
+
+
+@dataclass(frozen=True)
+class FavoritesResult:
+    success: bool
+    operation: str
+    message: str
+    snapshot: FavoritesSnapshot
+
+
+@dataclass(frozen=True)
+class FavoritesPolicy:
+    max_favorites: int = 500
+    min_priority: int = -100
+    max_priority: int = 100
+    max_tags: int = 20
+
+
+class FavoritesEngine:
+    """
+    Favorites registry.
+
+    This engine does NOT create:
+        - signals
+        - scores
+        - confidence
+        - risk decisions
+        - trade thesis
+        - D13 decisions
+    """
+
+    ENGINE_NAME = "FavoritesEngine"
+    ENGINE_VERSION = "1.0.0"
+
+    def __init__(
+        self,
+        policy: Optional[FavoritesPolicy] = None,
+    ):
+        self.policy = policy or FavoritesPolicy()
+        self._items: Dict[str, FavoriteItem] = {}
+
+    @staticmethod
+    def _now() -> str:
+        return datetime.now(timezone.utc).isoformat()
+
+    @staticmethod
+    def _clean(value: Any) -> str:
+        return str(value).strip() if value is not None else ""
+
+    def add(
+        self,
+        instrument_id: str,
+        symbol: str = "",
+        market: str = "",
+        exchange: str = "",
+        priority: int = 0,
+        tags: Optional[Iterable[str]] = None,
+        note: str = "",
+        source: FavoriteSource = FavoriteSource.USER,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> FavoritesResult:
+
+        instrument_id = self._clean(instrument_id)
+
+        if not instrument_id:
+            return self._result(
+                "ADD",
+                False,
+                "instrument_id is required",
+            )
+
+        if instrument_id in self._items:
+            return self._result(
+                "ADD",
+                False,
+                "Instrument already exists in favorites",
+            )
+
+        if len(self._items) >= self.policy.max_favorites:
+            return self._result(
+                "ADD",
+                False,
+                "Maximum favorites limit reached",
+            )
+
+        now = self._now()
+
+        priority = max(
+            self.policy.min_priority,
+            min(self.policy.max_priority, int(priority)),
+        )
+
+        clean_tags = tuple(
+            dict.fromkeys(
+                self._clean(tag)
+                for tag in (tags or [])
+                if self._clean(tag)
+            )
+        )[: self.policy.max_tags]
+
+        item = FavoriteItem(
+            instrument_id=instrument_id,
+            symbol=self._clean(symbol),
+            market=self._clean(market),
+            exchange=self._clean(exchange),
+            priority=priority,
+            tags=clean_tags,
+            note=self._clean(note),
+            source=source,
+            added_at=now,
+            updated_at=now,
+            metadata=dict(metadata or {}),
+        )
+
+        self._items[instrument_id] = item
+
+        return self._result(
+            "ADD",
+            True,
+            "Favorite added",
+        )
+
+    def remove(
+        self,
+        instrument_id: str,
+    ) -> FavoritesResult:
+
+        instrument_id = self._clean(instrument_id)
+
+        if instrument_id not in self._items:
+            return self._result(
+                "REMOVE",
+                False,
+                "Favorite not found",
+            )
+
+        del self._items[instrument_id]
+
+        return self._result(
+            "REMOVE",
+            True,
+            "Favorite removed",
+        )
+
+    def contains(
+        self,
+        instrument_id: str,
+        active_only: bool = True,
+    ) -> bool:
+
+        item = self._items.get(self._clean(instrument_id))
+
+        if item is None:
+            return False
+
+        if active_only:
+            return item.status == FavoriteStatus.ACTIVE
+
+        return True
+
+    def get(
+        self,
+        instrument_id: str,
+    ) -> Optional[FavoriteItem]:
+
+        return self._items.get(
+            self._clean(instrument_id)
+        )
+
+    def snapshot(
+        self,
+        active_only: bool = False,
+    ) -> FavoritesSnapshot:
+
+        items = list(self._items.values())
+
+        if active_only:
+            items = [
+                item for item in items
+                if item.status == FavoriteStatus.ACTIVE
+            ]
+
+        items.sort(
+            key=lambda item: (
+                -item.priority,
+                item.symbol.lower(),
+                item.instrument_id.lower(),
+            )
+        )
+
+        active = sum(
+            item.status == FavoriteStatus.ACTIVE
+            for item in self._items.values()
+        )
+
+        return FavoritesSnapshot(
+            items=tuple(items),
+            total=len(items),
+            active_count=active,
+            inactive_count=len(self._items) - active,
+            generated_at=self._now(),
+        )
+
+    def _result(
+        self,
+        operation: str,
+        success: bool,
+        message: str,
+    ) -> FavoritesResult:
+
+        return FavoritesResult(
+            success=success,
+            operation=operation,
+            message=message,
+            snapshot=self.snapshot(),
+        )
+
+
+def create_favorites_engine(
+    policy: Optional[FavoritesPolicy] = None,
+) -> FavoritesEngine:
+    return FavoritesEngine(policy=policy)
+
+
+__all__ = [
+    "FavoriteStatus",
+    "FavoriteSource",
+    "FavoriteItem",
+    "FavoritesSnapshot",
+    "FavoritesResult",
+    "FavoritesPolicy",
+    "FavoritesEngine",
+    "create_favorites_engine",
+]
+    def update(
+        self,
+        instrument_id: str,
+        symbol: Optional[str] = None,
+        market: Optional[str] = None,
+        exchange: Optional[str] = None,
+        priority: Optional[int] = None,
+        tags: Optional[Iterable[str]] = None,
+        note: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> FavoritesResult:
+
+        instrument_id = self._clean(instrument_id)
+        item = self._items.get(instrument_id)
+
+        if item is None:
+            return self._result(
+                "UPDATE",
+                False,
+                "Favorite not found",
+            )
+
+        now = self._now()
+
+        new_priority = item.priority
+
+        if priority is not None:
+            new_priority = max(
+                self.policy.min_priority,
+                min(self.policy.max_priority, int(priority)),
+            )
+
+        new_tags = item.tags
+
+        if tags is not None:
+            new_tags = tuple(
+                dict.fromkeys(
+                    self._clean(tag)
+                    for tag in tags
+                    if self._clean(tag)
+                )
+            )[: self.policy.max_tags]
+
+        self._items[instrument_id] = FavoriteItem(
+            instrument_id=item.instrument_id,
+            symbol=item.symbol if symbol is None else self._clean(symbol),
+            market=item.market if market is None else self._clean(market),
+            exchange=(
+                item.exchange
+                if exchange is None
+                else self._clean(exchange)
+            ),
+            status=item.status,
+            source=item.source,
+            priority=new_priority,
+            tags=new_tags,
+            note=item.note if note is None else self._clean(note),
+            added_at=item.added_at,
+            updated_at=now,
+            metadata=(
+                item.metadata
+                if metadata is None
+                else dict(metadata)
+            ),
+        )
+
+        return self._result(
+            "UPDATE",
+            True,
+            "Favorite updated",
+        )
+
+    def activate(
+        self,
+        instrument_id: str,
+    ) -> FavoritesResult:
+
+        return self._change_status(
+            instrument_id,
+            FavoriteStatus.ACTIVE,
+        )
+
+    def deactivate(
+        self,
+        instrument_id: str,
+    ) -> FavoritesResult:
+
+        return self._change_status(
+            instrument_id,
+            FavoriteStatus.INACTIVE,
+        )
+
+    def _change_status(
+        self,
+        instrument_id: str,
+        status: FavoriteStatus,
+    ) -> FavoritesResult:
+
+        instrument_id = self._clean(instrument_id)
+        item = self._items.get(instrument_id)
+
+        if item is None:
+            return self._result(
+                "STATUS",
+                False,
+                "Favorite not found",
+            )
+
+        self._items[instrument_id] = FavoriteItem(
+            instrument_id=item.instrument_id,
+            symbol=item.symbol,
+            market=item.market,
+            exchange=item.exchange,
+            status=status,
+            source=item.source,
+            priority=item.priority,
+            tags=item.tags,
+            note=item.note,
+            added_at=item.added_at,
+            updated_at=self._now(),
+            metadata=item.metadata,
+        )
+
+        return self._result(
+            "STATUS",
+            True,
+            f"Favorite {status.value.lower()}",
+        )
+
+    def list(
+        self,
+        active_only: bool = True,
+        market: Optional[str] = None,
+        tag: Optional[str] = None,
+        limit: Optional[int] = None,
+    ) -> Tuple[FavoriteItem, ...]:
+
+        items = list(self._items.values())
+
+        if active_only:
+            items = [
+                item for item in items
+                if item.status == FavoriteStatus.ACTIVE
+            ]
+
+        if market:
+            market = self._clean(market).lower()
+            items = [
+                item for item in items
+                if item.market.lower() == market
+            ]
+
+        if tag:
+            tag = self._clean(tag).lower()
+            items = [
+                item for item in items
+                if tag in {
+                    value.lower()
+                    for value in item.tags
+                }
+            ]
+
+        items.sort(
+            key=lambda item: (
+                -item.priority,
+                item.symbol.lower(),
+                item.instrument_id.lower(),
+            )
+        )
+
+        if limit is not None:
+            items = items[:max(0, int(limit))]
+
+        return tuple(items)
+    def add_many(
+        self,
+        items: Iterable[Dict[str, Any]],
+    ) -> Tuple[FavoritesResult, ...]:
+
+        results = []
+
+        for data in items:
+            results.append(
+                self.add(
+                    instrument_id=data.get("instrument_id", ""),
+                    symbol=data.get("symbol", ""),
+                    market=data.get("market", ""),
+                    exchange=data.get("exchange", ""),
+                    priority=data.get("priority", 0),
+                    tags=data.get("tags"),
+                    note=data.get("note", ""),
+                    source=data.get(
+                        "source",
+                        FavoriteSource.USER,
+                    ),
+                    metadata=data.get("metadata"),
+                )
+            )
+
+        return tuple(results)
+
+    def remove_many(
+        self,
+        instrument_ids: Iterable[str],
+    ) -> Tuple[FavoritesResult, ...]:
+
+        return tuple(
+            self.remove(instrument_id)
+            for instrument_id in instrument_ids
+        )
+
+    def clear(
+        self,
+        active_only: bool = False,
+    ) -> FavoritesResult:
+
+        if active_only:
+            ids = [
+                item.instrument_id
+                for item in self._items.values()
+                if item.status == FavoriteStatus.ACTIVE
+            ]
+
+            for instrument_id in ids:
+                del self._items[instrument_id]
+
+        else:
+            self._items.clear()
+
+        return self._result(
+            "CLEAR",
+            True,
+            "Favorites cleared",
+        )
+
+    def validate(self) -> Tuple[str, ...]:
+
+        errors = []
+
+        if len(self._items) > self.policy.max_favorites:
+            errors.append("MAX_FAVORITES_EXCEEDED")
+
+        for instrument_id, item in self._items.items():
+
+            if not instrument_id:
+                errors.append("EMPTY_INSTRUMENT_ID")
+
+            if item.instrument_id != instrument_id:
+                errors.append("IDENTITY_MISMATCH")
+
+            if not (
+                self.policy.min_priority
+                <= item.priority
+                <= self.policy.max_priority
+            ):
+                errors.append("INVALID_PRIORITY")
+
+            if len(item.tags) > self.policy.max_tags:
+                errors.append("TAG_LIMIT_EXCEEDED")
+
+        return tuple(dict.fromkeys(errors))
+
+    def stats(self) -> Dict[str, Any]:
+
+        active = sum(
+            item.status == FavoriteStatus.ACTIVE
+            for item in self._items.values()
+        )
+
+        inactive = len(self._items) - active
+
+        markets = {}
+
+        for item in self._items.values():
+            market = item.market or "UNKNOWN"
+            markets[market] = markets.get(market, 0) + 1
+
+        return {
+            "total": len(self._items),
+            "active": active,
+            "inactive": inactive,
+            "markets": markets,
+            "validation_errors": list(self.validate()),
+        }
+
+    def export_state(self) -> Dict[str, Any]:
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "items": [
+                {
+                    "instrument_id": item.instrument_id,
+                    "symbol": item.symbol,
+                    "market": item.market,
+                    "exchange": item.exchange,
+                    "status": item.status.value,
+                    "source": item.source.value,
+                    "priority": item.priority,
+                    "tags": list(item.tags),
+                    "note": item.note,
+                    "added_at": item.added_at,
+                    "updated_at": item.updated_at,
+                    "metadata": item.metadata,
+                }
+                for item in self._items.values()
+            ],
+        }
+
+    @classmethod
+    def from_state(
+        cls,
+        state: Dict[str, Any],
+        policy: Optional[FavoritesPolicy] = None,
+    ) -> "FavoritesEngine":
+
+        engine = cls(policy=policy)
+
+        for data in state.get("items", []):
+
+            try:
+                status = FavoriteStatus(
+                    data.get(
+                        "status",
+                        FavoriteStatus.ACTIVE.value,
+                    )
+                )
+            except ValueError:
+                status = FavoriteStatus.ACTIVE
+
+            try:
+                source = FavoriteSource(
+                    data.get(
+                        "source",
+                        FavoriteSource.USER.value,
+                    )
+                )
+            except ValueError:
+                source = FavoriteSource.USER
+
+            item = FavoriteItem(
+                instrument_id=str(
+                    data.get("instrument_id", "")
+                ).strip(),
+                symbol=str(
+                    data.get("symbol", "")
+                ).strip(),
+                market=str(
+                    data.get("market", "")
+                ).strip(),
+                exchange=str(
+                    data.get("exchange", "")
+                ).strip(),
+                status=status,
+                source=source,
+                priority=int(
+                    data.get("priority", 0)
+                ),
+                tags=tuple(data.get("tags", [])),
+                note=str(
+                    data.get("note", "")
+                ),
+                added_at=str(
+                    data.get("added_at", "")
+                ),
+                updated_at=str(
+                    data.get("updated_at", "")
+                ),
+                metadata=dict(
+                    data.get("metadata", {})
+                ),
+            )
+
+            if item.instrument_id:
+                engine._items[item.instrument_id] = item
+
+        return engine

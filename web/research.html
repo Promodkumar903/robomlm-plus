@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBOMLM — Research</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <div class="brand-name">ROBOMLM</div>
+          <div class="brand-tag">Intelligence OS</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="/terminal"><span class="nav-icon">⌂</span> Terminal</a>
+        <a class="nav-item" href="/discovery"><span class="nav-icon">⌕</span> Discovery</a>
+        <a class="nav-item" href="/memory"><span class="nav-icon">◈</span> Memory</a>
+        <a class="nav-item active" href="/research"><span class="nav-icon">⌘</span> Research</a>
+        <a class="nav-item" href="/automation"><span class="nav-icon">⚙</span> Automation</a>
+        <a class="nav-item" href="/account"><span class="nav-icon">◎</span> Account</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>v0.1 · Presentation Layer</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title"><span class="title-icon">⌘</span> Research Lab</div>
+          <div class="page-sub">9 Equations · RSE Cycle · Audit Trail · Per-Market Validation</div>
+        </div>
+      </div>
+
+      <!-- Row 1: Overall stats -->
+      <div class="grid grid-4" id="stats"></div>
+
+      <!-- Row 2: Equations -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">📐</span> Equation Health (EQ-0001 → EQ-0009)</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Type</th>
+              <th>Status</th><th>Pass Rate</th>
+            </tr>
+          </thead>
+          <tbody id="eq-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Row 3: Per-market -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">🌍</span> Per-Market Validation</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Market</th><th>Symbols</th><th>Pass Rate</th><th>Status</th></tr>
+          </thead>
+          <tbody id="market-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Row 4: RSE Cycle -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">🔬</span> RSE Cycle (Reverse Scientific Engineering)</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Cycle</th><th>Phase</th><th>Issue</th><th>Action</th><th>Result</th></tr>
+          </thead>
+          <tbody id="rse-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Row 5: Audit Trail -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">✅</span> Audit Trail (AUD-01 → AUD-07)</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>ID</th><th>Issue</th><th>Fix</th><th>Status</th></tr>
+          </thead>
+          <tbody id="aud-body"></tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/research.js"></script>
+</body>
+</html>

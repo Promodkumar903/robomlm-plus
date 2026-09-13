@@ -1,0 +1,2397 @@
+# ============================================================
+# ROBOMLM PLUS — Position Monitor
+# Part 1/5 — Foundation + Contracts
+# ============================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Mapping, Optional
+from uuid import uuid4
+
+
+# ============================================================
+# Module Identity
+# ============================================================
+
+POSITION_MONITOR_ENGINE = "ROBOMLM_PLUS_POSITION_MONITOR"
+POSITION_MONITOR_VERSION = "1.0"
+
+
+# ============================================================
+# Status Enums
+# ============================================================
+
+class PositionMonitorStatus(str, Enum):
+    READY = "READY"
+    MONITORING = "MONITORING"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+class PositionState(str, Enum):
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+    PARTIAL = "PARTIAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class PositionHealth(str, Enum):
+    HEALTHY = "HEALTHY"
+    CAUTION = "CAUTION"
+    AT_RISK = "AT_RISK"
+    CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class MonitorDisposition(str, Enum):
+    CONTINUE = "CONTINUE"
+    PROTECT = "PROTECT"
+    REVIEW = "REVIEW"
+    HALT = "HALT"
+    UNKNOWN = "UNKNOWN"
+
+
+class MonitorContractStatus(str, Enum):
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# Request Contract
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionMonitorRequest:
+    """
+    Input contract for position monitoring.
+
+    The monitor observes an already-existing position and
+    surrounding state. It does not create a position.
+    """
+
+    position: Any
+    market_context: Optional[Any] = None
+    risk_state: Optional[Any] = None
+    decision_state: Optional[Any] = None
+    account_state: Optional[Any] = None
+
+    metadata: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+    request_id: str = field(
+        default_factory=lambda: str(uuid4())
+    )
+
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def validate(self) -> tuple[str, ...]:
+
+        errors = []
+
+        if self.position is None:
+            errors.append("position is required")
+
+        if not self.request_id:
+            errors.append("request_id is required")
+
+        if not isinstance(self.metadata, Mapping):
+            errors.append("metadata must be a Mapping")
+
+        return tuple(errors)
+
+
+# ============================================================
+# Position Reference
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionReference:
+    """
+    Normalized observation of the monitored position.
+
+    Values are read from supplied position data.
+    No trading value is invented here.
+    """
+
+    position_id: Optional[str]
+    instrument: Optional[str]
+    side: Optional[str]
+
+    state: PositionState
+
+    quantity: Optional[float]
+    entry_price: Optional[float]
+    current_price: Optional[float]
+
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+
+    unrealized_pnl: Optional[float]
+    realized_pnl: Optional[float]
+
+    leverage: Optional[float]
+    margin: Optional[float]
+
+    source: str = "POSITION"
+
+
+# ============================================================
+# Market Reference
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionMarketReference:
+
+    instrument: Optional[str]
+    current_price: Optional[float]
+    market_state: Optional[str]
+    volatility: Optional[float]
+    liquidity: Optional[float]
+
+    raw_context: Any = None
+    source: str = "MARKET_CONTEXT"
+
+
+# ============================================================
+# Risk Reference
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionRiskReference:
+
+    risk_id: Optional[str]
+    status: Optional[str]
+    risk_score: Optional[float]
+    exposure: Optional[float]
+    severity: Optional[str]
+
+    raw_result: Any = None
+    source: str = "RISK"
+
+
+# ============================================================
+# Decision Reference
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionDecisionReference:
+
+    decision_id: Optional[str]
+    direction: Optional[str]
+    status: Optional[str]
+    confidence: Optional[float]
+    strength: Optional[float]
+
+    raw_decision: Any = None
+    source: str = "D13"
+
+
+# ============================================================
+# Account Reference
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionAccountReference:
+
+    account_id: Optional[str]
+    balance: Optional[float]
+    equity: Optional[float]
+    available_margin: Optional[float]
+    currency: Optional[str]
+
+    raw_account: Any = None
+    source: str = "ACCOUNT"
+
+
+# ============================================================
+# Contract Validation
+# ============================================================
+
+@dataclass(frozen=True)
+class PositionMonitorContractValidation:
+
+    status: MonitorContractStatus
+    errors: tuple[str, ...] = ()
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status is MonitorContractStatus.VALID
+
+
+# ============================================================
+# Generic Safe Reader
+# ============================================================
+
+def _pm_read_value(
+    source: Any,
+    *names: str,
+    default: Any = None,
+) -> Any:
+
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        for name in names:
+            if name in source:
+                return source[name]
+
+    for name in names:
+        try:
+            value = getattr(
+                source,
+                name,
+            )
+        except Exception:
+            continue
+
+        if value is not None:
+            return value
+
+    return default
+
+
+# ============================================================
+# Safe Numeric Reader
+# ============================================================
+
+def _pm_float(
+    value: Any,
+) -> Optional[float]:
+
+    if value is None:
+        return None
+
+    if isinstance(value, bool):
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+# ============================================================
+# Position State Normalization
+# ============================================================
+
+def _pm_position_state(
+    source: Any,
+) -> PositionState:
+
+    raw = _pm_read_value(
+        source,
+        "state",
+        "position_state",
+        "positionState",
+        "status",
+        default=None,
+    )
+
+    if raw is None:
+        return PositionState.UNKNOWN
+
+    text = str(raw).strip().upper()
+
+    if text in {
+        "OPEN",
+        "ACTIVE",
+        "RUNNING",
+    }:
+        return PositionState.OPEN
+
+    if text in {
+        "CLOSED",
+        "EXITED",
+        "FLAT",
+    }:
+        return PositionState.CLOSED
+
+    if text in {
+        "PARTIAL",
+        "PARTIALLY_CLOSED",
+    }:
+        return PositionState.PARTIAL
+
+    return PositionState.UNKNOWN
+
+
+# ============================================================
+# Position Adapter
+# ============================================================
+
+def build_position_reference(
+    position: Any,
+) -> PositionReference:
+
+    return PositionReference(
+        position_id=_pm_read_value(
+            position,
+            "position_id",
+            "positionId",
+            "id",
+        ),
+
+        instrument=_pm_read_value(
+            position,
+            "instrument",
+            "symbol",
+            "security",
+        ),
+
+        side=_pm_read_value(
+            position,
+            "side",
+            "direction",
+            "position_side",
+        ),
+
+        state=_pm_position_state(position),
+
+        quantity=_pm_float(
+            _pm_read_value(
+                position,
+                "quantity",
+                "qty",
+                "size",
+            )
+        ),
+
+        entry_price=_pm_float(
+            _pm_read_value(
+                position,
+                "entry_price",
+                "entryPrice",
+                "average_price",
+                "avg_price",
+            )
+        ),
+
+        current_price=_pm_float(
+            _pm_read_value(
+                position,
+                "current_price",
+                "currentPrice",
+                "mark_price",
+                "markPrice",
+            )
+        ),
+
+        stop_loss=_pm_float(
+            _pm_read_value(
+                position,
+                "stop_loss",
+                "stopLoss",
+                "sl",
+            )
+        ),
+
+        take_profit=_pm_float(
+            _pm_read_value(
+                position,
+                "take_profit",
+                "takeProfit",
+                "tp",
+            )
+        ),
+
+        unrealized_pnl=_pm_float(
+            _pm_read_value(
+                position,
+                "unrealized_pnl",
+                "unrealizedPnl",
+                "u_pnl",
+            )
+        ),
+
+        realized_pnl=_pm_float(
+            _pm_read_value(
+                position,
+                "realized_pnl",
+                "realizedPnl",
+                "r_pnl",
+            )
+        ),
+
+        leverage=_pm_float(
+            _pm_read_value(
+                position,
+                "leverage",
+            )
+        ),
+
+        margin=_pm_float(
+            _pm_read_value(
+                position,
+                "margin",
+                "used_margin",
+                "usedMargin",
+            )
+        ),
+
+        source="POSITION",
+    )
+
+
+# ============================================================
+# Market Adapter
+# ============================================================
+
+def build_position_market_reference(
+    market_context: Any,
+) -> PositionMarketReference:
+
+    return PositionMarketReference(
+        instrument=_pm_read_value(
+            market_context,
+            "instrument",
+            "symbol",
+            "security",
+        ),
+
+        current_price=_pm_float(
+            _pm_read_value(
+                market_context,
+                "current_price",
+                "currentPrice",
+                "ltp",
+                "last_price",
+                "mark_price",
+            )
+        ),
+
+        market_state=_pm_read_value(
+            market_context,
+            "market_state",
+            "marketState",
+            "state",
+            "regime",
+        ),
+
+        volatility=_pm_float(
+            _pm_read_value(
+                market_context,
+                "volatility",
+                "vol",
+                "atr",
+            )
+        ),
+
+        liquidity=_pm_float(
+            _pm_read_value(
+                market_context,
+                "liquidity",
+                "liquidity_score",
+            )
+        ),
+
+        raw_context=market_context,
+        source="MARKET_CONTEXT",
+    )
+
+
+# ============================================================
+# Risk Adapter
+# ============================================================
+
+def build_position_risk_reference(
+    risk_state: Any,
+) -> PositionRiskReference:
+
+    return PositionRiskReference(
+        risk_id=_pm_read_value(
+            risk_state,
+            "risk_id",
+            "riskId",
+            "id",
+        ),
+
+        status=_pm_read_value(
+            risk_state,
+            "status",
+            "risk_status",
+        ),
+
+        risk_score=_pm_float(
+            _pm_read_value(
+                risk_state,
+                "risk_score",
+                "riskScore",
+            )
+        ),
+
+        exposure=_pm_float(
+            _pm_read_value(
+                risk_state,
+                "exposure",
+                "position_exposure",
+            )
+        ),
+
+        severity=_pm_read_value(
+            risk_state,
+            "severity",
+            "risk_severity",
+        ),
+
+        raw_result=risk_state,
+        source="RISK",
+    )
+
+
+# ============================================================
+# Decision Adapter
+# ============================================================
+
+def build_position_decision_reference(
+    decision_state: Any,
+) -> PositionDecisionReference:
+
+    return PositionDecisionReference(
+        decision_id=_pm_read_value(
+            decision_state,
+            "decision_id",
+            "decisionId",
+            "id",
+        ),
+
+        direction=_pm_read_value(
+            decision_state,
+            "direction",
+            "decision",
+            "intent",
+        ),
+
+        status=_pm_read_value(
+            decision_state,
+            "status",
+            "decision_status",
+        ),
+
+        confidence=_pm_float(
+            _pm_read_value(
+                decision_state,
+                "confidence",
+            )
+        ),
+
+        strength=_pm_float(
+            _pm_read_value(
+                decision_state,
+                "strength",
+            )
+        ),
+
+        raw_decision=decision_state,
+        source="D13",
+    )
+
+
+# ============================================================
+# Request Validation Helper
+# ============================================================
+
+def validate_position_monitor_request(
+    request: PositionMonitorRequest,
+) -> PositionMonitorContractValidation:
+
+    if request is None:
+        return PositionMonitorContractValidation(
+            status=MonitorContractStatus.INVALID,
+            errors=("request is None",),
+        )
+
+    try:
+        errors = request.validate()
+    except Exception as exc:
+        return PositionMonitorContractValidation(
+            status=MonitorContractStatus.INVALID,
+            errors=(f"validation error: {exc}",),
+        )
+
+    return PositionMonitorContractValidation(
+        status=(
+            MonitorContractStatus.INVALID
+            if errors
+            else MonitorContractStatus.VALID
+        ),
+        errors=tuple(errors),
+    )
+# ============================================================
+# PART 2/5 — MONITORING INTELLIGENCE + ASSESSMENT
+# ============================================================
+
+class MonitorConsistency(str, Enum):
+    CONSISTENT = "CONSISTENT"
+    CONFLICTING = "CONFLICTING"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+class MonitorDataState(str, Enum):
+    COMPLETE = "COMPLETE"
+    PARTIAL = "PARTIAL"
+    MISSING = "MISSING"
+
+
+@dataclass(frozen=True)
+class PositionMonitorIntelligence:
+    """
+    Observation state produced by Position Monitor.
+
+    This describes the monitored position condition.
+    It does not create a new trading decision.
+    """
+
+    consistency: MonitorConsistency
+    data_state: MonitorDataState
+    health: PositionHealth
+    disposition: MonitorDisposition
+
+    position_state: PositionState
+    direction: Optional[str]
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    source: str = "ROBOMLM_PLUS"
+
+
+@dataclass(frozen=True)
+class PositionMonitorRequirements:
+
+    position_available: bool
+    instrument_available: bool
+    state_available: bool
+    quantity_available: bool
+    entry_price_available: bool
+    current_price_available: bool
+
+    market_context_available: bool
+    risk_context_available: bool
+    decision_context_available: bool
+    account_context_available: bool
+
+    price_consistent: bool = False
+    identity_consistent: bool = False
+
+
+@dataclass(frozen=True)
+class PositionMonitorAssessment:
+
+    intelligence: PositionMonitorIntelligence
+
+    requirements: PositionMonitorRequirements
+
+    position: PositionReference
+    market: PositionMarketReference
+    risk: PositionRiskReference
+    decision: PositionDecisionReference
+
+    account: Optional[PositionAccountReference] = None
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+
+# ============================================================
+# Status Helpers
+# ============================================================
+
+def _pm_text(value: Any) -> str:
+    if value is None:
+        return ""
+    return str(value).strip().upper()
+
+
+def _pm_status_is_blocking(value: Any) -> bool:
+
+    return _pm_text(value) in {
+        "BLOCKED",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "INVALID",
+        "UNSAFE",
+        "CRITICAL",
+        "HALTED",
+        "STOPPED",
+    }
+
+
+def _pm_status_is_unknown(value: Any) -> bool:
+
+    return _pm_text(value) in {
+        "",
+        "UNKNOWN",
+        "UNSPECIFIED",
+        "N/A",
+        "NA",
+        "NONE",
+        "NULL",
+    }
+
+
+# ============================================================
+# Account Adapter
+# ============================================================
+
+def build_position_account_reference(
+    account_state: Any,
+) -> PositionAccountReference:
+
+    return PositionAccountReference(
+        account_id=_pm_read_value(
+            account_state,
+            "account_id",
+            "accountId",
+            "id",
+        ),
+
+        balance=_pm_float(
+            _pm_read_value(
+                account_state,
+                "balance",
+                "cash",
+            )
+        ),
+
+        equity=_pm_float(
+            _pm_read_value(
+                account_state,
+                "equity",
+                "account_equity",
+            )
+        ),
+
+        available_margin=_pm_float(
+            _pm_read_value(
+                account_state,
+                "available_margin",
+                "availableMargin",
+                "free_margin",
+            )
+        ),
+
+        currency=_pm_read_value(
+            account_state,
+            "currency",
+            "base_currency",
+        ),
+
+        raw_account=account_state,
+        source="ACCOUNT",
+    )
+
+
+# ============================================================
+# Requirement Evaluation
+# ============================================================
+
+def evaluate_position_monitor_requirements(
+    position: PositionReference,
+    market: PositionMarketReference,
+    risk: PositionRiskReference,
+    decision: PositionDecisionReference,
+    account: Optional[PositionAccountReference],
+    request: PositionMonitorRequest,
+) -> PositionMonitorRequirements:
+
+    position_available = position is not None
+
+    instrument_available = bool(
+        position
+        and position.instrument
+    )
+
+    state_available = bool(
+        position
+        and position.state is not PositionState.UNKNOWN
+    )
+
+    quantity_available = (
+        position is not None
+        and position.quantity is not None
+    )
+
+    entry_price_available = (
+        position is not None
+        and position.entry_price is not None
+    )
+
+    current_price_available = (
+        position is not None
+        and (
+            position.current_price is not None
+            or (
+                market is not None
+                and market.current_price is not None
+            )
+        )
+    )
+
+    market_context_available = (
+        request.market_context is not None
+    )
+
+    risk_context_available = (
+        request.risk_state is not None
+    )
+
+    decision_context_available = (
+        request.decision_state is not None
+    )
+
+    account_context_available = (
+        request.account_state is not None
+    )
+
+    identity_consistent = True
+
+    if (
+        position.instrument
+        and market.instrument
+        and position.instrument != market.instrument
+    ):
+        identity_consistent = False
+
+    price_consistent = True
+
+    if (
+        position.current_price is not None
+        and market.current_price is not None
+    ):
+        price_consistent = (
+            position.current_price
+            == market.current_price
+        )
+
+    return PositionMonitorRequirements(
+        position_available=position_available,
+        instrument_available=instrument_available,
+        state_available=state_available,
+        quantity_available=quantity_available,
+        entry_price_available=entry_price_available,
+        current_price_available=current_price_available,
+
+        market_context_available=market_context_available,
+        risk_context_available=risk_context_available,
+        decision_context_available=decision_context_available,
+        account_context_available=account_context_available,
+
+        price_consistent=price_consistent,
+        identity_consistent=identity_consistent,
+    )
+
+
+# ============================================================
+# Data-State Evaluation
+# ============================================================
+
+def evaluate_position_monitor_data_state(
+    requirements: PositionMonitorRequirements,
+) -> MonitorDataState:
+
+    critical = (
+        requirements.position_available
+        and requirements.instrument_available
+        and requirements.state_available
+        and requirements.current_price_available
+    )
+
+    if not critical:
+        return MonitorDataState.MISSING
+
+    contextual = (
+        requirements.market_context_available
+        and requirements.risk_context_available
+    )
+
+    if not contextual:
+        return MonitorDataState.PARTIAL
+
+    return MonitorDataState.COMPLETE
+
+
+# ============================================================
+# Consistency Evaluation
+# ============================================================
+
+def evaluate_position_monitor_consistency(
+    position: PositionReference,
+    market: PositionMarketReference,
+    risk: PositionRiskReference,
+    decision: PositionDecisionReference,
+    requirements: PositionMonitorRequirements,
+) -> MonitorConsistency:
+
+    if not requirements.position_available:
+        return MonitorConsistency.INSUFFICIENT
+
+    if not requirements.identity_consistent:
+        return MonitorConsistency.CONFLICTING
+
+    if not requirements.price_consistent:
+        return MonitorConsistency.CONFLICTING
+
+    if _pm_status_is_blocking(risk.status):
+        return MonitorConsistency.CONFLICTING
+
+    if (
+        decision.direction
+        and position.side
+    ):
+        decision_direction = _pm_text(
+            decision.direction
+        )
+
+        position_side = _pm_text(
+            position.side
+        )
+
+        # Semantic directional conflict only.
+        # No numeric inference is performed.
+        if (
+            decision_direction in {
+                "UP",
+                "LONG",
+                "BULLISH",
+                "BUY",
+            }
+            and position_side in {
+                "DOWN",
+                "SHORT",
+                "BEARISH",
+                "SELL",
+            }
+        ):
+            return MonitorConsistency.CONFLICTING
+
+        if (
+            decision_direction in {
+                "DOWN",
+                "SHORT",
+                "BEARISH",
+                "SELL",
+            }
+            and position_side in {
+                "UP",
+                "LONG",
+                "BULLISH",
+                "BUY",
+            }
+        ):
+            return MonitorConsistency.CONFLICTING
+
+    return MonitorConsistency.CONSISTENT
+
+
+# ============================================================
+# Position Health
+# ============================================================
+
+def evaluate_position_health(
+    position: PositionReference,
+    risk: PositionRiskReference,
+    consistency: MonitorConsistency,
+    data_state: MonitorDataState,
+) -> PositionHealth:
+
+    if data_state is MonitorDataState.MISSING:
+        return PositionHealth.UNKNOWN
+
+    if consistency is MonitorConsistency.CONFLICTING:
+        return PositionHealth.AT_RISK
+
+    if _pm_status_is_blocking(risk.status):
+        return PositionHealth.CRITICAL
+
+    if _pm_text(risk.severity) in {
+        "CRITICAL",
+        "HIGH",
+    }:
+        return PositionHealth.AT_RISK
+
+    if position.state is PositionState.UNKNOWN:
+        return PositionHealth.UNKNOWN
+
+    if data_state is MonitorDataState.PARTIAL:
+        return PositionHealth.CAUTION
+
+    return PositionHealth.HEALTHY
+
+
+# ============================================================
+# Monitoring Disposition
+# ============================================================
+
+def evaluate_monitor_disposition(
+    health: PositionHealth,
+    position_state: PositionState,
+    consistency: MonitorConsistency,
+) -> MonitorDisposition:
+
+    if position_state is PositionState.CLOSED:
+        return MonitorDisposition.CONTINUE
+
+    if consistency is MonitorConsistency.CONFLICTING:
+        return MonitorDisposition.REVIEW
+
+    if health is PositionHealth.CRITICAL:
+        return MonitorDisposition.HALT
+
+    if health is PositionHealth.AT_RISK:
+        return MonitorDisposition.PROTECT
+
+    if health is PositionHealth.CAUTION:
+        return MonitorDisposition.REVIEW
+
+    if health is PositionHealth.HEALTHY:
+        return MonitorDisposition.CONTINUE
+
+    return MonitorDisposition.UNKNOWN
+
+
+# ============================================================
+# Intelligence Builder
+# ============================================================
+
+def build_position_monitor_intelligence(
+    position: PositionReference,
+    risk: PositionRiskReference,
+    decision: PositionDecisionReference,
+    requirements: PositionMonitorRequirements,
+) -> PositionMonitorIntelligence:
+
+    data_state = evaluate_position_monitor_data_state(
+        requirements
+    )
+
+    consistency = evaluate_position_monitor_consistency(
+        position,
+        None,
+        risk,
+        decision,
+        requirements,
+    )
+
+    health = evaluate_position_health(
+        position,
+        risk,
+        consistency,
+        data_state,
+    )
+
+    disposition = evaluate_monitor_disposition(
+        health,
+        position.state,
+        consistency,
+    )
+
+    rationale = []
+    warnings = []
+
+    rationale.append(
+        f"position_state={position.state.value}"
+    )
+
+    rationale.append(
+        f"health={health.value}"
+    )
+
+    rationale.append(
+        f"consistency={consistency.value}"
+    )
+
+    if data_state is not MonitorDataState.COMPLETE:
+        warnings.append(
+            "monitoring context is incomplete"
+        )
+
+    if consistency is MonitorConsistency.CONFLICTING:
+        warnings.append(
+            "position context contains a detected conflict"
+        )
+
+    if _pm_status_is_blocking(risk.status):
+        warnings.append(
+            "risk state contains an explicit blocking status"
+        )
+
+    return PositionMonitorIntelligence(
+        consistency=consistency,
+        data_state=data_state,
+        health=health,
+        disposition=disposition,
+        position_state=position.state,
+        direction=position.side,
+        rationale=tuple(rationale),
+        warnings=tuple(warnings),
+        source="ROBOMLM_PLUS",
+    )
+
+
+# ============================================================
+# Assessment Builder
+# ============================================================
+
+def build_position_monitor_assessment(
+    request: PositionMonitorRequest,
+) -> PositionMonitorAssessment:
+
+    position = build_position_reference(
+        request.position
+    )
+
+    market = build_position_market_reference(
+        request.market_context
+    )
+
+    risk = build_position_risk_reference(
+        request.risk_state
+    )
+
+    decision = build_position_decision_reference(
+        request.decision_state
+    )
+
+    account = (
+        build_position_account_reference(
+            request.account_state
+        )
+        if request.account_state is not None
+        else None
+    )
+
+    requirements = (
+        evaluate_position_monitor_requirements(
+            position=position,
+            market=market,
+            risk=risk,
+            decision=decision,
+            account=account,
+            request=request,
+        )
+    )
+
+    # Re-run consistency with market available.
+    consistency = evaluate_position_monitor_consistency(
+        position,
+        market,
+        risk,
+        decision,
+        requirements,
+    )
+
+    data_state = evaluate_position_monitor_data_state(
+        requirements
+    )
+
+    health = evaluate_position_health(
+        position,
+        risk,
+        consistency,
+        data_state,
+    )
+
+    disposition = evaluate_monitor_disposition(
+        health,
+        position.state,
+        consistency,
+    )
+
+    intelligence = PositionMonitorIntelligence(
+        consistency=consistency,
+        data_state=data_state,
+        health=health,
+        disposition=disposition,
+        position_state=position.state,
+        direction=position.side,
+        rationale=(
+            f"position_state={position.state.value}",
+            f"health={health.value}",
+            f"consistency={consistency.value}",
+        ),
+        warnings=(
+            (
+                "monitoring context is incomplete",
+            )
+            if data_state is not MonitorDataState.COMPLETE
+            else ()
+        ),
+        source="ROBOMLM_PLUS",
+    )
+
+    return PositionMonitorAssessment(
+        intelligence=intelligence,
+        requirements=requirements,
+        position=position,
+        market=market,
+        risk=risk,
+        decision=decision,
+        account=account,
+        rationale=intelligence.rationale,
+        warnings=intelligence.warnings,
+    )
+# ============================================================
+# PART 3/5 — MONITOR RESULT + PROTECTION CONTRACT
+# ============================================================
+
+class MonitorActionState(str, Enum):
+    NONE = "NONE"
+    REVIEW = "REVIEW"
+    PROTECT = "PROTECT"
+    HALT = "HALT"
+
+
+class MonitorContractState(str, Enum):
+    VALID = "VALID"
+    INCOMPLETE = "INCOMPLETE"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+@dataclass(frozen=True)
+class PositionProtectionReference:
+    """
+    Existing protection information only.
+
+    Position Monitor does not invent or calculate protection
+    levels. It observes explicitly supplied values.
+    """
+
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+    protection_available: bool
+
+    source: str = "POSITION"
+
+
+@dataclass(frozen=True)
+class PositionMonitorResult:
+    """
+    Normalized monitoring result.
+
+    This result describes the current position condition.
+    It is not a new D13 decision and is not an order.
+    """
+
+    request_id: str
+    result_id: str
+
+    status: PositionMonitorStatus
+    position_state: PositionState
+    health: PositionHealth
+
+    consistency: MonitorConsistency
+    data_state: MonitorDataState
+    disposition: MonitorDisposition
+    action_state: MonitorActionState
+
+    position: PositionReference
+    market: PositionMarketReference
+    risk: PositionRiskReference
+    decision: PositionDecisionReference
+
+    protection: PositionProtectionReference
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status is not PositionMonitorStatus.INVALID
+
+    @property
+    def requires_protection(self) -> bool:
+        return (
+            self.action_state is MonitorActionState.PROTECT
+        )
+
+    @property
+    def requires_halt(self) -> bool:
+        return (
+            self.action_state is MonitorActionState.HALT
+        )
+
+
+@dataclass(frozen=True)
+class PositionMonitorContract:
+    """
+    Final contract emitted by Position Monitor.
+
+    Downstream protection/halt layers may consume this contract.
+    It does not itself execute an action.
+    """
+
+    monitor_id: str
+    request_id: str
+
+    state: MonitorContractState
+    result: PositionMonitorResult
+
+    action_state: MonitorActionState
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.state is MonitorContractState.VALID
+
+    @property
+    def is_action_request(self) -> bool:
+        return False
+
+
+# ============================================================
+# Protection Reference Builder
+# ============================================================
+
+def build_position_protection_reference(
+    position: PositionReference,
+) -> PositionProtectionReference:
+
+    stop_loss = position.stop_loss
+    take_profit = position.take_profit
+
+    return PositionProtectionReference(
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+        protection_available=(
+            stop_loss is not None
+            or take_profit is not None
+        ),
+        source="POSITION",
+    )
+
+
+# ============================================================
+# Action-State Mapping
+# ============================================================
+
+def _pm_action_state(
+    disposition: MonitorDisposition,
+) -> MonitorActionState:
+
+    if disposition is MonitorDisposition.PROTECT:
+        return MonitorActionState.PROTECT
+
+    if disposition is MonitorDisposition.HALT:
+        return MonitorActionState.HALT
+
+    if disposition is MonitorDisposition.REVIEW:
+        return MonitorActionState.REVIEW
+
+    return MonitorActionState.NONE
+
+
+# ============================================================
+# Monitor Status Mapping
+# ============================================================
+
+def _pm_result_status(
+    health: PositionHealth,
+    data_state: MonitorDataState,
+    consistency: MonitorConsistency,
+) -> PositionMonitorStatus:
+
+    if data_state is MonitorDataState.MISSING:
+        return PositionMonitorStatus.INVALID
+
+    if consistency is MonitorConsistency.CONFLICTING:
+        return PositionMonitorStatus.WARNING
+
+    if health is PositionHealth.CRITICAL:
+        return PositionMonitorStatus.CRITICAL
+
+    if health is PositionHealth.AT_RISK:
+        return PositionMonitorStatus.WARNING
+
+    if health is PositionHealth.CAUTION:
+        return PositionMonitorStatus.WARNING
+
+    return PositionMonitorStatus.MONITORING
+
+
+# ============================================================
+# Result Builder
+# ============================================================
+
+def build_position_monitor_result(
+    request: PositionMonitorRequest,
+    assessment: PositionMonitorAssessment,
+) -> PositionMonitorResult:
+
+    intelligence = assessment.intelligence
+
+    action_state = _pm_action_state(
+        intelligence.disposition
+    )
+
+    status = _pm_result_status(
+        health=intelligence.health,
+        data_state=intelligence.data_state,
+        consistency=intelligence.consistency,
+    )
+
+    protection = build_position_protection_reference(
+        assessment.position
+    )
+
+    rationale = list(
+        assessment.rationale
+    )
+
+    warnings = list(
+        assessment.warnings
+    )
+
+    # --------------------------------------------------------
+    # Protection-state integrity
+    # --------------------------------------------------------
+
+    if (
+        action_state is MonitorActionState.PROTECT
+        and not protection.protection_available
+    ):
+        warnings.append(
+            "protection disposition exists but no existing "
+            "protection parameters were supplied"
+        )
+
+    # --------------------------------------------------------
+    # Halt-state integrity
+    # --------------------------------------------------------
+
+    if action_state is MonitorActionState.HALT:
+        warnings.append(
+            "HALT is an operational monitoring state; "
+            "no halt action is created by this engine"
+        )
+
+    return PositionMonitorResult(
+        request_id=request.request_id,
+        result_id=str(uuid4()),
+
+        status=status,
+        position_state=assessment.position.state,
+        health=intelligence.health,
+
+        consistency=intelligence.consistency,
+        data_state=intelligence.data_state,
+        disposition=intelligence.disposition,
+        action_state=action_state,
+
+        position=assessment.position,
+        market=assessment.market,
+        risk=assessment.risk,
+        decision=assessment.decision,
+
+        protection=protection,
+
+        rationale=tuple(rationale),
+        warnings=tuple(warnings),
+
+        created_at=datetime.now(timezone.utc),
+    )
+
+
+# ============================================================
+# Contract Builder
+# ============================================================
+
+def build_position_monitor_contract(
+    request: PositionMonitorRequest,
+    assessment: PositionMonitorAssessment,
+    result: PositionMonitorResult,
+) -> PositionMonitorContract:
+
+    if not result.is_valid:
+        state = MonitorContractState.INVALID
+
+    elif result.action_state is MonitorActionState.HALT:
+        state = MonitorContractState.BLOCKED
+
+    elif result.data_state is MonitorDataState.MISSING:
+        state = MonitorContractState.INCOMPLETE
+
+    elif result.consistency is MonitorConsistency.CONFLICTING:
+        state = MonitorContractState.INCOMPLETE
+
+    else:
+        state = MonitorContractState.VALID
+
+    return PositionMonitorContract(
+        monitor_id=str(uuid4()),
+        request_id=request.request_id,
+
+        state=state,
+        result=result,
+
+        action_state=result.action_state,
+
+        rationale=result.rationale,
+        warnings=result.warnings,
+
+        created_at=datetime.now(timezone.utc),
+    )
+
+
+# ============================================================
+# Contract Safety Gate
+# ============================================================
+
+def is_position_monitor_safe_to_forward(
+    contract: PositionMonitorContract,
+) -> bool:
+    """
+    Determines whether the monitoring result may be consumed
+    by the next ROBOMLM PLUS protection/control layer.
+
+    This does NOT authorize an order or create an action.
+    """
+
+    if contract is None:
+        return False
+
+    if not contract.is_valid:
+        return False
+
+    if contract.result is None:
+        return False
+
+    if not contract.result.is_valid:
+        return False
+
+    return True
+
+
+# ============================================================
+# Result Validation
+# ============================================================
+
+def validate_position_monitor_result(
+    result: PositionMonitorResult,
+) -> tuple[str, ...]:
+
+    if result is None:
+        return ("result is None",)
+
+    errors = []
+
+    if not result.request_id:
+        errors.append("request_id missing")
+
+    if not result.result_id:
+        errors.append("result_id missing")
+
+    if result.position is None:
+        errors.append("position reference missing")
+
+    if result.market is None:
+        errors.append("market reference missing")
+
+    if result.risk is None:
+        errors.append("risk reference missing")
+
+    if result.decision is None:
+        errors.append("decision reference missing")
+
+    if result.protection is None:
+        errors.append("protection reference missing")
+
+    if result.status is None:
+        errors.append("status missing")
+
+    if result.health is None:
+        errors.append("health missing")
+
+    return tuple(errors)
+# ============================================================
+# POSITION MONITOR — PART 4/5
+# ENGINE ORCHESTRATION + PUBLIC API
+# ============================================================
+
+class PositionMonitorEngine:
+    """
+    ROBOMLM PLUS Position Monitoring Engine.
+
+    Authority:
+        D13        -> decision authority
+        Risk       -> risk authority
+        Position   -> actual position state
+        Market     -> contextual observation
+        PLUS       -> monitoring / protection / escalation refinement
+        Execution  -> actual action layer
+
+    This engine:
+        - monitors an existing position
+        - evaluates position health
+        - detects consistency/conflict
+        - identifies protection requirements
+        - identifies halt conditions
+
+    This engine DOES NOT:
+        - create orders
+        - execute orders
+        - authorize actions
+        - calculate SL/TP
+        - calculate quantity
+        - override D13
+        - override Risk
+        - convert monitoring into execution
+    """
+
+    ENGINE_NAME = POSITION_MONITOR_ENGINE
+    ENGINE_VERSION = POSITION_MONITOR_VERSION
+
+    def validate_request(
+        self,
+        request: PositionMonitorRequest,
+    ) -> PositionMonitorContractValidation:
+        return validate_position_monitor_request(request)
+
+    def _invalid_contract(
+        self,
+        request: PositionMonitorRequest,
+        reason: str,
+    ) -> PositionMonitorContract:
+        """
+        Fail-closed contract for invalid input.
+
+        No action is generated from this state.
+        """
+
+        now = datetime.now(timezone.utc)
+
+        position = PositionReference(
+            position_id=None,
+            instrument=None,
+            side=None,
+            state=PositionState.UNKNOWN,
+            quantity=None,
+            entry_price=None,
+            current_price=None,
+            stop_loss=None,
+            take_profit=None,
+            unrealized_pnl=None,
+            realized_pnl=None,
+            leverage=None,
+            margin=None,
+        )
+
+        market = PositionMarketReference(
+            instrument=None,
+            current_price=None,
+            market_state=None,
+            volatility=None,
+            liquidity=None,
+            raw_context=None,
+        )
+
+        risk = PositionRiskReference(
+            risk_id=None,
+            status="INVALID",
+            risk_score=None,
+            exposure=None,
+            severity="CRITICAL",
+            raw_result=None,
+        )
+
+        decision = PositionDecisionReference(
+            decision_id=None,
+            direction=None,
+            status="INVALID",
+            confidence=None,
+            strength=None,
+            raw_decision=None,
+        )
+
+        protection = PositionProtectionReference(
+            stop_loss=None,
+            take_profit=None,
+            protection_available=False,
+        )
+
+        result = PositionMonitorResult(
+            request_id=request.request_id,
+            result_id=str(uuid4()),
+            status=PositionMonitorStatus.INVALID,
+            position_state=PositionState.UNKNOWN,
+            health=PositionHealth.UNKNOWN,
+            consistency=MonitorConsistency.INSUFFICIENT,
+            data_state=MonitorDataState.MISSING,
+            disposition=MonitorDisposition.UNKNOWN,
+            action_state=MonitorActionState.NONE,
+            position=position,
+            market=market,
+            risk=risk,
+            decision=decision,
+            protection=protection,
+            rationale=reason,
+            warnings=("Invalid monitoring request; fail-closed.",),
+            created_at=now,
+        )
+
+        return PositionMonitorContract(
+            monitor_id=str(uuid4()),
+            request_id=request.request_id,
+            state=MonitorContractState.INVALID,
+            result=result,
+            action_state=MonitorActionState.NONE,
+            rationale=reason,
+            warnings=("No monitoring action generated.",),
+            created_at=now,
+        )
+
+    def process(
+        self,
+        request: PositionMonitorRequest,
+    ) -> PositionMonitorContract:
+
+        # --------------------------------------------------------
+        # 1. CONTRACT VALIDATION
+        # --------------------------------------------------------
+        validation = self.validate_request(request)
+
+        if not validation.is_valid:
+            reason = "; ".join(validation.errors)
+            return self._invalid_contract(request, reason)
+
+        # --------------------------------------------------------
+        # 2. BUILD POSITION ASSESSMENT
+        # --------------------------------------------------------
+        try:
+            assessment = build_position_monitor_assessment(request)
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Position monitor assessment failure: {exc}",
+            )
+
+        # --------------------------------------------------------
+        # 3. BUILD MONITOR RESULT
+        # --------------------------------------------------------
+        try:
+            result = build_position_monitor_result(
+                request,
+                assessment,
+            )
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Position monitor result failure: {exc}",
+            )
+
+        # --------------------------------------------------------
+        # 4. RESULT VALIDATION
+        # --------------------------------------------------------
+        result_validation = validate_position_monitor_result(result)
+
+        if result_validation:
+            reason = "; ".join(result_validation)
+            return self._invalid_contract(
+                request,
+                f"Invalid monitor result: {reason}",
+            )
+
+        # --------------------------------------------------------
+        # 5. BUILD FINAL MONITOR CONTRACT
+        # --------------------------------------------------------
+        try:
+            contract = build_position_monitor_contract(
+                request=request,
+                assessment=assessment,
+                result=result,
+            )
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Position monitor contract failure: {exc}",
+            )
+
+        return contract
+
+    def evaluate(
+        self,
+        request: PositionMonitorRequest,
+    ) -> PositionMonitorContract:
+        """
+        Semantic alias for process().
+        """
+        return self.process(request)
+
+    def is_ready_for_protection_layer(
+        self,
+        contract: PositionMonitorContract,
+    ) -> bool:
+        """
+        Returns whether the monitoring result may safely be
+        forwarded to a downstream protection layer.
+
+        This does NOT create protection and does NOT authorize it.
+        """
+        return is_position_monitor_safe_to_forward(contract)
+
+    def requires_protection(
+        self,
+        contract: PositionMonitorContract,
+    ) -> bool:
+        if contract is None or contract.result is None:
+            return False
+
+        return contract.result.requires_protection
+
+    def requires_halt(
+        self,
+        contract: PositionMonitorContract,
+    ) -> bool:
+        if contract is None or contract.result is None:
+            return False
+
+        return contract.result.requires_halt
+
+    def audit_summary(
+        self,
+        contract: PositionMonitorContract,
+    ) -> dict:
+        if contract is None:
+            return {
+                "engine": self.ENGINE_NAME,
+                "version": self.ENGINE_VERSION,
+                "valid": False,
+                "error": "contract is None",
+            }
+
+        result = contract.result
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "monitor_id": contract.monitor_id,
+            "request_id": contract.request_id,
+            "contract_state": contract.state.value,
+            "action_state": contract.action_state.value,
+            "result_status": (
+                result.status.value
+                if result is not None
+                else PositionMonitorStatus.INVALID.value
+            ),
+            "health": (
+                result.health.value
+                if result is not None
+                else PositionHealth.UNKNOWN.value
+            ),
+            "consistency": (
+                result.consistency.value
+                if result is not None
+                else MonitorConsistency.INSUFFICIENT.value
+            ),
+            "data_state": (
+                result.data_state.value
+                if result is not None
+                else MonitorDataState.MISSING.value
+            ),
+            "requires_protection": self.requires_protection(contract),
+            "requires_halt": self.requires_halt(contract),
+            "safe_for_protection_layer": (
+                self.is_ready_for_protection_layer(contract)
+            ),
+            "action_created": False,
+            "order_created": False,
+            "execution_authorized": False,
+        }
+
+
+# ============================================================
+# PUBLIC ENGINE INSTANCE
+# ============================================================
+
+position_monitor_engine = PositionMonitorEngine()
+
+
+# ============================================================
+# PUBLIC FUNCTIONAL API
+# ============================================================
+
+def monitor_position(
+    request: PositionMonitorRequest,
+) -> PositionMonitorContract:
+    return position_monitor_engine.process(request)
+
+
+def evaluate_position(
+    request: PositionMonitorRequest,
+) -> PositionMonitorContract:
+    return position_monitor_engine.evaluate(request)
+
+
+def position_monitor_ready(
+    contract: PositionMonitorContract,
+) -> bool:
+    return position_monitor_engine.is_ready_for_protection_layer(
+        contract
+    )
+
+
+def position_monitor_requires_protection(
+    contract: PositionMonitorContract,
+) -> bool:
+    return position_monitor_engine.requires_protection(contract)
+
+
+def position_monitor_requires_halt(
+    contract: PositionMonitorContract,
+) -> bool:
+    return position_monitor_engine.requires_halt(contract)
+
+
+def position_monitor_audit(
+    contract: PositionMonitorContract,
+) -> dict:
+    return position_monitor_engine.audit_summary(contract)
+
+
+def position_monitor_health_check() -> dict:
+    return {
+        "engine": POSITION_MONITOR_ENGINE,
+        "version": POSITION_MONITOR_VERSION,
+        "status": "READY",
+        "monitoring_enabled": True,
+        "protection_creation": False,
+        "halt_action_creation": False,
+        "order_creation": False,
+        "execution_authorization": False,
+        "d13_override": False,
+        "risk_override": False,
+    }
+
+
+def get_position_monitor_engine_info() -> dict:
+    return {
+        "engine": POSITION_MONITOR_ENGINE,
+        "version": POSITION_MONITOR_VERSION,
+        "role": "POSITION_MONITORING",
+        "authority": {
+            "decision": "D13",
+            "risk": "RISK",
+            "position_state": "POSITION",
+            "monitoring": "ROBOMLM_PLUS",
+            "execution": "EXECUTION_LAYER",
+        },
+        "capabilities": [
+            "position_state_monitoring",
+            "market_context_monitoring",
+            "risk_consistency_monitoring",
+            "decision_consistency_monitoring",
+            "position_health_assessment",
+            "protection_requirement_detection",
+            "halt_condition_detection",
+        ],
+        "non_capabilities": [
+            "order_creation",
+            "order_execution",
+            "authorization_creation",
+            "risk_recalculation",
+            "d13_override",
+            "sl_tp_calculation",
+            "quantity_calculation",
+        ],
+    }
+
+
+# ============================================================
+# COMPATIBILITY ALIAS
+# ============================================================
+
+PositionMonitor = PositionMonitorEngine
+# ============================================================
+# POSITION MONITOR — PART 5/5
+# SERIALIZATION + INTEGRITY + EXPORTS
+# ============================================================
+
+def _pm_enum_value(value):
+    """Safely serialize Enum-like values."""
+    if isinstance(value, Enum):
+        return value.value
+    return value
+
+
+def _pm_optional_dict(value):
+    """Convert Mapping-like values without mutating source objects."""
+    if isinstance(value, Mapping):
+        return dict(value)
+    return value
+
+
+def position_monitor_to_dict(
+    contract: PositionMonitorContract,
+) -> dict:
+    """
+    Stable, read-only serialization envelope.
+
+    Serialization must never create or imply an action.
+    """
+
+    if contract is None:
+        return {
+            "engine": POSITION_MONITOR_ENGINE,
+            "version": POSITION_MONITOR_VERSION,
+            "valid": False,
+            "contract": None,
+        }
+
+    result = contract.result
+
+    payload = {
+        "engine": POSITION_MONITOR_ENGINE,
+        "version": POSITION_MONITOR_VERSION,
+        "monitor_id": contract.monitor_id,
+        "request_id": contract.request_id,
+        "contract": {
+            "state": _pm_enum_value(contract.state),
+            "action_state": _pm_enum_value(contract.action_state),
+            "rationale": contract.rationale,
+            "warnings": list(contract.warnings),
+            "created_at": (
+                contract.created_at.isoformat()
+                if contract.created_at
+                else None
+            ),
+        },
+        "result": None,
+        "integrity": {
+            "valid": False,
+            "action_created": False,
+            "order_created": False,
+            "execution_authorized": False,
+        },
+    }
+
+    if result is None:
+        return payload
+
+    payload["result"] = {
+        "result_id": result.result_id,
+        "status": _pm_enum_value(result.status),
+        "position_state": _pm_enum_value(result.position_state),
+        "health": _pm_enum_value(result.health),
+        "consistency": _pm_enum_value(result.consistency),
+        "data_state": _pm_enum_value(result.data_state),
+        "disposition": _pm_enum_value(result.disposition),
+        "action_state": _pm_enum_value(result.action_state),
+
+        "position": {
+            "position_id": result.position.position_id,
+            "instrument": result.position.instrument,
+            "side": result.position.side,
+            "state": _pm_enum_value(result.position.state),
+            "quantity": result.position.quantity,
+            "entry_price": result.position.entry_price,
+            "current_price": result.position.current_price,
+            "stop_loss": result.position.stop_loss,
+            "take_profit": result.position.take_profit,
+            "unrealized_pnl": result.position.unrealized_pnl,
+            "realized_pnl": result.position.realized_pnl,
+            "leverage": result.position.leverage,
+            "margin": result.position.margin,
+            "source": result.position.source,
+        },
+
+        "market": {
+            "instrument": result.market.instrument,
+            "current_price": result.market.current_price,
+            "market_state": result.market.market_state,
+            "volatility": result.market.volatility,
+            "liquidity": result.market.liquidity,
+            "source": result.market.source,
+        },
+
+        "risk": {
+            "risk_id": result.risk.risk_id,
+            "status": result.risk.status,
+            "risk_score": result.risk.risk_score,
+            "exposure": result.risk.exposure,
+            "severity": result.risk.severity,
+            "source": result.risk.source,
+        },
+
+        "decision": {
+            "decision_id": result.decision.decision_id,
+            "direction": result.decision.direction,
+            "status": result.decision.status,
+            "confidence": result.decision.confidence,
+            "strength": result.decision.strength,
+            "source": result.decision.source,
+        },
+
+        "protection": {
+            "stop_loss": result.protection.stop_loss,
+            "take_profit": result.protection.take_profit,
+            "protection_available": result.protection.protection_available,
+            "source": result.protection.source,
+        },
+
+        "rationale": result.rationale,
+        "warnings": list(result.warnings),
+        "created_at": (
+            result.created_at.isoformat()
+            if result.created_at
+            else None
+        ),
+    }
+
+    payload["integrity"] = {
+        "valid": bool(contract.is_valid and result.is_valid),
+        "action_created": False,
+        "order_created": False,
+        "execution_authorized": False,
+    }
+
+    return payload
+
+
+def validate_position_monitor_contract(
+    contract: PositionMonitorContract,
+) -> PositionMonitorContractValidation:
+    """
+    Final contract-level integrity validation.
+
+    Fail closed on structural or authority violations.
+    """
+
+    errors = []
+
+    if contract is None:
+        return PositionMonitorContractValidation(
+            status=MonitorContractStatus.INVALID,
+            errors=("contract is None",),
+        )
+
+    if not contract.monitor_id:
+        errors.append("monitor_id is missing")
+
+    if not contract.request_id:
+        errors.append("request_id is missing")
+
+    if contract.result is None:
+        errors.append("result is missing")
+        return PositionMonitorContractValidation(
+            status=(
+                MonitorContractStatus.VALID
+                if not errors
+                else MonitorContractStatus.INVALID
+            ),
+            errors=tuple(errors),
+        )
+
+    result = contract.result
+
+    if not result.result_id:
+        errors.append("result_id is missing")
+
+    if result.request_id != contract.request_id:
+        errors.append("request_id mismatch")
+
+    result_validation = validate_position_monitor_result(result)
+
+    if result_validation:
+        errors.extend(result_validation)
+
+    # Contract/action integrity:
+    if contract.is_action_request:
+        errors.append(
+            "monitor contract must never become an action request"
+        )
+
+    # Monitoring layer must not claim execution authority.
+    if contract.action_state not in (
+        MonitorActionState.NONE,
+        MonitorActionState.REVIEW,
+        MonitorActionState.PROTECT,
+        MonitorActionState.HALT,
+    ):
+        errors.append("invalid monitor action state")
+
+    return PositionMonitorContractValidation(
+        status=(
+            MonitorContractStatus.VALID
+            if not errors
+            else MonitorContractStatus.INVALID
+        ),
+        errors=tuple(errors),
+    )
+
+
+def position_monitor_integrity_check(
+    contract: PositionMonitorContract,
+) -> dict:
+    """
+    Complete final integrity report.
+
+    This is an audit function only.
+    """
+
+    validation = validate_position_monitor_contract(contract)
+
+    if contract is None or contract.result is None:
+        return {
+            "engine": POSITION_MONITOR_ENGINE,
+            "version": POSITION_MONITOR_VERSION,
+            "valid": False,
+            "errors": list(validation.errors),
+            "safe_for_protection_layer": False,
+            "action_created": False,
+            "order_created": False,
+            "execution_authorized": False,
+        }
+
+    result = contract.result
+    safe = is_position_monitor_safe_to_forward(contract)
+
+    return {
+        "engine": POSITION_MONITOR_ENGINE,
+        "version": POSITION_MONITOR_VERSION,
+        "monitor_id": contract.monitor_id,
+        "request_id": contract.request_id,
+        "valid": validation.is_valid,
+        "errors": list(validation.errors),
+        "contract_state": _pm_enum_value(contract.state),
+        "result_status": _pm_enum_value(result.status),
+        "position_state": _pm_enum_value(result.position_state),
+        "health": _pm_enum_value(result.health),
+        "consistency": _pm_enum_value(result.consistency),
+        "data_state": _pm_enum_value(result.data_state),
+        "disposition": _pm_enum_value(result.disposition),
+        "action_state": _pm_enum_value(result.action_state),
+        "requires_protection": result.requires_protection,
+        "requires_halt": result.requires_halt,
+        "safe_for_protection_layer": safe,
+
+        # Hard authority guarantees.
+        "action_created": False,
+        "order_created": False,
+        "execution_authorized": False,
+        "d13_overridden": False,
+        "risk_overridden": False,
+        "sl_tp_calculated": False,
+        "quantity_calculated": False,
+    }
+
+
+def verify_position_monitor_integrity(
+    contract: PositionMonitorContract,
+) -> bool:
+    """Boolean wrapper for final integrity validation."""
+    report = position_monitor_integrity_check(contract)
+    return bool(report.get("valid", False))
+
+
+def run_position_monitor_health_check() -> dict:
+    """
+    Runtime-safe health check.
+
+    Does not require a live position and does not generate an action.
+    """
+    try:
+        info = get_position_monitor_engine_info()
+
+        return {
+            "engine": info["engine"],
+            "version": info["version"],
+            "status": "READY",
+            "healthy": True,
+            "monitoring_only": True,
+            "execution_capable": False,
+            "authorization_capable": False,
+        }
+
+    except Exception as exc:
+        return {
+            "engine": POSITION_MONITOR_ENGINE,
+            "version": POSITION_MONITOR_VERSION,
+            "status": "ERROR",
+            "healthy": False,
+            "error": str(exc),
+        }
+
+
+# ============================================================
+# PUBLIC EXPORTS
+# ============================================================
+
+__all__ = [
+    # Constants
+    "POSITION_MONITOR_ENGINE",
+    "POSITION_MONITOR_VERSION",
+
+    # Enums
+    "PositionMonitorStatus",
+    "PositionState",
+    "PositionHealth",
+    "MonitorDisposition",
+    "MonitorContractStatus",
+    "MonitorConsistency",
+    "MonitorDataState",
+    "MonitorActionState",
+    "MonitorContractState",
+
+    # Request / references
+    "PositionMonitorRequest",
+    "PositionReference",
+    "PositionMarketReference",
+    "PositionRiskReference",
+    "PositionDecisionReference",
+    "PositionAccountReference",
+    "PositionProtectionReference",
+
+    # Contracts / results
+    "PositionMonitorContractValidation",
+    "PositionMonitorIntelligence",
+    "PositionMonitorRequirements",
+    "PositionMonitorAssessment",
+    "PositionMonitorResult",
+    "PositionMonitorContract",
+
+    # Engine
+    "PositionMonitorEngine",
+    "PositionMonitor",
+
+    # Engine instance
+    "position_monitor_engine",
+
+    # Main API
+    "monitor_position",
+    "evaluate_position",
+    "position_monitor_ready",
+    "position_monitor_requires_protection",
+    "position_monitor_requires_halt",
+
+    # Audit / health
+    "position_monitor_audit",
+    "position_monitor_health_check",
+    "run_position_monitor_health_check",
+    "get_position_monitor_engine_info",
+
+    # Serialization / integrity
+    "position_monitor_to_dict",
+    "validate_position_monitor_contract",
+    "position_monitor_integrity_check",
+    "verify_position_monitor_integrity",
+]

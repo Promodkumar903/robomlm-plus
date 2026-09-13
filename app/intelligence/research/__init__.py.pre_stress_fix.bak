@@ -1,0 +1,778 @@
+﻿"""
+ROBOMLM Research Intelligence Package
+======================================
+
+Research lifecycle layer for ROBOMLM.
+
+Modules:
+    candidate_manager
+    dataset
+    deployment_manager
+    experiment
+    hypothesis
+    research_service
+    stress_testing
+    validation
+    version_manager
+
+Boundary:
+    Research lifecycle only.
+
+This package does NOT:
+    - execute trades
+    - create orders
+    - modify positions
+    - authorize accounts
+    - override D13
+    - override Risk
+    - override CAS
+    - activate production systems
+"""
+
+from __future__ import annotations
+
+
+# ============================================================
+# PACKAGE METADATA
+# ============================================================
+
+RESEARCH_PACKAGE_NAME = "ROBOMLM_RESEARCH_INTELLIGENCE"
+RESEARCH_PACKAGE_VERSION = "1.0"
+RESEARCH_PACKAGE_STATUS = "ACTIVE"
+
+
+# ============================================================
+# CANDIDATE MANAGER
+# ============================================================
+
+from .candidate_manager import (
+    CANDIDATE_MANAGER_ENGINE,
+    CANDIDATE_MANAGER_VERSION,
+    CandidateStatus,
+    CandidateType,
+    CandidatePriority,
+    CandidateDecision,
+    CandidateContractStatus,
+    CandidateConsistency,
+    CandidateDataState,
+    CandidateDisposition,
+    CandidateActionState,
+    CandidateContractState,
+    CandidateRequest,
+    CandidateReference,
+    CandidateSourceReference,
+    CandidateContractValidation,
+    CandidateRequirements,
+    CandidateIntelligence,
+    CandidateAssessment,
+    CandidateAction,
+    CandidateResult,
+    CandidateContract,
+    CandidateManagerEngine,
+    candidate_manager_engine,
+    manage_candidate,
+    evaluate_candidate,
+    candidate_ready,
+    candidate_can_advance,
+    candidate_status,
+    candidate_disposition,
+    candidate_audit,
+    candidate_health_check,
+    get_candidate_manager_engine_info,
+    validate_candidate_contract,
+    candidate_manager_integrity_check,
+    verify_candidate_manager_integrity,
+    run_candidate_manager_health_check,
+)
+
+
+# ============================================================
+# DATASET
+# ============================================================
+
+from .dataset import (
+    DATASET_MANAGER_ENGINE,
+    DATASET_MANAGER_VERSION,
+    DatasetStatus,
+    DatasetType,
+    DatasetPriority,
+    DatasetContractStatus,
+    DatasetConsistency,
+    DatasetDataState,
+    DatasetDisposition,
+    DatasetActionState,
+    DatasetContractState,
+    DatasetRequest,
+    DatasetReference,
+    DatasetSourceReference,
+    DatasetContractValidation,
+    DatasetRequirements,
+    DatasetIntelligence,
+    DatasetAssessment,
+    DatasetAction,
+    DatasetResult,
+    DatasetContract,
+    DatasetManagerEngine,
+    dataset_manager_engine,
+    manage_dataset,
+    evaluate_dataset,
+    dataset_ready,
+    dataset_can_advance,
+    dataset_status,
+    dataset_disposition,
+    dataset_audit,
+    dataset_health_check,
+    run_dataset_manager_health_check,
+    get_dataset_manager_engine_info,
+    validate_dataset_contract,
+    dataset_manager_integrity_check,
+    verify_dataset_manager_integrity,
+    run_dataset_manager_integrity_check,
+)
+
+
+# ============================================================
+# DEPLOYMENT MANAGER
+# ============================================================
+
+from .deployment_manager import (
+    DEPLOYMENT_MANAGER_ENGINE,
+    DEPLOYMENT_MANAGER_VERSION,
+    DeploymentStatus,
+    DeploymentType,
+    DeploymentEnvironment,
+    DeploymentPriority,
+    DeploymentDecision,
+    DeploymentContractStatus,
+    DeploymentReadiness,
+    DeploymentValidationState,
+    DeploymentRiskLevel,
+    DeploymentResultStatus,
+    DeploymentContractState,
+    DeploymentRequest,
+    DeploymentReference,
+    DeploymentArtifactReference,
+    DeploymentContractValidation,
+    DeploymentRequirements,
+    DeploymentAssessment,
+    DeploymentResult,
+    DeploymentContract,
+    DeploymentManagerEngine,
+    deployment_manager_engine,
+    evaluate_deployment,
+    manage_deployment,
+    deployment_status,
+    deployment_decision,
+    deployment_ready,
+    deployment_can_advance,
+    deployment_audit,
+    deployment_manager_integrity_check,
+    verify_deployment_integrity,
+    run_deployment_manager_health_check,
+)
+
+
+# ============================================================
+# EXPERIMENT
+# ============================================================
+
+from .experiment import (
+    EXPERIMENT_ENGINE,
+    EXPERIMENT_VERSION,
+    ExperimentStatus,
+    ExperimentType,
+    ExperimentPriority,
+    ExperimentOutcome,
+    ExperimentDecision,
+    ExperimentContractStatus,
+    ExperimentRequest,
+    ExperimentReference,
+    ExperimentArtifactReference,
+    ExperimentContractValidation,
+    ExperimentRequirements,
+    ExperimentAssessment,
+    ExperimentResult,
+    ExperimentContract,
+    ExperimentEngine,
+    experiment_engine,
+    evaluate_experiment,
+    analyze_experiment,
+    review_experiment,
+    validate_experiment_result,
+    validate_experiment_contract,
+    experiment_ready,
+    experiment_can_advance,
+    experiment_decision,
+    experiment_outcome,
+    experiment_confidence,
+    experiment_readiness,
+    experiment_audit,
+    experiment_is_safe,
+    get_experiment_engine_info,
+    experiment_health_check,
+    experiment_integrity_check,
+    verify_experiment_integrity,
+    run_experiment_health_check,
+)
+
+
+# ============================================================
+# HYPOTHESIS
+# ============================================================
+
+from .hypothesis import (
+    HYPOTHESIS_ENGINE,
+    HYPOTHESIS_VERSION,
+    HypothesisStatus,
+    HypothesisType,
+    HypothesisPriority,
+    HypothesisDecision,
+    HypothesisConfidence,
+    HypothesisContractStatus,
+    HypothesisResultStatus,
+    HypothesisContractState,
+    HypothesisRequest,
+    HypothesisReference,
+    HypothesisEvidenceReference,
+    HypothesisContractValidation,
+    HypothesisRequirements,
+    HypothesisAssessment,
+    HypothesisResult,
+    HypothesisContract,
+    HypothesisEngine,
+    hypothesis_engine,
+    evaluate_hypothesis,
+    analyze_hypothesis,
+    review_hypothesis,
+    validate_hypothesis_result,
+    validate_hypothesis_contract,
+    hypothesis_ready,
+    hypothesis_can_advance,
+    hypothesis_decision,
+    hypothesis_status,
+    hypothesis_confidence,
+    hypothesis_is_safe,
+    hypothesis_allows_execution,
+    hypothesis_allows_trade,
+    hypothesis_allows_order,
+    hypothesis_allows_position_change,
+    hypothesis_allows_authorization,
+    get_hypothesis_engine_info,
+    hypothesis_health_check,
+    hypothesis_integrity_check,
+    verify_hypothesis_integrity,
+    run_hypothesis_integrity_check,
+)
+
+
+# ============================================================
+# RESEARCH SERVICE
+# ============================================================
+
+from .research_service import (
+    RESEARCH_SERVICE_ENGINE,
+    RESEARCH_SERVICE_VERSION,
+    ResearchServiceStatus,
+    ResearchServiceOperation,
+    ResearchServicePriority,
+    ResearchServiceDecision,
+    ResearchServiceContractStatus,
+    ResearchDataState,
+    ResearchConsistency,
+    ResearchReadiness,
+    ResearchServiceResultStatus,
+    ResearchServiceContractState,
+    ResearchServiceRequest,
+    ResearchReference,
+    ResearchServiceContractValidation,
+    ResearchRequirements,
+    ResearchAssessment,
+    ResearchServiceResult,
+    ResearchServiceContract,
+    ResearchServiceEngine,
+    research_service_engine,
+    evaluate_research,
+    analyze_research,
+    process_research,
+    review_research,
+    validate_research_service_result,
+    validate_research_service_contract,
+    research_ready,
+    research_can_advance,
+    research_status,
+    research_decision,
+    research_readiness,
+    research_confidence,
+    research_completeness,
+    research_audit,
+    research_is_safe,
+    research_allows_execution,
+    research_allows_trade,
+    research_allows_order,
+    research_allows_position_change,
+    research_allows_authorization,
+    get_research_service_engine_info,
+    research_service_integrity_check,
+    verify_research_service_integrity,
+    run_research_service_integrity_check,
+)
+
+
+# ============================================================
+# STRESS TESTING
+# ============================================================
+
+from .stress_testing import (
+    STRESS_TESTING_ENGINE,
+    STRESS_TESTING_VERSION,
+    StressTestStatus,
+    StressTestType,
+    StressTestPriority,
+    StressTestDecision,
+    StressTestContractStatus,
+    StressDataState,
+    StressConsistency,
+    StressReadiness,
+    StressSeverity,
+    StressTestResultStatus,
+    StressTestContractState,
+    StressTestRequest,
+    StressTestReference,
+    StressScenarioReference,
+    StressTestContractValidation,
+    StressTestRequirements,
+    StressTestAssessment,
+    StressTestResult,
+    StressTestContract,
+    StressTestingEngine,
+    stress_testing_engine,
+    evaluate_stress_test,
+    analyze_stress_test,
+    review_stress_test,
+    validate_stress_test_result,
+    validate_stress_test_contract,
+    stress_test_ready,
+    stress_test_can_advance,
+    stress_test_status,
+    stress_test_decision,
+    stress_test_readiness,
+    stress_test_confidence,
+    stress_test_severity,
+    stress_test_completeness,
+    stress_test_audit,
+    stress_test_is_safe,
+    stress_test_allows_execution,
+    stress_test_allows_trade,
+    stress_test_allows_order,
+    stress_test_allows_position_change,
+    stress_test_allows_authorization,
+    get_stress_testing_engine_info,
+    stress_testing_health_check,
+    run_stress_testing_health_check,
+    stress_testing_integrity_check,
+    verify_stress_testing_integrity,
+    run_stress_testing_integrity_check,
+)
+
+
+# ============================================================
+# VALIDATION
+# ============================================================
+
+from .validation import (
+    VALIDATION_ENGINE,
+    VALIDATION_VERSION,
+    ValidationStatus,
+    ValidationType,
+    ValidationPriority,
+    ValidationDecision,
+    ValidationContractStatus,
+    ValidationDataState,
+    ValidationConsistency,
+    ValidationReadiness,
+    ValidationStrength,
+    ValidationResultStatus,
+    ValidationContractState,
+    ValidationRequest,
+    ValidationReference,
+    ValidationEvidenceReference,
+    ValidationContractValidation,
+    ValidationRequirements,
+    ValidationAssessment,
+    ValidationResult,
+    ValidationContract,
+    ValidationEngine,
+    validation_engine,
+    evaluate_validation,
+    analyze_validation,
+    review_validation,
+    validate_validation_result,
+    validate_validation_contract,
+    validation_ready,
+    validation_can_advance,
+    validation_status,
+    validation_decision,
+    validation_readiness,
+    validation_confidence,
+    validation_strength,
+    validation_completeness,
+    validation_audit,
+    validation_is_safe,
+    validation_allows_execution,
+    validation_allows_trade,
+    validation_allows_order,
+    validation_allows_position_change,
+    validation_allows_authorization,
+    get_validation_engine_info,
+    validation_health_check,
+    run_validation_health_check,
+    validation_integrity_check,
+    verify_validation_integrity,
+    run_validation_integrity_check,
+)
+
+
+# ============================================================
+# VERSION MANAGER
+# ============================================================
+
+from .version_manager import (
+    VERSION_MANAGER_ENGINE,
+    VERSION_MANAGER_VERSION,
+    VersionStatus,
+    VersionType,
+    VersionPriority,
+    VersionDecision,
+    VersionContractStatus,
+    VersionDataState,
+    VersionConsistency,
+    VersionReadiness,
+    VersionStrength,
+    VersionResultStatus,
+    VersionContractState,
+    VersionRequest,
+    VersionReference,
+    VersionArtifactReference,
+    VersionContractValidation,
+    VersionRequirements,
+    VersionAssessment,
+    VersionResult,
+    VersionContract,
+    VersionManagerEngine,
+    version_manager_engine,
+    evaluate_version,
+    analyze_version,
+    review_version,
+    validate_version_result,
+    validate_version_contract,
+    version_ready,
+    version_can_advance,
+    version_status,
+    version_decision,
+    version_readiness,
+    version_confidence,
+    version_strength,
+    version_completeness,
+    version_audit,
+    version_is_safe,
+    version_allows_execution,
+    version_allows_trade,
+    version_allows_order,
+    version_allows_position_change,
+    version_allows_authorization,
+    version_overrides_d13,
+    version_overrides_risk,
+    version_overrides_cas,
+    get_version_manager_engine_info,
+    version_manager_health_check,
+    run_version_manager_health_check,
+    version_result_to_dict,
+    version_contract_to_dict,
+    version_manager_integrity_check,
+    verify_version_manager_integrity,
+    run_version_manager_integrity_check,
+)
+
+
+# ============================================================
+# PACKAGE HEALTH
+# ============================================================
+
+def research_package_health_check() -> dict[str, object]:
+    """
+    Aggregated health check for the complete research package.
+    """
+
+    checks = {
+        "candidate_manager": run_candidate_manager_health_check(),
+        "dataset": run_dataset_manager_health_check(),
+        "deployment_manager": run_deployment_manager_health_check(),
+        "experiment": experiment_health_check()["healthy"],
+        "hypothesis": hypothesis_health_check()["healthy"],
+        "research_service": run_research_service_integrity_check(),
+        "stress_testing": run_stress_testing_health_check(),
+        "validation": run_validation_health_check(),
+        "version_manager": run_version_manager_health_check(),
+    }
+
+    return {
+        "healthy": all(checks.values()),
+        "package": RESEARCH_PACKAGE_NAME,
+        "version": RESEARCH_PACKAGE_VERSION,
+        "status": RESEARCH_PACKAGE_STATUS,
+        "checks": checks,
+        "execution_allowed": False,
+        "trade_allowed": False,
+        "order_allowed": False,
+        "position_change_allowed": False,
+        "authorization_allowed": False,
+        "d13_override": False,
+        "risk_override": False,
+        "cas_override": False,
+    }
+
+
+def run_research_package_health_check() -> bool:
+    return bool(research_package_health_check()["healthy"])
+
+
+# ============================================================
+# PUBLIC PACKAGE EXPORTS
+# ============================================================
+
+__all__ = [
+    "RESEARCH_PACKAGE_NAME",
+    "RESEARCH_PACKAGE_VERSION",
+    "RESEARCH_PACKAGE_STATUS",
+
+    # Package health
+    "research_package_health_check",
+    "run_research_package_health_check",
+
+    # Candidate Manager
+    "CandidateManagerEngine",
+    "candidate_manager_engine",
+    "manage_candidate",
+    "evaluate_candidate",
+    "candidate_ready",
+    "candidate_can_advance",
+    "candidate_status",
+    "candidate_disposition",
+    "candidate_audit",
+    "candidate_health_check",
+    "get_candidate_manager_engine_info",
+    "validate_candidate_contract",
+    "candidate_manager_integrity_check",
+    "verify_candidate_manager_integrity",
+    "run_candidate_manager_health_check",
+
+    # Dataset
+    "DatasetManagerEngine",
+    "dataset_manager_engine",
+    "manage_dataset",
+    "evaluate_dataset",
+    "dataset_ready",
+    "dataset_can_advance",
+    "dataset_status",
+    "dataset_disposition",
+    "dataset_audit",
+    "dataset_health_check",
+    "run_dataset_manager_health_check",
+    "get_dataset_manager_engine_info",
+    "validate_dataset_contract",
+    "dataset_manager_integrity_check",
+    "verify_dataset_manager_integrity",
+    "run_dataset_manager_integrity_check",
+
+    # Deployment
+    "DeploymentManagerEngine",
+    "deployment_manager_engine",
+    "evaluate_deployment",
+    "manage_deployment",
+    "deployment_status",
+    "deployment_decision",
+    "deployment_ready",
+    "deployment_can_advance",
+    "deployment_audit",
+    "deployment_manager_integrity_check",
+    "verify_deployment_integrity",
+    "run_deployment_manager_health_check",
+
+    # Experiment
+    "ExperimentEngine",
+    "experiment_engine",
+    "evaluate_experiment",
+    "analyze_experiment",
+    "review_experiment",
+    "validate_experiment_result",
+    "validate_experiment_contract",
+    "experiment_ready",
+    "experiment_can_advance",
+    "experiment_decision",
+    "experiment_outcome",
+    "experiment_confidence",
+    "experiment_readiness",
+    "experiment_audit",
+    "experiment_is_safe",
+    "experiment_allows_execution",
+    "experiment_allows_trade",
+    "experiment_allows_order",
+    "experiment_allows_position_change",
+    "experiment_allows_authorization",
+    "get_experiment_engine_info",
+    "experiment_health_check",
+    "experiment_integrity_check",
+    "verify_experiment_integrity",
+    "run_experiment_health_check",
+
+    # Hypothesis
+    "HypothesisEngine",
+    "hypothesis_engine",
+    "evaluate_hypothesis",
+    "analyze_hypothesis",
+    "review_hypothesis",
+    "validate_hypothesis_result",
+    "validate_hypothesis_contract",
+    "hypothesis_ready",
+    "hypothesis_can_advance",
+    "hypothesis_decision",
+    "hypothesis_status",
+    "hypothesis_confidence",
+    "hypothesis_is_safe",
+    "hypothesis_allows_execution",
+    "hypothesis_allows_trade",
+    "hypothesis_allows_order",
+    "hypothesis_allows_position_change",
+    "hypothesis_allows_authorization",
+    "get_hypothesis_engine_info",
+    "hypothesis_health_check",
+    "hypothesis_integrity_check",
+    "verify_hypothesis_integrity",
+    "run_hypothesis_integrity_check",
+
+    # Research Service
+    "ResearchServiceEngine",
+    "research_service_engine",
+    "evaluate_research",
+    "analyze_research",
+    "process_research",
+    "review_research",
+    "validate_research_service_result",
+    "validate_research_service_contract",
+    "research_ready",
+    "research_can_advance",
+    "research_status",
+    "research_decision",
+    "research_readiness",
+    "research_confidence",
+    "research_completeness",
+    "research_audit",
+    "research_is_safe",
+    "research_allows_execution",
+    "research_allows_trade",
+    "research_allows_order",
+    "research_allows_position_change",
+    "research_allows_authorization",
+    "get_research_service_engine_info",
+    "research_service_integrity_check",
+    "verify_research_service_integrity",
+    "run_research_service_integrity_check",
+
+    # Stress Testing
+    "StressTestingEngine",
+    "stress_testing_engine",
+    "evaluate_stress_test",
+    "analyze_stress_test",
+    "review_stress_test",
+    "validate_stress_test_result",
+    "validate_stress_test_contract",
+    "stress_test_ready",
+    "stress_test_can_advance",
+    "stress_test_status",
+    "stress_test_decision",
+    "stress_test_readiness",
+    "stress_test_confidence",
+    "stress_test_severity",
+    "stress_test_completeness",
+    "stress_test_audit",
+    "stress_test_is_safe",
+    "stress_test_allows_execution",
+    "stress_test_allows_trade",
+    "stress_test_allows_order",
+    "stress_test_allows_position_change",
+    "stress_test_allows_authorization",
+    "get_stress_testing_engine_info",
+    "stress_testing_health_check",
+    "run_stress_testing_health_check",
+    "stress_testing_integrity_check",
+    "verify_stress_testing_integrity",
+    "run_stress_testing_integrity_check",
+
+    # Validation
+    "ValidationEngine",
+    "validation_engine",
+    "evaluate_validation",
+    "analyze_validation",
+    "review_validation",
+    "validate_validation_result",
+    "validate_validation_contract",
+    "validation_ready",
+    "validation_can_advance",
+    "validation_status",
+    "validation_decision",
+    "validation_readiness",
+    "validation_confidence",
+    "validation_strength",
+    "validation_completeness",
+    "validation_audit",
+    "validation_is_safe",
+    "validation_allows_execution",
+    "validation_allows_trade",
+    "validation_allows_order",
+    "validation_allows_position_change",
+    "validation_allows_authorization",
+    "get_validation_engine_info",
+    "validation_health_check",
+    "run_validation_health_check",
+    "validation_integrity_check",
+    "verify_validation_integrity",
+    "run_validation_integrity_check",
+
+    # Version Manager
+    "VersionManagerEngine",
+    "version_manager_engine",
+    "evaluate_version",
+    "analyze_version",
+    "review_version",
+    "validate_version_result",
+    "validate_version_contract",
+    "version_ready",
+    "version_can_advance",
+    "version_status",
+    "version_decision",
+    "version_readiness",
+    "version_confidence",
+    "version_strength",
+    "version_completeness",
+    "version_audit",
+    "version_is_safe",
+    "version_allows_execution",
+    "version_allows_trade",
+    "version_allows_order",
+    "version_allows_position_change",
+    "version_allows_authorization",
+    "version_overrides_d13",
+    "version_overrides_risk",
+    "version_overrides_cas",
+    "get_version_manager_engine_info",
+    "version_manager_health_check",
+    "run_version_manager_health_check",
+    "version_result_to_dict",
+    "version_contract_to_dict",
+    "version_manager_integrity_check",
+    "verify_version_manager_integrity",
+    "run_version_manager_integrity_check",
+]
+
+
+

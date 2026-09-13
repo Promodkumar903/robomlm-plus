@@ -1,0 +1,2806 @@
+# ============================================================
+# ROBOMLM PLUS — PROTECTION ENGINE
+# PART 1/5
+# FOUNDATION + CONTRACTS + REFERENCES
+# ============================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Mapping, Optional
+from uuid import uuid4
+
+
+# ============================================================
+# MODULE CONSTANTS
+# ============================================================
+
+PROTECTION_ENGINE = "ROBOMLM_PLUS_PROTECTION"
+PROTECTION_VERSION = "1.0"
+
+
+# ============================================================
+# ENUMS
+# ============================================================
+
+class ProtectionStatus(str, Enum):
+    READY = "READY"
+    PROTECTING = "PROTECTING"
+    WARNING = "WARNING"
+    CRITICAL = "CRITICAL"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+class ProtectionState(str, Enum):
+    AVAILABLE = "AVAILABLE"
+    REQUIRED = "REQUIRED"
+    ACTIVE = "ACTIVE"
+    MISSING = "MISSING"
+    UNKNOWN = "UNKNOWN"
+
+
+class ProtectionHealth(str, Enum):
+    HEALTHY = "HEALTHY"
+    CAUTION = "CAUTION"
+    AT_RISK = "AT_RISK"
+    CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class ProtectionDisposition(str, Enum):
+    MAINTAIN = "MAINTAIN"
+    PROTECT = "PROTECT"
+    REVIEW = "REVIEW"
+    BLOCK = "BLOCK"
+    UNKNOWN = "UNKNOWN"
+
+
+class ProtectionContractStatus(str, Enum):
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# REQUEST CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionRequest:
+    """
+    Controlled protection-layer request.
+
+    Authority:
+        D13      -> decision authority
+        Risk     -> risk authority
+        Position -> actual position state
+        Monitor  -> monitoring/refinement signal
+        Protection -> protection assessment
+
+    This request does NOT authorize execution.
+    """
+
+    position_monitor: Any
+    risk_state: Optional[Any] = None
+    decision_state: Optional[Any] = None
+    market_context: Optional[Any] = None
+    account_state: Optional[Any] = None
+    authorized_action: Optional[Any] = None
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+    request_id: str = field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def validate(self) -> tuple[str, ...]:
+        errors = []
+
+        if self.position_monitor is None:
+            errors.append("position_monitor is required")
+
+        if not self.request_id:
+            errors.append("request_id is required")
+
+        if not isinstance(self.metadata, Mapping):
+            errors.append("metadata must be a Mapping")
+
+        return tuple(errors)
+
+
+# ============================================================
+# POSITION PROTECTION REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionPositionReference:
+    position_id: Optional[str]
+    instrument: Optional[str]
+    side: Optional[str]
+    position_state: Optional[str]
+    quantity: Optional[float]
+    entry_price: Optional[float]
+    current_price: Optional[float]
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+    unrealized_pnl: Optional[float]
+    source: str = "POSITION"
+
+
+# ============================================================
+# MONITOR REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionMonitorReference:
+    monitor_id: Optional[str]
+    status: Optional[str]
+    health: Optional[str]
+    consistency: Optional[str]
+    disposition: Optional[str]
+    action_state: Optional[str]
+    requires_protection: bool
+    requires_halt: bool
+    raw_result: Any = None
+    source: str = "POSITION_MONITOR"
+
+
+# ============================================================
+# RISK REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionRiskReference:
+    risk_id: Optional[str]
+    status: Optional[str]
+    risk_score: Optional[float]
+    exposure: Optional[float]
+    severity: Optional[str]
+    raw_result: Any = None
+    source: str = "RISK"
+
+
+# ============================================================
+# DECISION REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionDecisionReference:
+    decision_id: Optional[str]
+    direction: Optional[str]
+    status: Optional[str]
+    confidence: Optional[float]
+    strength: Optional[float]
+    raw_decision: Any = None
+    source: str = "D13"
+
+
+# ============================================================
+# MARKET REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionMarketReference:
+    instrument: Optional[str]
+    current_price: Optional[float]
+    market_state: Optional[str]
+    volatility: Optional[float]
+    liquidity: Optional[float]
+    raw_context: Any = None
+    source: str = "MARKET_CONTEXT"
+
+
+# ============================================================
+# ACCOUNT REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionAccountReference:
+    account_id: Optional[str]
+    balance: Optional[float]
+    equity: Optional[float]
+    available_margin: Optional[float]
+    currency: Optional[str]
+    raw_account: Any = None
+    source: str = "ACCOUNT"
+
+
+# ============================================================
+# CONTRACT VALIDATION
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionContractValidation:
+    status: ProtectionContractStatus
+    errors: tuple[str, ...] = ()
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status == ProtectionContractStatus.VALID
+
+
+# ============================================================
+# SAFE READ HELPERS
+# ============================================================
+
+def _pr_read_value(
+    source: Any,
+    *names: str,
+    default: Any = None,
+) -> Any:
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        for name in names:
+            if name in source:
+                return source[name]
+
+    for name in names:
+        try:
+            value = getattr(source, name)
+        except (AttributeError, TypeError):
+            continue
+
+        if value is not None:
+            return value
+
+    return default
+
+
+def _pr_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+
+    if isinstance(value, Enum):
+        return value.value
+
+    text = str(value).strip()
+    return text if text else None
+
+
+def _pr_float(value: Any) -> Optional[float]:
+    if value is None:
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _pr_bool(value: Any) -> bool:
+    return bool(value)
+
+
+# ============================================================
+# POSITION ADAPTER
+# ============================================================
+
+def build_protection_position_reference(
+    position: Any,
+) -> ProtectionPositionReference:
+
+    return ProtectionPositionReference(
+        position_id=_pr_text(
+            _pr_read_value(position, "position_id", "id")
+        ),
+        instrument=_pr_text(
+            _pr_read_value(position, "instrument", "symbol")
+        ),
+        side=_pr_text(
+            _pr_read_value(position, "side", "direction")
+        ),
+        position_state=_pr_text(
+            _pr_read_value(
+                position,
+                "position_state",
+                "state",
+            )
+        ),
+        quantity=_pr_float(
+            _pr_read_value(
+                position,
+                "quantity",
+                "size",
+                "position_size",
+            )
+        ),
+        entry_price=_pr_float(
+            _pr_read_value(
+                position,
+                "entry_price",
+                "avg_entry_price",
+            )
+        ),
+        current_price=_pr_float(
+            _pr_read_value(
+                position,
+                "current_price",
+                "mark_price",
+                "last_price",
+            )
+        ),
+        stop_loss=_pr_float(
+            _pr_read_value(
+                position,
+                "stop_loss",
+                "sl",
+            )
+        ),
+        take_profit=_pr_float(
+            _pr_read_value(
+                position,
+                "take_profit",
+                "tp",
+            )
+        ),
+        unrealized_pnl=_pr_float(
+            _pr_read_value(
+                position,
+                "unrealized_pnl",
+                "unrealized_profit",
+            )
+        ),
+    )
+
+
+# ============================================================
+# MONITOR ADAPTER
+# ============================================================
+
+def build_protection_monitor_reference(
+    monitor: Any,
+) -> ProtectionMonitorReference:
+
+    result = _pr_read_value(
+        monitor,
+        "result",
+        "monitor_result",
+    )
+
+    return ProtectionMonitorReference(
+        monitor_id=_pr_text(
+            _pr_read_value(
+                monitor,
+                "monitor_id",
+                "id",
+            )
+        ),
+        status=_pr_text(
+            _pr_read_value(
+                result,
+                "status",
+            )
+        ),
+        health=_pr_text(
+            _pr_read_value(
+                result,
+                "health",
+            )
+        ),
+        consistency=_pr_text(
+            _pr_read_value(
+                result,
+                "consistency",
+            )
+        ),
+        disposition=_pr_text(
+            _pr_read_value(
+                result,
+                "disposition",
+            )
+        ),
+        action_state=_pr_text(
+            _pr_read_value(
+                result,
+                "action_state",
+            )
+        ),
+        requires_protection=_pr_bool(
+            _pr_read_value(
+                result,
+                "requires_protection",
+                default=False,
+            )
+        ),
+        requires_halt=_pr_bool(
+            _pr_read_value(
+                result,
+                "requires_halt",
+                default=False,
+            )
+        ),
+        raw_result=result if result is not None else monitor,
+    )
+
+
+# ============================================================
+# RISK ADAPTER
+# ============================================================
+
+def build_protection_risk_reference(
+    risk: Any,
+) -> ProtectionRiskReference:
+
+    return ProtectionRiskReference(
+        risk_id=_pr_text(
+            _pr_read_value(
+                risk,
+                "risk_id",
+                "id",
+            )
+        ),
+        status=_pr_text(
+            _pr_read_value(
+                risk,
+                "status",
+                "state",
+            )
+        ),
+        risk_score=_pr_float(
+            _pr_read_value(
+                risk,
+                "risk_score",
+                "score",
+            )
+        ),
+        exposure=_pr_float(
+            _pr_read_value(
+                risk,
+                "exposure",
+                "exposure_value",
+            )
+        ),
+        severity=_pr_text(
+            _pr_read_value(
+                risk,
+                "severity",
+                "risk_level",
+            )
+        ),
+        raw_result=risk,
+    )
+
+
+# ============================================================
+# D13 ADAPTER
+# ============================================================
+
+def build_protection_decision_reference(
+    decision: Any,
+) -> ProtectionDecisionReference:
+
+    return ProtectionDecisionReference(
+        decision_id=_pr_text(
+            _pr_read_value(
+                decision,
+                "decision_id",
+                "id",
+            )
+        ),
+        direction=_pr_text(
+            _pr_read_value(
+                decision,
+                "direction",
+                "decision",
+                "disposition",
+            )
+        ),
+        status=_pr_text(
+            _pr_read_value(
+                decision,
+                "status",
+            )
+        ),
+        confidence=_pr_float(
+            _pr_read_value(
+                decision,
+                "confidence",
+            )
+        ),
+        strength=_pr_float(
+            _pr_read_value(
+                decision,
+                "strength",
+            )
+        ),
+        raw_decision=decision,
+    )
+
+
+# ============================================================
+# MARKET ADAPTER
+# ============================================================
+
+def build_protection_market_reference(
+    market: Any,
+) -> ProtectionMarketReference:
+
+    return ProtectionMarketReference(
+        instrument=_pr_text(
+            _pr_read_value(
+                market,
+                "instrument",
+                "symbol",
+            )
+        ),
+        current_price=_pr_float(
+            _pr_read_value(
+                market,
+                "current_price",
+                "price",
+                "ltp",
+                "last_price",
+            )
+        ),
+        market_state=_pr_text(
+            _pr_read_value(
+                market,
+                "market_state",
+                "state",
+                "regime",
+            )
+        ),
+        volatility=_pr_float(
+            _pr_read_value(
+                market,
+                "volatility",
+            )
+        ),
+        liquidity=_pr_float(
+            _pr_read_value(
+                market,
+                "liquidity",
+            )
+        ),
+        raw_context=market,
+    )
+
+
+# ============================================================
+# ACCOUNT ADAPTER
+# ============================================================
+
+def build_protection_account_reference(
+    account: Any,
+) -> ProtectionAccountReference:
+
+    return ProtectionAccountReference(
+        account_id=_pr_text(
+            _pr_read_value(
+                account,
+                "account_id",
+                "id",
+            )
+        ),
+        balance=_pr_float(
+            _pr_read_value(
+                account,
+                "balance",
+            )
+        ),
+        equity=_pr_float(
+            _pr_read_value(
+                account,
+                "equity",
+            )
+        ),
+        available_margin=_pr_float(
+            _pr_read_value(
+                account,
+                "available_margin",
+                "free_margin",
+            )
+        ),
+        currency=_pr_text(
+            _pr_read_value(
+                account,
+                "currency",
+            )
+        ),
+        raw_account=account,
+    )
+
+
+# ============================================================
+# REQUEST VALIDATION
+# ============================================================
+
+def validate_protection_request(
+    request: ProtectionRequest,
+) -> ProtectionContractValidation:
+
+    if request is None:
+        return ProtectionContractValidation(
+            status=ProtectionContractStatus.INVALID,
+            errors=("request is None",),
+        )
+
+    errors = request.validate()
+
+    return ProtectionContractValidation(
+        status=(
+            ProtectionContractStatus.VALID
+            if not errors
+            else ProtectionContractStatus.INVALID
+        ),
+        errors=tuple(errors),
+    )
+# ============================================================
+# ROBOMLM PLUS — PROTECTION ENGINE
+# PART 2/5
+# INTELLIGENCE + CONSISTENCY + REQUIREMENTS
+# ============================================================
+
+
+# ============================================================
+# ASSESSMENT ENUMS
+# ============================================================
+
+class ProtectionConsistency(str, Enum):
+    CONSISTENT = "CONSISTENT"
+    CONFLICTING = "CONFLICTING"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+class ProtectionDataState(str, Enum):
+    COMPLETE = "COMPLETE"
+    PARTIAL = "PARTIAL"
+    MISSING = "MISSING"
+
+
+# ============================================================
+# INTELLIGENCE CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionIntelligence:
+    consistency: ProtectionConsistency
+    data_state: ProtectionDataState
+    protection_state: ProtectionState
+    health: ProtectionHealth
+    disposition: ProtectionDisposition
+
+    position_state: Optional[str]
+    direction: Optional[str]
+
+    protection_available: bool
+    halt_required: bool
+
+    rationale: str
+    warnings: tuple[str, ...] = ()
+    source: str = "ROBOMLM_PLUS_PROTECTION"
+
+
+# ============================================================
+# REQUIREMENTS CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionRequirements:
+    position_available: bool
+    monitor_available: bool
+    instrument_available: bool
+    position_state_available: bool
+    quantity_available: bool
+    entry_price_available: bool
+    current_price_available: bool
+
+    protection_parameters_available: bool
+
+    market_context_available: bool
+    risk_context_available: bool
+    decision_context_available: bool
+    account_context_available: bool
+
+    identity_consistent: bool = False
+    price_consistent: bool = False
+
+
+# ============================================================
+# FULL ASSESSMENT CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionAssessment:
+    intelligence: ProtectionIntelligence
+    requirements: ProtectionRequirements
+
+    position: ProtectionPositionReference
+    monitor: ProtectionMonitorReference
+    risk: ProtectionRiskReference
+    decision: ProtectionDecisionReference
+    market: ProtectionMarketReference
+
+    account: Optional[ProtectionAccountReference] = None
+
+    rationale: str = ""
+    warnings: tuple[str, ...] = ()
+
+
+# ============================================================
+# STATUS HELPERS
+# ============================================================
+
+def _pr_status_is_blocking(value: Any) -> bool:
+    status = _pr_text(value)
+
+    if status is None:
+        return False
+
+    return status.upper() in {
+        "BLOCKED",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "INVALID",
+        "UNSAFE",
+        "CRITICAL",
+        "HALTED",
+        "STOPPED",
+    }
+
+
+def _pr_status_is_unknown(value: Any) -> bool:
+    status = _pr_text(value)
+
+    if status is None:
+        return True
+
+    return status.upper() in {
+        "",
+        "UNKNOWN",
+        "UNSPECIFIED",
+        "N/A",
+        "NA",
+        "NONE",
+    }
+
+
+def _pr_direction(value: Any) -> Optional[str]:
+    text = _pr_text(value)
+
+    if text is None:
+        return None
+
+    value_upper = text.upper()
+
+    if value_upper in {
+        "UP",
+        "LONG",
+        "BULLISH",
+        "BUY",
+        "CALL",
+    }:
+        return "UP"
+
+    if value_upper in {
+        "DOWN",
+        "SHORT",
+        "BEARISH",
+        "SELL",
+        "PUT",
+    }:
+        return "DOWN"
+
+    if value_upper in {
+        "NEUTRAL",
+        "FLAT",
+        "HOLD",
+    }:
+        return "NEUTRAL"
+
+    return None
+
+
+# ============================================================
+# PROTECTION REQUIREMENT EVALUATION
+# ============================================================
+
+def evaluate_protection_requirements(
+    position: ProtectionPositionReference,
+    monitor: ProtectionMonitorReference,
+    risk: ProtectionRiskReference,
+    decision: ProtectionDecisionReference,
+    market: ProtectionMarketReference,
+    account: Optional[ProtectionAccountReference] = None,
+) -> ProtectionRequirements:
+
+    instrument_available = bool(position.instrument)
+
+    state_available = bool(position.position_state)
+
+    quantity_available = position.quantity is not None
+
+    entry_available = position.entry_price is not None
+
+    current_available = (
+        position.current_price is not None
+        or market.current_price is not None
+    )
+
+    protection_available = (
+        position.stop_loss is not None
+        or position.take_profit is not None
+    )
+
+    identity_consistent = True
+
+    if (
+        position.instrument
+        and market.instrument
+        and position.instrument != market.instrument
+    ):
+        identity_consistent = False
+
+    price_consistent = True
+
+    if (
+        position.current_price is not None
+        and market.current_price is not None
+        and position.current_price != market.current_price
+    ):
+        price_consistent = False
+
+    return ProtectionRequirements(
+        position_available=True,
+        monitor_available=monitor is not None,
+        instrument_available=instrument_available,
+        position_state_available=state_available,
+        quantity_available=quantity_available,
+        entry_price_available=entry_available,
+        current_price_available=current_available,
+        protection_parameters_available=protection_available,
+        market_context_available=market is not None,
+        risk_context_available=risk is not None,
+        decision_context_available=decision is not None,
+        account_context_available=account is not None,
+        identity_consistent=identity_consistent,
+        price_consistent=price_consistent,
+    )
+
+
+# ============================================================
+# DATA STATE EVALUATION
+# ============================================================
+
+def evaluate_protection_data_state(
+    requirements: ProtectionRequirements,
+) -> ProtectionDataState:
+
+    critical_fields = (
+        requirements.position_available,
+        requirements.instrument_available,
+        requirements.position_state_available,
+        requirements.quantity_available,
+        requirements.current_price_available,
+    )
+
+    if not all(critical_fields):
+        if not any(critical_fields):
+            return ProtectionDataState.MISSING
+
+        return ProtectionDataState.PARTIAL
+
+    contextual_fields = (
+        requirements.monitor_available,
+        requirements.risk_context_available,
+        requirements.decision_context_available,
+    )
+
+    if not all(contextual_fields):
+        return ProtectionDataState.PARTIAL
+
+    return ProtectionDataState.COMPLETE
+
+
+# ============================================================
+# CONSISTENCY EVALUATION
+# ============================================================
+
+def evaluate_protection_consistency(
+    position: ProtectionPositionReference,
+    monitor: ProtectionMonitorReference,
+    risk: ProtectionRiskReference,
+    decision: ProtectionDecisionReference,
+    market: ProtectionMarketReference,
+) -> ProtectionConsistency:
+
+    if position is None or monitor is None:
+        return ProtectionConsistency.INSUFFICIENT
+
+    # --------------------------------------------------------
+    # Identity consistency
+    # --------------------------------------------------------
+    if (
+        position.instrument
+        and market.instrument
+        and position.instrument != market.instrument
+    ):
+        return ProtectionConsistency.CONFLICTING
+
+    # --------------------------------------------------------
+    # Price consistency
+    # --------------------------------------------------------
+    if (
+        position.current_price is not None
+        and market.current_price is not None
+        and position.current_price != market.current_price
+    ):
+        return ProtectionConsistency.CONFLICTING
+
+    # --------------------------------------------------------
+    # Monitor explicit halt state
+    # --------------------------------------------------------
+    if monitor.requires_halt:
+        return ProtectionConsistency.CONFLICTING
+
+    # --------------------------------------------------------
+    # Monitor explicit blocking status
+    # --------------------------------------------------------
+    if _pr_status_is_blocking(monitor.status):
+        return ProtectionConsistency.CONFLICTING
+
+    # --------------------------------------------------------
+    # Risk authority
+    # --------------------------------------------------------
+    if risk is not None and _pr_status_is_blocking(risk.status):
+        return ProtectionConsistency.CONFLICTING
+
+    if risk is not None and _pr_status_is_blocking(risk.severity):
+        return ProtectionConsistency.CONFLICTING
+
+    # --------------------------------------------------------
+    # D13 is reference authority.
+    # Protection does not alter it.
+    # --------------------------------------------------------
+    position_direction = _pr_direction(position.side)
+    decision_direction = _pr_direction(decision.direction)
+
+    if (
+        position_direction in {"UP", "DOWN"}
+        and decision_direction in {"UP", "DOWN"}
+        and position_direction != decision_direction
+    ):
+        return ProtectionConsistency.CONFLICTING
+
+    if (
+        decision.direction is None
+        and position_direction is None
+    ):
+        return ProtectionConsistency.INSUFFICIENT
+
+    return ProtectionConsistency.CONSISTENT
+
+
+# ============================================================
+# PROTECTION HEALTH
+# ============================================================
+
+def evaluate_protection_health(
+    data_state: ProtectionDataState,
+    consistency: ProtectionConsistency,
+    monitor: ProtectionMonitorReference,
+    risk: ProtectionRiskReference,
+) -> ProtectionHealth:
+
+    if data_state == ProtectionDataState.MISSING:
+        return ProtectionHealth.UNKNOWN
+
+    if consistency == ProtectionConsistency.CONFLICTING:
+        if monitor.requires_halt:
+            return ProtectionHealth.CRITICAL
+
+        return ProtectionHealth.AT_RISK
+
+    if risk is not None:
+        severity = _pr_text(risk.severity)
+
+        if severity and severity.upper() in {
+            "CRITICAL",
+            "SEVERE",
+        }:
+            return ProtectionHealth.CRITICAL
+
+        if severity and severity.upper() in {
+            "HIGH",
+            "ELEVATED",
+        }:
+            return ProtectionHealth.AT_RISK
+
+    if data_state == ProtectionDataState.PARTIAL:
+        return ProtectionHealth.CAUTION
+
+    return ProtectionHealth.HEALTHY
+
+
+# ============================================================
+# PROTECTION STATE
+# ============================================================
+
+def evaluate_protection_state(
+    position: ProtectionPositionReference,
+    monitor: ProtectionMonitorReference,
+) -> ProtectionState:
+
+    if position is None or monitor is None:
+        return ProtectionState.UNKNOWN
+
+    if monitor.requires_halt:
+        return ProtectionState.REQUIRED
+
+    if monitor.requires_protection:
+        return ProtectionState.REQUIRED
+
+    if (
+        position.stop_loss is not None
+        or position.take_profit is not None
+    ):
+        return ProtectionState.ACTIVE
+
+    if (
+        position.position_state
+        and _pr_text(position.position_state).upper()
+        in {"CLOSED", "EXITED", "FLAT"}
+    ):
+        return ProtectionState.AVAILABLE
+
+    return ProtectionState.MISSING
+
+
+# ============================================================
+# DISPOSITION
+# ============================================================
+
+def evaluate_protection_disposition(
+    state: ProtectionState,
+    health: ProtectionHealth,
+    consistency: ProtectionConsistency,
+    monitor: ProtectionMonitorReference,
+) -> ProtectionDisposition:
+
+    if monitor.requires_halt:
+        return ProtectionDisposition.BLOCK
+
+    if consistency == ProtectionConsistency.CONFLICTING:
+        return ProtectionDisposition.BLOCK
+
+    if health == ProtectionHealth.CRITICAL:
+        return ProtectionDisposition.BLOCK
+
+    if state == ProtectionState.REQUIRED:
+        return ProtectionDisposition.PROTECT
+
+    if health == ProtectionHealth.AT_RISK:
+        return ProtectionDisposition.PROTECT
+
+    if health == ProtectionHealth.CAUTION:
+        return ProtectionDisposition.REVIEW
+
+    if state == ProtectionState.ACTIVE:
+        return ProtectionDisposition.MAINTAIN
+
+    if state == ProtectionState.AVAILABLE:
+        return ProtectionDisposition.MAINTAIN
+
+    if health == ProtectionHealth.HEALTHY:
+        return ProtectionDisposition.MAINTAIN
+
+    return ProtectionDisposition.UNKNOWN
+
+
+# ============================================================
+# INTELLIGENCE BUILDER
+# ============================================================
+
+def build_protection_intelligence(
+    requirements: ProtectionRequirements,
+    position: ProtectionPositionReference,
+    monitor: ProtectionMonitorReference,
+    risk: ProtectionRiskReference,
+    decision: ProtectionDecisionReference,
+    market: ProtectionMarketReference,
+) -> ProtectionIntelligence:
+
+    data_state = evaluate_protection_data_state(
+        requirements
+    )
+
+    consistency = evaluate_protection_consistency(
+        position,
+        monitor,
+        risk,
+        decision,
+        market,
+    )
+
+    health = evaluate_protection_health(
+        data_state,
+        consistency,
+        monitor,
+        risk,
+    )
+
+    protection_state = evaluate_protection_state(
+        position,
+        monitor,
+    )
+
+    disposition = evaluate_protection_disposition(
+        protection_state,
+        health,
+        consistency,
+        monitor,
+    )
+
+    warnings = []
+
+    if data_state != ProtectionDataState.COMPLETE:
+        warnings.append(
+            "Protection context is incomplete."
+        )
+
+    if consistency == ProtectionConsistency.CONFLICTING:
+        warnings.append(
+            "Protection inputs contain an authority or state conflict."
+        )
+
+    if monitor.requires_protection and (
+        position.stop_loss is None
+        and position.take_profit is None
+    ):
+        warnings.append(
+            "Protection is required but no existing protection "
+            "parameters are available."
+        )
+
+    if monitor.requires_halt:
+        warnings.append(
+            "Monitor indicates halt condition; no halt action "
+            "is created by the protection engine."
+        )
+
+    rationale = (
+        f"Protection state={protection_state.value}; "
+        f"health={health.value}; "
+        f"consistency={consistency.value}; "
+        f"disposition={disposition.value}."
+    )
+
+    return ProtectionIntelligence(
+        consistency=consistency,
+        data_state=data_state,
+        protection_state=protection_state,
+        health=health,
+        disposition=disposition,
+        position_state=position.position_state,
+        direction=_pr_direction(
+            decision.direction or position.side
+        ),
+        protection_available=(
+            position.stop_loss is not None
+            or position.take_profit is not None
+        ),
+        halt_required=monitor.requires_halt,
+        rationale=rationale,
+        warnings=tuple(warnings),
+    )
+
+
+# ============================================================
+# FULL ASSESSMENT BUILDER
+# ============================================================
+
+def build_protection_assessment(
+    request: ProtectionRequest,
+) -> ProtectionAssessment:
+
+    monitor_source = request.position_monitor
+
+    position_source = _pr_read_value(
+        monitor_source,
+        "position",
+        default=monitor_source,
+    )
+
+    position = build_protection_position_reference(
+        position_source
+    )
+
+    monitor = build_protection_monitor_reference(
+        monitor_source
+    )
+
+    risk = build_protection_risk_reference(
+        request.risk_state
+    )
+
+    decision = build_protection_decision_reference(
+        request.decision_state
+    )
+
+    market = build_protection_market_reference(
+        request.market_context
+    )
+
+    account = (
+        build_protection_account_reference(
+            request.account_state
+        )
+        if request.account_state is not None
+        else None
+    )
+
+    requirements = evaluate_protection_requirements(
+        position=position,
+        monitor=monitor,
+        risk=risk,
+        decision=decision,
+        market=market,
+        account=account,
+    )
+
+    intelligence = build_protection_intelligence(
+        requirements=requirements,
+        position=position,
+        monitor=monitor,
+        risk=risk,
+        decision=decision,
+        market=market,
+    )
+
+    return ProtectionAssessment(
+        intelligence=intelligence,
+        requirements=requirements,
+        position=position,
+        monitor=monitor,
+        risk=risk,
+        decision=decision,
+        market=market,
+        account=account,
+        rationale=intelligence.rationale,
+        warnings=intelligence.warnings,
+    )
+# ============================================================
+# ROBOMLM PLUS — PROTECTION ENGINE
+# PART 3/5
+# RESULT + PROTECTION SPECIFICATION + CONTRACT
+# ============================================================
+
+
+# ============================================================
+# PROTECTION ACTION STATE
+# ============================================================
+
+class ProtectionActionState(str, Enum):
+    NONE = "NONE"
+    MAINTAIN = "MAINTAIN"
+    PROTECT = "PROTECT"
+    BLOCK = "BLOCK"
+
+
+class ProtectionContractState(str, Enum):
+    VALID = "VALID"
+    INCOMPLETE = "INCOMPLETE"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+class ProtectionParameterState(str, Enum):
+    AVAILABLE = "AVAILABLE"
+    UNKNOWN = "UNKNOWN"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# EXPLICIT PROTECTION PARAMETER
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionParameter:
+    name: str
+    value: Optional[float]
+    state: ProtectionParameterState
+    source: str = "EXPLICIT_SOURCE"
+
+
+# ============================================================
+# PROTECTION SPECIFICATION
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionSpecification:
+    """
+    Explicit protection information only.
+
+    Values may originate from an existing position or an
+    explicitly supplied authorized/action context.
+
+    No parameter is calculated here.
+    """
+
+    stop_loss: ProtectionParameter
+    take_profit: ProtectionParameter
+
+    protection_available: bool
+
+    source: str = "EXPLICIT_PROTECTION"
+
+
+# ============================================================
+# PROTECTION RESULT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionResult:
+    request_id: str
+    result_id: str
+
+    status: ProtectionStatus
+    protection_state: ProtectionState
+    health: ProtectionHealth
+    consistency: ProtectionConsistency
+    data_state: ProtectionDataState
+    disposition: ProtectionDisposition
+    action_state: ProtectionActionState
+
+    position: ProtectionPositionReference
+    monitor: ProtectionMonitorReference
+    risk: ProtectionRiskReference
+    decision: ProtectionDecisionReference
+    market: ProtectionMarketReference
+    account: Optional[ProtectionAccountReference]
+
+    specification: ProtectionSpecification
+
+    rationale: str
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status != ProtectionStatus.INVALID
+
+    @property
+    def requires_protection(self) -> bool:
+        return (
+            self.disposition == ProtectionDisposition.PROTECT
+            or self.protection_state == ProtectionState.REQUIRED
+        )
+
+    @property
+    def requires_block(self) -> bool:
+        return (
+            self.disposition == ProtectionDisposition.BLOCK
+            or self.action_state == ProtectionActionState.BLOCK
+        )
+
+
+# ============================================================
+# PROTECTION CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ProtectionContract:
+    """
+    Read-only protection handoff contract.
+
+    This is NOT an execution request.
+    """
+
+    protection_id: str
+    request_id: str
+
+    state: ProtectionContractState
+    result: ProtectionResult
+    action_state: ProtectionActionState
+
+    rationale: str
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return (
+            self.state == ProtectionContractState.VALID
+            and self.result is not None
+            and self.result.is_valid
+        )
+
+    @property
+    def is_action_request(self) -> bool:
+        # Protection layer must never become an execution request.
+        return False
+
+
+# ============================================================
+# PARAMETER HELPERS
+# ============================================================
+
+def _pr_parameter(
+    name: str,
+    value: Any,
+    source: str,
+) -> ProtectionParameter:
+
+    if value is None:
+        return ProtectionParameter(
+            name=name,
+            value=None,
+            state=ProtectionParameterState.UNKNOWN,
+            source=source,
+        )
+
+    numeric = _pr_float(value)
+
+    if numeric is None:
+        return ProtectionParameter(
+            name=name,
+            value=None,
+            state=ProtectionParameterState.INVALID,
+            source=source,
+        )
+
+    return ProtectionParameter(
+        name=name,
+        value=numeric,
+        state=ProtectionParameterState.AVAILABLE,
+        source=source,
+    )
+
+
+def _pr_explicit_parameter(
+    name: str,
+    sources: tuple[Any, ...],
+) -> ProtectionParameter:
+
+    aliases = {
+        "stop_loss": (
+            "stop_loss",
+            "sl",
+            "stop",
+        ),
+        "take_profit": (
+            "take_profit",
+            "tp",
+            "target",
+        ),
+    }
+
+    for source in sources:
+        if source is None:
+            continue
+
+        value = _pr_read_value(
+            source,
+            *aliases[name],
+            default=None,
+        )
+
+        if value is not None:
+            return _pr_parameter(
+                name=name,
+                value=value,
+                source=(
+                    "EXPLICIT_AUTHORIZED_ACTION"
+                    if source is sources[0]
+                    else "EXPLICIT_SOURCE"
+                ),
+            )
+
+    return _pr_parameter(
+        name=name,
+        value=None,
+        source="NO_EXPLICIT_VALUE",
+    )
+
+
+# ============================================================
+# BUILD PROTECTION SPECIFICATION
+# ============================================================
+
+def build_protection_specification(
+    request: ProtectionRequest,
+    assessment: ProtectionAssessment,
+) -> ProtectionSpecification:
+
+    # Explicit authorized/action context has highest priority.
+    explicit_sources = (
+        request.authorized_action,
+        assessment.position,
+        request.position_monitor,
+    )
+
+    stop_loss = _pr_explicit_parameter(
+        "stop_loss",
+        explicit_sources,
+    )
+
+    take_profit = _pr_explicit_parameter(
+        "take_profit",
+        explicit_sources,
+    )
+
+    protection_available = (
+        stop_loss.state == ProtectionParameterState.AVAILABLE
+        or take_profit.state == ProtectionParameterState.AVAILABLE
+    )
+
+    return ProtectionSpecification(
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+        protection_available=protection_available,
+    )
+
+
+# ============================================================
+# ACTION STATE
+# ============================================================
+
+def _pr_action_state(
+    disposition: ProtectionDisposition,
+) -> ProtectionActionState:
+
+    if disposition == ProtectionDisposition.PROTECT:
+        return ProtectionActionState.PROTECT
+
+    if disposition == ProtectionDisposition.BLOCK:
+        return ProtectionActionState.BLOCK
+
+    if disposition == ProtectionDisposition.MAINTAIN:
+        return ProtectionActionState.MAINTAIN
+
+    return ProtectionActionState.NONE
+
+
+# ============================================================
+# RESULT STATUS
+# ============================================================
+
+def _pr_result_status(
+    data_state: ProtectionDataState,
+    consistency: ProtectionConsistency,
+    health: ProtectionHealth,
+    disposition: ProtectionDisposition,
+) -> ProtectionStatus:
+
+    if data_state == ProtectionDataState.MISSING:
+        return ProtectionStatus.INVALID
+
+    if consistency == ProtectionConsistency.CONFLICTING:
+        return ProtectionStatus.BLOCKED
+
+    if disposition == ProtectionDisposition.BLOCK:
+        return ProtectionStatus.CRITICAL
+
+    if health == ProtectionHealth.CRITICAL:
+        return ProtectionStatus.CRITICAL
+
+    if disposition == ProtectionDisposition.PROTECT:
+        return ProtectionStatus.PROTECTING
+
+    if health in {
+        ProtectionHealth.AT_RISK,
+        ProtectionHealth.CAUTION,
+    }:
+        return ProtectionStatus.WARNING
+
+    return ProtectionStatus.READY
+
+
+# ============================================================
+# BUILD PROTECTION RESULT
+# ============================================================
+
+def build_protection_result(
+    request: ProtectionRequest,
+    assessment: ProtectionAssessment,
+) -> ProtectionResult:
+
+    intelligence = assessment.intelligence
+
+    specification = build_protection_specification(
+        request=request,
+        assessment=assessment,
+    )
+
+    warnings = list(assessment.warnings)
+
+    if (
+        intelligence.protection_state
+        == ProtectionState.REQUIRED
+        and not specification.protection_available
+    ):
+        warnings.append(
+            "Protection is required but no explicit protection "
+            "parameter is available."
+        )
+
+    if intelligence.halt_required:
+        warnings.append(
+            "Blocking condition originates from upstream monitoring/"
+            "risk state; this layer does not create a halt action."
+        )
+
+    action_state = _pr_action_state(
+        intelligence.disposition
+    )
+
+    status = _pr_result_status(
+        data_state=intelligence.data_state,
+        consistency=intelligence.consistency,
+        health=intelligence.health,
+        disposition=intelligence.disposition,
+    )
+
+    return ProtectionResult(
+        request_id=request.request_id,
+        result_id=str(uuid4()),
+        status=status,
+        protection_state=intelligence.protection_state,
+        health=intelligence.health,
+        consistency=intelligence.consistency,
+        data_state=intelligence.data_state,
+        disposition=intelligence.disposition,
+        action_state=action_state,
+
+        position=assessment.position,
+        monitor=assessment.monitor,
+        risk=assessment.risk,
+        decision=assessment.decision,
+        market=assessment.market,
+        account=assessment.account,
+
+        specification=specification,
+
+        rationale=assessment.rationale,
+        warnings=tuple(warnings),
+    )
+
+
+# ============================================================
+# BUILD PROTECTION CONTRACT
+# ============================================================
+
+def build_protection_contract(
+    request: ProtectionRequest,
+    result: ProtectionResult,
+) -> ProtectionContract:
+
+    now = datetime.now(timezone.utc)
+
+    if result is None or not result.is_valid:
+        state = ProtectionContractState.INVALID
+
+    elif result.consistency == ProtectionConsistency.CONFLICTING:
+        state = ProtectionContractState.BLOCKED
+
+    elif result.data_state == ProtectionDataState.MISSING:
+        state = ProtectionContractState.INCOMPLETE
+
+    elif (
+        result.requires_protection
+        and not result.specification.protection_available
+    ):
+        state = ProtectionContractState.INCOMPLETE
+
+    else:
+        state = ProtectionContractState.VALID
+
+    warnings = list(result.warnings)
+
+    if result.requires_block:
+        warnings.append(
+            "Protection contract is blocked; no downstream execution "
+            "action is created."
+        )
+
+    return ProtectionContract(
+        protection_id=str(uuid4()),
+        request_id=request.request_id,
+        state=state,
+        result=result,
+        action_state=result.action_state,
+        rationale=result.rationale,
+        warnings=tuple(warnings),
+        created_at=now,
+    )
+
+
+# ============================================================
+# SAFE FORWARD GATE
+# ============================================================
+
+def is_protection_safe_to_forward(
+    contract: ProtectionContract,
+) -> bool:
+    """
+    Determines whether a valid protection contract may be passed
+    to the downstream protection/action layer.
+
+    This function NEVER grants execution authorization.
+    """
+
+    if contract is None:
+        return False
+
+    if not contract.is_valid:
+        return False
+
+    if contract.is_action_request:
+        return False
+
+    result = contract.result
+
+    if result is None or not result.is_valid:
+        return False
+
+    if result.consistency == ProtectionConsistency.CONFLICTING:
+        return False
+
+    if result.health == ProtectionHealth.CRITICAL:
+        return False
+
+    if result.requires_block:
+        return False
+
+    if (
+        result.requires_protection
+        and not result.specification.protection_available
+    ):
+        return False
+
+    return True
+
+
+# ============================================================
+# RESULT VALIDATION
+# ============================================================
+
+def validate_protection_result(
+    result: ProtectionResult,
+) -> ProtectionContractValidation:
+
+    errors = []
+
+    if result is None:
+        return ProtectionContractValidation(
+            status=ProtectionContractStatus.INVALID,
+            errors=("result is None",),
+        )
+
+    if not result.request_id:
+        errors.append("request_id is missing")
+
+    if not result.result_id:
+        errors.append("result_id is missing")
+
+    if result.position is None:
+        errors.append("position reference is missing")
+
+    if result.monitor is None:
+        errors.append("monitor reference is missing")
+
+    if result.risk is None:
+        errors.append("risk reference is missing")
+
+    if result.decision is None:
+        errors.append("decision reference is missing")
+
+    if result.market is None:
+        errors.append("market reference is missing")
+
+    if result.specification is None:
+        errors.append("protection specification is missing")
+
+    if result.requires_protection:
+        if (
+            result.specification.stop_loss.state
+            == ProtectionParameterState.INVALID
+        ):
+            errors.append("stop_loss parameter is invalid")
+
+        if (
+            result.specification.take_profit.state
+            == ProtectionParameterState.INVALID
+        ):
+            errors.append("take_profit parameter is invalid")
+
+    return ProtectionContractValidation(
+        status=(
+            ProtectionContractStatus.VALID
+            if not errors
+            else ProtectionContractStatus.INVALID
+        ),
+        errors=tuple(errors),
+    )
+# ============================================================
+# ROBOMLM PLUS — PROTECTION ENGINE
+# PART 4/5
+# ENGINE ORCHESTRATION + PUBLIC API
+# ============================================================
+
+
+class ProtectionEngine:
+    """
+    ROBOMLM PLUS Protection Engine.
+
+    Role:
+        Existing protection state ko evaluate karna,
+        protection requirements identify karna, aur
+        downstream protection layer ke liye controlled
+        contract prepare karna.
+
+    Authority:
+        D13      -> decision authority
+        Risk     -> risk authority
+        Position -> actual position authority
+        Monitor  -> monitoring authority
+        Protection -> protection refinement
+        Execution -> actual execution authority
+
+    This engine NEVER:
+        - creates an order
+        - submits an order
+        - executes an order
+        - creates execution authorization
+        - overrides D13
+        - overrides Risk
+        - calculates SL/TP
+        - calculates quantity
+        - invents protection values
+    """
+
+    ENGINE_NAME = PROTECTION_ENGINE
+    ENGINE_VERSION = PROTECTION_VERSION
+
+    # --------------------------------------------------------
+    # REQUEST VALIDATION
+    # --------------------------------------------------------
+
+    def validate_request(
+        self,
+        request: ProtectionRequest,
+    ) -> ProtectionContractValidation:
+        return validate_protection_request(request)
+
+    # --------------------------------------------------------
+    # FAIL-CLOSED CONTRACT
+    # --------------------------------------------------------
+
+    def _invalid_contract(
+        self,
+        request: ProtectionRequest,
+        reason: str,
+    ) -> ProtectionContract:
+        """
+        Creates an invalid fail-closed result.
+
+        No protection action is created.
+        """
+
+        now = datetime.now(timezone.utc)
+
+        position = ProtectionPositionReference(
+            position_id=None,
+            instrument=None,
+            side=None,
+            position_state=None,
+            quantity=None,
+            entry_price=None,
+            current_price=None,
+            stop_loss=None,
+            take_profit=None,
+            unrealized_pnl=None,
+        )
+
+        monitor = ProtectionMonitorReference(
+            monitor_id=None,
+            status="INVALID",
+            health="UNKNOWN",
+            consistency="INSUFFICIENT",
+            disposition="UNKNOWN",
+            action_state="NONE",
+            requires_protection=False,
+            requires_halt=False,
+        )
+
+        risk = ProtectionRiskReference(
+            risk_id=None,
+            status="INVALID",
+            risk_score=None,
+            exposure=None,
+            severity="CRITICAL",
+        )
+
+        decision = ProtectionDecisionReference(
+            decision_id=None,
+            direction=None,
+            status="INVALID",
+            confidence=None,
+            strength=None,
+        )
+
+        market = ProtectionMarketReference(
+            instrument=None,
+            current_price=None,
+            market_state=None,
+            volatility=None,
+            liquidity=None,
+        )
+
+        specification = ProtectionSpecification(
+            stop_loss=ProtectionParameter(
+                name="stop_loss",
+                value=None,
+                state=ProtectionParameterState.UNKNOWN,
+                source="INVALID_REQUEST",
+            ),
+            take_profit=ProtectionParameter(
+                name="take_profit",
+                value=None,
+                state=ProtectionParameterState.UNKNOWN,
+                source="INVALID_REQUEST",
+            ),
+            protection_available=False,
+        )
+
+        result = ProtectionResult(
+            request_id=request.request_id,
+            result_id=str(uuid4()),
+            status=ProtectionStatus.INVALID,
+            protection_state=ProtectionState.UNKNOWN,
+            health=ProtectionHealth.UNKNOWN,
+            consistency=ProtectionConsistency.INSUFFICIENT,
+            data_state=ProtectionDataState.MISSING,
+            disposition=ProtectionDisposition.UNKNOWN,
+            action_state=ProtectionActionState.NONE,
+            position=position,
+            monitor=monitor,
+            risk=risk,
+            decision=decision,
+            market=market,
+            account=None,
+            specification=specification,
+            rationale=reason,
+            warnings=("Invalid protection request; fail-closed.",),
+            created_at=now,
+        )
+
+        return ProtectionContract(
+            protection_id=str(uuid4()),
+            request_id=request.request_id,
+            state=ProtectionContractState.INVALID,
+            result=result,
+            action_state=ProtectionActionState.NONE,
+            rationale=reason,
+            warnings=("No protection action generated.",),
+            created_at=now,
+        )
+
+    # --------------------------------------------------------
+    # MAIN PROCESS
+    # --------------------------------------------------------
+
+    def process(
+        self,
+        request: ProtectionRequest,
+    ) -> ProtectionContract:
+
+        # 1. Contract validation
+        validation = self.validate_request(request)
+
+        if not validation.is_valid:
+            reason = "; ".join(validation.errors)
+
+            return self._invalid_contract(
+                request,
+                reason,
+            )
+
+        # 2. Build assessment
+        try:
+            assessment = build_protection_assessment(
+                request
+            )
+
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Protection assessment failure: {exc}",
+            )
+
+        # 3. Build result
+        try:
+            result = build_protection_result(
+                request=request,
+                assessment=assessment,
+            )
+
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Protection result failure: {exc}",
+            )
+
+        # 4. Validate result
+        result_validation = validate_protection_result(
+            result
+        )
+
+        if not result_validation.is_valid:
+            reason = "; ".join(
+                result_validation.errors
+            )
+
+            return self._invalid_contract(
+                request,
+                f"Invalid protection result: {reason}",
+            )
+
+        # 5. Build final contract
+        try:
+            contract = build_protection_contract(
+                request=request,
+                result=result,
+            )
+
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Protection contract failure: {exc}",
+            )
+
+        return contract
+
+    # --------------------------------------------------------
+    # SEMANTIC ALIAS
+    # --------------------------------------------------------
+
+    def evaluate(
+        self,
+        request: ProtectionRequest,
+    ) -> ProtectionContract:
+        return self.process(request)
+
+    # --------------------------------------------------------
+    # DOWNSTREAM SAFETY
+    # --------------------------------------------------------
+
+    def is_ready_for_protection_layer(
+        self,
+        contract: ProtectionContract,
+    ) -> bool:
+        """
+        Checks whether the protection contract can safely
+        move to the downstream protection/action layer.
+
+        This does NOT authorize execution.
+        """
+
+        return is_protection_safe_to_forward(
+            contract
+        )
+
+    # --------------------------------------------------------
+    # REQUIREMENT HELPERS
+    # --------------------------------------------------------
+
+    def requires_protection(
+        self,
+        contract: ProtectionContract,
+    ) -> bool:
+
+        if contract is None:
+            return False
+
+        if contract.result is None:
+            return False
+
+        return contract.result.requires_protection
+
+    def requires_block(
+        self,
+        contract: ProtectionContract,
+    ) -> bool:
+
+        if contract is None:
+            return False
+
+        if contract.result is None:
+            return False
+
+        return contract.result.requires_block
+
+    # --------------------------------------------------------
+    # AUDIT
+    # --------------------------------------------------------
+
+    def audit_summary(
+        self,
+        contract: ProtectionContract,
+    ) -> dict:
+
+        if contract is None:
+            return {
+                "engine": self.ENGINE_NAME,
+                "version": self.ENGINE_VERSION,
+                "valid": False,
+                "error": "contract is None",
+            }
+
+        result = contract.result
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "protection_id": contract.protection_id,
+            "request_id": contract.request_id,
+
+            "contract_state": (
+                contract.state.value
+            ),
+
+            "action_state": (
+                contract.action_state.value
+            ),
+
+            "result_status": (
+                result.status.value
+                if result is not None
+                else ProtectionStatus.INVALID.value
+            ),
+
+            "protection_state": (
+                result.protection_state.value
+                if result is not None
+                else ProtectionState.UNKNOWN.value
+            ),
+
+            "health": (
+                result.health.value
+                if result is not None
+                else ProtectionHealth.UNKNOWN.value
+            ),
+
+            "consistency": (
+                result.consistency.value
+                if result is not None
+                else ProtectionConsistency.INSUFFICIENT.value
+            ),
+
+            "data_state": (
+                result.data_state.value
+                if result is not None
+                else ProtectionDataState.MISSING.value
+            ),
+
+            "disposition": (
+                result.disposition.value
+                if result is not None
+                else ProtectionDisposition.UNKNOWN.value
+            ),
+
+            "requires_protection": (
+                self.requires_protection(contract)
+            ),
+
+            "requires_block": (
+                self.requires_block(contract)
+            ),
+
+            "safe_for_downstream": (
+                self.is_ready_for_protection_layer(
+                    contract
+                )
+            ),
+
+            # Hard authority guarantees.
+            "protection_action_created": False,
+            "order_created": False,
+            "execution_authorized": False,
+            "d13_overridden": False,
+            "risk_overridden": False,
+            "sl_tp_calculated": False,
+            "quantity_calculated": False,
+        }
+
+
+# ============================================================
+# PUBLIC ENGINE INSTANCE
+# ============================================================
+
+protection_engine = ProtectionEngine()
+
+
+# ============================================================
+# PUBLIC FUNCTIONAL API
+# ============================================================
+
+def evaluate_protection(
+    request: ProtectionRequest,
+) -> ProtectionContract:
+    return protection_engine.process(request)
+
+
+def process_protection(
+    request: ProtectionRequest,
+) -> ProtectionContract:
+    return protection_engine.process(request)
+
+
+def protection_ready(
+    contract: ProtectionContract,
+) -> bool:
+    return protection_engine.is_ready_for_protection_layer(
+        contract
+    )
+
+
+def protection_requires_protection(
+    contract: ProtectionContract,
+) -> bool:
+    return protection_engine.requires_protection(
+        contract
+    )
+
+
+def protection_requires_block(
+    contract: ProtectionContract,
+) -> bool:
+    return protection_engine.requires_block(
+        contract
+    )
+
+
+def protection_audit(
+    contract: ProtectionContract,
+) -> dict:
+    return protection_engine.audit_summary(
+        contract
+    )
+
+
+# ============================================================
+# HEALTH CHECK
+# ============================================================
+
+def protection_health_check() -> dict:
+    return {
+        "engine": PROTECTION_ENGINE,
+        "version": PROTECTION_VERSION,
+        "status": "READY",
+        "healthy": True,
+
+        "monitoring_input": True,
+        "risk_input": True,
+        "decision_input": True,
+        "market_input": True,
+
+        "protection_assessment": True,
+        "protection_specification": True,
+
+        "order_creation": False,
+        "order_execution": False,
+        "execution_authorization": False,
+
+        "sl_tp_calculation": False,
+        "quantity_calculation": False,
+
+        "d13_override": False,
+        "risk_override": False,
+    }
+
+
+def get_protection_engine_info() -> dict:
+    return {
+        "engine": PROTECTION_ENGINE,
+        "version": PROTECTION_VERSION,
+
+        "role": "PROTECTION_INTELLIGENCE",
+
+        "authority": {
+            "decision": "D13",
+            "risk": "RISK",
+            "position": "POSITION",
+            "monitoring": "POSITION_MONITOR",
+            "protection": "ROBOMLM_PLUS_PROTECTION",
+            "execution": "EXECUTION_LAYER",
+        },
+
+        "capabilities": [
+            "protection_state_assessment",
+            "protection_requirement_detection",
+            "protection_health_assessment",
+            "protection_consistency_validation",
+            "explicit_protection_parameter_handling",
+            "downstream_protection_readiness",
+        ],
+
+        "non_capabilities": [
+            "sl_tp_calculation",
+            "quantity_calculation",
+            "order_creation",
+            "order_execution",
+            "execution_authorization",
+            "d13_override",
+            "risk_override",
+            "invented_protection_values",
+        ],
+    }
+
+
+# ============================================================
+# COMPATIBILITY ALIAS
+# ============================================================
+
+Protection = ProtectionEngine
+# ============================================================
+# protection.py
+# PART 5 / 5
+# Serialization + Contract Validation + Integrity + Exports
+# ============================================================
+
+def _pr_enum_value(value):
+    """Return enum value safely for stable serialization."""
+    if value is None:
+        return None
+
+    enum_value = getattr(value, "value", None)
+    if enum_value is not None:
+        return enum_value
+
+    return value
+
+
+def _pr_safe_dict(value):
+    """Return a safe dictionary representation."""
+    if value is None:
+        return None
+
+    if isinstance(value, Mapping):
+        return dict(value)
+
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        try:
+            result = to_dict()
+            if isinstance(result, Mapping):
+                return dict(result)
+        except Exception:
+            pass
+
+    return {
+        "value": str(value)
+    }
+
+
+def protection_to_dict(contract: ProtectionContract) -> dict:
+    """
+    Serialize the complete protection contract into a stable envelope.
+
+    This function is observational only.
+    It does not create protection actions or execution authorization.
+    """
+    if contract is None:
+        return {
+            "valid": False,
+            "contract": None,
+            "error": "contract is None",
+        }
+
+    result = contract.result
+    specification = result.specification if result else None
+
+    return {
+        "contract": {
+            "protection_id": contract.protection_id,
+            "request_id": contract.request_id,
+            "state": _pr_enum_value(contract.state),
+            "action_state": _pr_enum_value(contract.action_state),
+            "is_valid": contract.is_valid,
+            "is_action_request": contract.is_action_request,
+            "rationale": contract.rationale,
+            "warnings": list(contract.warnings),
+            "created_at": contract.created_at.isoformat(),
+        },
+        "result": {
+            "request_id": result.request_id if result else None,
+            "result_id": result.result_id if result else None,
+            "status": _pr_enum_value(result.status) if result else None,
+            "protection_state": (
+                _pr_enum_value(result.protection_state)
+                if result else None
+            ),
+            "health": (
+                _pr_enum_value(result.health)
+                if result else None
+            ),
+            "consistency": (
+                _pr_enum_value(result.consistency)
+                if result else None
+            ),
+            "data_state": (
+                _pr_enum_value(result.data_state)
+                if result else None
+            ),
+            "disposition": (
+                _pr_enum_value(result.disposition)
+                if result else None
+            ),
+            "action_state": (
+                _pr_enum_value(result.action_state)
+                if result else None
+            ),
+            "requires_protection": (
+                result.requires_protection
+                if result else False
+            ),
+            "requires_block": (
+                result.requires_block
+                if result else False
+            ),
+            "rationale": result.rationale if result else None,
+            "warnings": list(result.warnings) if result else [],
+            "created_at": (
+                result.created_at.isoformat()
+                if result else None
+            ),
+        },
+        "specification": {
+            "stop_loss": (
+                specification.stop_loss.value
+                if specification and specification.stop_loss
+                else None
+            ),
+            "take_profit": (
+                specification.take_profit.value
+                if specification and specification.take_profit
+                else None
+            ),
+            "protection_available": (
+                specification.protection_available
+                if specification else False
+            ),
+            "source": (
+                specification.source
+                if specification else None
+            ),
+        },
+        "integrity": {
+            "action_created": False,
+            "order_created": False,
+            "execution_authorized": False,
+            "d13_overridden": False,
+            "risk_overridden": False,
+            "sl_tp_calculated": False,
+            "quantity_calculated": False,
+        },
+    }
+
+
+def validate_protection_contract(
+    contract: ProtectionContract,
+) -> dict:
+    """
+    Final contract-level validation.
+
+    Validation only.
+    No protection action, order, execution authorization,
+    SL/TP calculation, or quantity calculation is performed.
+    """
+    errors = []
+    warnings = []
+
+    if contract is None:
+        return {
+            "valid": False,
+            "errors": ["contract is None"],
+            "warnings": [],
+            "forwardable": False,
+        }
+
+    if not contract.protection_id:
+        errors.append("missing protection_id")
+
+    if not contract.request_id:
+        errors.append("missing request_id")
+
+    if contract.result is None:
+        errors.append("missing result")
+    else:
+        if contract.result.request_id != contract.request_id:
+            errors.append("request_id mismatch between contract and result")
+
+        result_validation = validate_protection_result(contract.result)
+
+        if not result_validation.get("valid", False):
+            errors.extend(
+                result_validation.get("errors", [])
+            )
+
+        warnings.extend(
+            result_validation.get("warnings", [])
+        )
+
+    if contract.is_action_request:
+        errors.append(
+            "protection contract must never become an action request"
+        )
+
+    if contract.state == ProtectionContractState.INVALID:
+        errors.append("contract state is INVALID")
+
+    if contract.state == ProtectionContractState.BLOCKED:
+        warnings.append("protection contract is blocked")
+
+    if contract.result is not None:
+        if contract.result.consistency == ProtectionConsistency.CONFLICTING:
+            errors.append("protection consistency is CONFLICTING")
+
+        if contract.result.requires_block:
+            warnings.append(
+                "protection layer requires blocking"
+            )
+
+        if (
+            contract.result.requires_protection
+            and contract.result.specification is None
+        ):
+            warnings.append(
+                "protection required but no explicit specification exists"
+            )
+
+        if contract.result.specification is not None:
+            specification = contract.result.specification
+
+            if specification.stop_loss is not None:
+                if (
+                    specification.stop_loss.state
+                    == ProtectionParameterState.INVALID
+                ):
+                    errors.append(
+                        "invalid stop_loss protection parameter"
+                    )
+
+            if specification.take_profit is not None:
+                if (
+                    specification.take_profit.state
+                    == ProtectionParameterState.INVALID
+                ):
+                    errors.append(
+                        "invalid take_profit protection parameter"
+                    )
+
+    safe_for_downstream = (
+        not errors
+        and is_protection_safe_to_forward(contract)
+    )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+        "forwardable": safe_for_downstream,
+        "is_action_request": False,
+    }
+
+
+def protection_integrity_check(
+    contract: ProtectionContract,
+) -> dict:
+    """
+    Final protection-layer integrity gate.
+
+    Confirms that Protection remains a controlled monitoring /
+    protection-refinement layer and has not acquired execution authority.
+    """
+    validation = validate_protection_contract(contract)
+
+    result = contract.result if contract is not None else None
+
+    requires_protection = (
+        result.requires_protection
+        if result is not None
+        else False
+    )
+
+    requires_block = (
+        result.requires_block
+        if result is not None
+        else False
+    )
+
+    safe_for_downstream = (
+        validation["forwardable"]
+        and not requires_block
+    )
+
+    return {
+        "engine": PROTECTION_ENGINE,
+        "version": PROTECTION_VERSION,
+        "valid": validation["valid"],
+        "forwardable": safe_for_downstream,
+        "requires_protection": requires_protection,
+        "requires_block": requires_block,
+        "action_created": False,
+        "order_created": False,
+        "execution_authorized": False,
+        "d13_overridden": False,
+        "risk_overridden": False,
+        "sl_tp_calculated": False,
+        "quantity_calculated": False,
+        "direction_created": False,
+        "authorization_created": False,
+        "errors": validation["errors"],
+        "warnings": validation["warnings"],
+    }
+
+
+def verify_protection_integrity(
+    contract: ProtectionContract,
+) -> bool:
+    """
+    Boolean integrity gate for callers.
+    """
+    report = protection_integrity_check(contract)
+
+    return bool(
+        report["valid"]
+        and report["forwardable"]
+        and not report["action_created"]
+        and not report["order_created"]
+        and not report["execution_authorized"]
+        and not report["d13_overridden"]
+        and not report["risk_overridden"]
+        and not report["sl_tp_calculated"]
+        and not report["quantity_calculated"]
+        and not report["direction_created"]
+        and not report["authorization_created"]
+    )
+
+
+def run_protection_health_check(
+    contract: ProtectionContract | None = None,
+) -> dict:
+    """
+    Final public health/integrity check.
+
+    If a contract is supplied, validate that contract.
+    Otherwise return engine-level health information.
+    """
+    if contract is None:
+        return protection_health_check()
+
+    integrity = protection_integrity_check(contract)
+
+    return {
+        "healthy": bool(
+            integrity["valid"]
+            and not integrity["requires_block"]
+        ),
+        "engine": PROTECTION_ENGINE,
+        "version": PROTECTION_VERSION,
+        "contract_valid": integrity["valid"],
+        "forwardable": integrity["forwardable"],
+        "requires_protection": integrity["requires_protection"],
+        "requires_block": integrity["requires_block"],
+        "execution_authorized": False,
+        "action_created": False,
+        "order_created": False,
+        "d13_overridden": False,
+        "risk_overridden": False,
+        "errors": integrity["errors"],
+        "warnings": integrity["warnings"],
+    }
+
+
+# ============================================================
+# PUBLIC EXPORTS
+# ============================================================
+
+__all__ = [
+    # Constants
+    "PROTECTION_ENGINE",
+    "PROTECTION_VERSION",
+
+    # Enums
+    "ProtectionStatus",
+    "ProtectionState",
+    "ProtectionHealth",
+    "ProtectionDisposition",
+    "ProtectionContractStatus",
+    "ProtectionConsistency",
+    "ProtectionDataState",
+    "ProtectionActionState",
+    "ProtectionContractState",
+    "ProtectionParameterState",
+
+    # Requests / References
+    "ProtectionRequest",
+    "ProtectionPositionReference",
+    "ProtectionMonitorReference",
+    "ProtectionRiskReference",
+    "ProtectionDecisionReference",
+    "ProtectionMarketReference",
+    "ProtectionAccountReference",
+    "ProtectionContractValidation",
+
+    # Intelligence / Assessment
+    "ProtectionIntelligence",
+    "ProtectionRequirements",
+    "ProtectionAssessment",
+
+    # Parameters / Specification
+    "ProtectionParameter",
+    "ProtectionSpecification",
+
+    # Result / Contract
+    "ProtectionResult",
+    "ProtectionContract",
+
+    # Builders / Evaluators
+    "build_protection_position_reference",
+    "build_protection_monitor_reference",
+    "build_protection_risk_reference",
+    "build_protection_decision_reference",
+    "build_protection_market_reference",
+    "build_protection_account_reference",
+    "validate_protection_request",
+
+    "evaluate_protection_requirements",
+    "evaluate_protection_data_state",
+    "evaluate_protection_consistency",
+    "evaluate_protection_health",
+    "evaluate_protection_state",
+    "evaluate_protection_disposition",
+
+    "build_protection_intelligence",
+    "build_protection_assessment",
+
+    "build_protection_specification",
+    "build_protection_result",
+    "build_protection_contract",
+
+    "is_protection_safe_to_forward",
+    "validate_protection_result",
+
+    # Engine
+    "ProtectionEngine",
+    "protection_engine",
+
+    # Public API
+    "evaluate_protection",
+    "process_protection",
+    "protection_ready",
+    "protection_requires_protection",
+    "protection_requires_block",
+    "protection_audit",
+    "protection_health_check",
+    "run_protection_health_check",
+    "get_protection_engine_info",
+
+    # Final validation / integrity
+    "protection_to_dict",
+    "validate_protection_contract",
+    "protection_integrity_check",
+    "verify_protection_integrity",
+
+    # Alias
+    "Protection",
+]
+
+
+# ============================================================
+# FINAL ALIAS
+# ============================================================
+
+Protection = ProtectionEngine

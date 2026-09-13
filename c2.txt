@@ -1,0 +1,441 @@
+1:"""
+2:ROBOMLM PLUS
+3:Contract Registry
+4:
+5:In-process registry for canonical ContractIdentity objects.
+6:
+7:This module is identity and lookup infrastructure only. It performs
+8:no network access, broker/exchange calls, or execution operations.
+9:"""
+10:
+11:from __future__ import annotations
+12:
+13:from dataclasses import dataclass
+14:from typing import Any, Iterable, Optional
+15:
+16:from .contract_identity import (
+17:    ContractIdentity,
+18:    ContractIdentityValidationError,
+19:)
+20:
+21:
+22:class ContractRegistryError(Exception):
+23:    """Base exception for contract-registry failures."""
+24:
+25:
+26:class ContractNotFoundError(ContractRegistryError):
+27:    """Raised when a requested contract does not exist."""
+28:
+29:
+30:class DuplicateContractError(ContractRegistryError):
+31:    """Raised when duplicate registration is explicitly rejected."""
+32:
+33:
+34:@dataclass(frozen=True)
+35:class ContractRegistryStats:
+36:    """Compact registry statistics."""
+37:
+38:    total: int
+39:    derivatives: int
+40:    options: int
+41:    expired: int
+42:
+43:    def to_dict(self) -> dict[str, int]:
+44:        return {
+45:            "total": self.total,
+46:            "derivatives": self.derivatives,
+47:            "options": self.options,
+48:            "expired": self.expired,
+49:        }
+50:
+51:
+52:class ContractRegistry:
+53:    """
+54:    Canonical in-process contract registry.
+55:
+56:    Identity is determined by ContractIdentity.identity_key.
+57:    """
+58:
+59:    def __init__(self) -> None:
+60:        self._contracts: dict[str, ContractIdentity] = {}
+61:
+62:    @staticmethod
+63:    def _validate_contract(
+64:        contract: ContractIdentity,
+65:    ) -> ContractIdentity:
+66:        if not isinstance(contract, ContractIdentity):
+67:            raise ContractIdentityValidationError(
+68:                "contract must be a ContractIdentity"
+69:            )
+70:
+71:        return contract
+72:
+73:    def register(
+74:        self,
+75:        contract: ContractIdentity,
+76:        *,
+77:        replace: bool = False,
+78:    ) -> ContractIdentity:
+79:        """
+80:        Register a contract.
+81:
+82:        By default duplicate identities are rejected. Set replace=True
+83:        when an explicit replacement is intended.
+84:        """
+85:        contract = self._validate_contract(contract)
+86:        key = contract.identity_key
+87:
+88:        if key in self._contracts and not replace:
+89:            raise DuplicateContractError(
+90:                f"Contract already registered: {key}"
+91:            )
+92:
+93:        self._contracts[key] = contract
+94:        return contract
+95:
+96:    def register_many(
+97:        self,
+98:        contracts: Iterable[ContractIdentity],
+99:        *,
+100:        replace: bool = False,
+101:    ) -> list[ContractIdentity]:
+102:        """Register multiple contracts."""
+103:        registered: list[ContractIdentity] = []
+104:
+105:        for contract in contracts:
+106:            registered.append(
+107:                self.register(
+108:                    contract,
+109:                    replace=replace,
+110:                )
+111:            )
+112:
+113:        return registered
+114:
+115:    def get(
+116:        self,
+117:        identity_key: str,
+118:    ) -> Optional[ContractIdentity]:
+119:        """Return a contract by canonical identity key."""
+120:        key = str(identity_key).strip().upper()
+121:
+122:        if not key:
+123:            return None
+124:
+125:        return self._contracts.get(key)
+126:
+127:    def require(
+128:        self,
+129:        identity_key: str,
+130:    ) -> ContractIdentity:
+131:        """Return a contract or raise ContractNotFoundError."""
+132:        contract = self.get(identity_key)
+133:
+134:        if contract is None:
+135:            raise ContractNotFoundError(
+136:                f"Contract not found: {identity_key}"
+137:            )
+138:
+139:        return contract
+140:
+141:    def get_by_identity(
+142:        self,
+143:        contract: ContractIdentity,
+144:    ) -> Optional[ContractIdentity]:
+145:        """Look up a contract using a ContractIdentity object."""
+146:        contract = self._validate_contract(contract)
+147:        return self.get(contract.identity_key)
+148:
+149:    def require_by_identity(
+150:        self,
+151:        contract: ContractIdentity,
+152:    ) -> ContractIdentity:
+153:        """Require a contract using a ContractIdentity object."""
+154:        contract = self._validate_contract(contract)
+155:        return self.require(contract.identity_key)
+156:
+157:    def exists(
+158:        self,
+159:        identity_key: str,
+160:    ) -> bool:
+161:        """Return whether a canonical identity key exists."""
+162:        key = str(identity_key).strip().upper()
+163:
+164:        if not key:
+165:            return False
+166:
+167:        return key in self._contracts
+168:
+169:    def contains(
+170:        self,
+171:        contract: ContractIdentity,
+172:    ) -> bool:
+173:        """Return whether a ContractIdentity is registered."""
+174:        contract = self._validate_contract(contract)
+175:        return contract.identity_key in self._contracts
+176:
+177:    def remove(
+178:        self,
+179:        identity_key: str,
+180:    ) -> bool:
+181:        """Remove a contract by identity key."""
+182:        key = str(identity_key).strip().upper()
+183:
+184:        if key not in self._contracts:
+185:            return False
+186:
+187:        del self._contracts[key]
+188:        return True
+189:
+190:    def remove_contract(
+191:        self,
+192:        contract: ContractIdentity,
+193:    ) -> bool:
+194:        """Remove a contract using its identity."""
+195:        contract = self._validate_contract(contract)
+196:        return self.remove(contract.identity_key)
+197:
+198:    def clear(self) -> None:
+199:        """Remove all registered contracts."""
+200:        self._contracts.clear()
+201:
+202:    def count(self) -> int:
+203:        """Return total registered contracts."""
+204:        return len(self._contracts)
+205:
+206:    def keys(self) -> list[str]:
+207:        """Return all canonical identity keys."""
+208:        return list(self._contracts.keys())
+209:
+210:    def list_all(self) -> list[ContractIdentity]:
+211:        """Return all registered contracts."""
+212:        return list(self._contracts.values())
+213:
+214:    def list_by_market(
+215:        self,
+216:        market: str,
+217:    ) -> list[ContractIdentity]:
+218:        """Return contracts belonging to a market."""
+219:        target = str(market).strip().upper()
+220:
+221:        return [
+222:            contract
+223:            for contract in self._contracts.values()
+224:            if contract.market.upper() == target
+225:        ]
+226:
+227:    def list_by_instrument(
+228:        self,
+229:        instrument: str,
+230:    ) -> list[ContractIdentity]:
+231:        """Return contracts belonging to an instrument."""
+232:        target = str(instrument).strip().upper()
+233:
+234:        return [
+235:            contract
+236:            for contract in self._contracts.values()
+237:            if contract.instrument.upper() == target
+238:        ]
+239:
+240:    def list_by_venue(
+241:        self,
+242:        venue: str,
+243:    ) -> list[ContractIdentity]:
+244:        """Return contracts belonging to a venue."""
+245:        target = str(venue).strip().upper()
+246:
+247:        return [
+248:            contract
+249:            for contract in self._contracts.values()
+250:            if contract.venue.upper() == target
+251:        ]
+252:
+253:    def list_derivatives(self) -> list[ContractIdentity]:
+254:        """Return all derivative contracts."""
+255:        return [
+256:            contract
+257:            for contract in self._contracts.values()
+258:            if contract.is_derivative
+259:        ]
+260:
+261:    def list_options(self) -> list[ContractIdentity]:
+262:        """Return all option contracts."""
+263:        return [
+264:            contract
+265:            for contract in self._contracts.values()
+266:            if contract.is_option
+267:        ]
+268:
+269:    def list_expired(self) -> list[ContractIdentity]:
+270:        """Return contracts whose expiry has passed."""
+271:        return [
+272:            contract
+273:            for contract in self._contracts.values()
+274:            if contract.is_expired
+275:        ]
+276:
+277:    def find(
+278:        self,
+279:        *,
+280:        market: Optional[str] = None,
+281:        instrument: Optional[str] = None,
+282:        venue: Optional[str] = None,
+283:        contract_type: Optional[str] = None,
+284:        expiry: Any = None,
+285:        option_type: Optional[str] = None,
+286:    ) -> list[ContractIdentity]:
+287:        """
+288:        Filter registered contracts by identity attributes.
+289:
+290:        None means no filter for that attribute.
+291:        """
+292:        results = list(self._contracts.values())
+293:
+294:        if market is not None:
+295:            target = str(market).strip().upper()
+296:            results = [
+297:                item
+298:                for item in results
+299:                if item.market.upper() == target
+300:            ]
+301:
+302:        if instrument is not None:
+303:            target = str(instrument).strip().upper()
+304:            results = [
+305:                item
+306:                for item in results
+307:                if item.instrument.upper() == target
+308:            ]
+309:
+310:        if venue is not None:
+311:            target = str(venue).strip().upper()
+312:            results = [
+313:                item
+314:                for item in results
+315:                if item.venue.upper() == target
+316:            ]
+317:
+318:        if contract_type is not None:
+319:            target = str(contract_type).strip().upper()
+320:            results = [
+321:                item
+322:                for item in results
+323:                if (
+324:                    item.contract_type is not None
+325:                    and item.contract_type.upper() == target
+326:                )
+327:            ]
+328:
+329:        if expiry is not None:
+330:            results = [
+331:                item
+332:                for item in results
+333:                if item.expiry == expiry
+334:            ]
+335:
+336:        if option_type is not None:
+337:            target = str(option_type).strip().upper()
+338:
+339:            aliases = {
+340:                "CALL": {"CALL", "CE"},
+341:                "PUT": {"PUT", "PE"},
+342:                "CE": {"CE", "CALL"},
+343:                "PE": {"PE", "PUT"},
+344:            }
+345:
+346:            accepted = aliases.get(
+347:                target,
+348:                {target},
+349:            )
+350:
+351:            results = [
+352:                item
+353:                for item in results
+354:                if item.option_type in accepted
+355:            ]
+356:
+357:        return results
+358:
+359:    def stats(self) -> ContractRegistryStats:
+360:        """Return registry statistics."""
+361:        contracts = self.list_all()
+362:
+363:        return ContractRegistryStats(
+364:            total=len(contracts),
+365:            derivatives=sum(
+366:                contract.is_derivative
+367:                for contract in contracts
+368:            ),
+369:            options=sum(
+370:                contract.is_option
+371:                for contract in contracts
+372:            ),
+373:            expired=sum(
+374:                contract.is_expired
+375:                for contract in contracts
+376:            ),
+377:        )
+378:
+379:    def snapshot(self) -> dict[str, dict[str, Any]]:
+380:        """Return a serializable registry snapshot."""
+381:        return {
+382:            key: contract.to_dict()
+383:            for key, contract in self._contracts.items()
+384:        }
+385:
+386:    def summary(self) -> dict[str, Any]:
+387:        """Return a compact registry summary."""
+388:        return {
+389:            "registry": self.__class__.__name__,
+390:            **self.stats().to_dict(),
+391:        }
+392:
+393:
+394:contract_registry = ContractRegistry()
+395:
+396:
+397:def register_contract(
+398:    contract: ContractIdentity,
+399:    *,
+400:    replace: bool = False,
+401:) -> ContractIdentity:
+402:    """Register a contract in the global registry."""
+403:    return contract_registry.register(
+404:        contract,
+405:        replace=replace,
+406:    )
+407:
+408:
+409:def get_contract(
+410:    identity_key: str,
+411:) -> Optional[ContractIdentity]:
+412:    """Get a contract from the global registry."""
+413:    return contract_registry.get(identity_key)
+414:
+415:
+416:def require_contract(
+417:    identity_key: str,
+418:) -> ContractIdentity:
+419:    """Require a contract from the global registry."""
+420:    return contract_registry.require(identity_key)
+421:
+422:
+423:def find_contracts(
+424:    **filters: Any,
+425:) -> list[ContractIdentity]:
+426:    """Find contracts using the global registry."""
+427:    return contract_registry.find(**filters)
+428:
+429:
+430:__all__ = [
+431:    "ContractRegistryError",
+432:    "ContractNotFoundError",
+433:    "DuplicateContractError",
+434:    "ContractRegistryStats",
+435:    "ContractRegistry",
+436:    "contract_registry",
+437:    "register_contract",
+438:    "get_contract",
+439:    "require_contract",
+440:    "find_contracts",
+441:]

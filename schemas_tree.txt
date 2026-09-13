@@ -1,0 +1,246 @@
+Folder PATH listing
+Volume serial number is 000000D7 9889:F6A6
+C:\USERS\ADMINISTRATOR\ROBOMLM_PLUS\SCHEMAS
++---cas
+|   |   cas_result.py
+|   |   test.txt
+|   |   __init__.py
+|   |   
+|   +---test
+|   |   |   test_cas_result.py
+|   |   |   
+|   |   \---__pycache__
+|   |           test_cas_result.cpython-314-pytest-9.1.1.pyc
+|   |           
+|   \---__pycache__
+|           cas_result.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---common
+|   |   identifiers.py
+|   |   request_context.py
+|   |   version.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           identifiers.cpython-314.pyc
+|           request_context.cpython-314.pyc
+|           version.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---contract
+|   |   contract_schema.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           contract_schema.cpython-314.pyc
+|           
++---decision
+|   |   decision_result.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           decision_result.cpython-314.pyc
+|           
++---evidence
+|   |   evidence_item.py
+|   |   evidence_package.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           evidence_item.cpython-314.pyc
+|           evidence_package.cpython-314.pyc
+|           
++---execution
+|   |   authorized_action.py
+|   |   execution_result.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           authorized_action.cpython-314.pyc
+|           execution_result.cpython-314.pyc
+|           
++---instrument
+|   |   instrument_schema.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           instrument_schema.cpython-314.pyc
+|           
++---intelligence
+|   |   intelligence_result.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           intelligence_result.cpython-314.pyc
+|           
++---market
+|   |   data_quality.py
+|   |   market_account.py
+|   |   market_account_balance.py
+|   |   market_calendar.py
+|   |   market_calendar_event.py
+|   |   market_cashflow.py
+|   |   market_cashflow_type.py
+|   |   market_context.py
+|   |   market_currency.py
+|   |   market_data_acknowledgement.py
+|   |   market_data_acknowledgement_stat.py
+|   |   market_data_batch.py
+|   |   market_data_channel.py
+|   |   market_data_channel_event.py
+|   |   market_data_channel_message.py
+|   |   market_data_channel_message_acknowledgement.py
+|   |   market_data_channel_message_error.py
+|   |   market_data_channel_message_event.py
+|   |   market_data_channel_message_retry.py
+|   |   market_data_channel_message_retry_policy.py
+|   |   market_data_channel_message_status.py
+|   |   market_data_channel_message_type.py
+|   |   market_data_channel_status.py
+|   |   market_data_channel_type.py
+|   |   market_data_envelope.py
+|   |   market_data_error.py
+|   |   market_data_feed.py
+|   |   market_data_field.py
+|   |   market_data_packet.py
+|   |   market_data_point.py
+|   |   market_data_quality.py
+|   |   market_data_record.py
+|   |   market_data_request.py
+|   |   market_data_response.py
+|   |   market_data_source.py
+|   |   market_data_status.py
+|   |   market_data_subscription.py
+|   |   market_data_subscription_status.py
+|   |   market_data_transport.py
+|   |   market_data_value.py
+|   |   market_derivative.py
+|   |   market_drawdown.py
+|   |   market_event.py
+|   |   market_execution.py
+|   |   market_exposure.py
+|   |   market_fee.py
+|   |   market_identity.py
+|   |   market_interval.py
+|   |   market_leverage.py
+|   |   market_liquidity.py
+|   |   market_margin.py
+|   |   market_observation.py
+|   |   market_order.py
+|   |   market_orderbook.py
+|   |   market_participation.py
+|   |   market_phase.py
+|   |   market_portfolio.py
+|   |   market_position.py
+|   |   market_regime.py
+|   |   market_relationship.py
+|   |   market_risk.py
+|   |   market_schedule.py
+|   |   market_series.py
+|   |   market_session.py
+|   |   market_signal.py
+|   |   market_snapshot.py
+|   |   market_state.py
+|   |   market_structure.py
+|   |   market_timeframe.py
+|   |   market_timing.py
+|   |   market_transaction.py
+|   |   market_volatility.py
+|   |   market_window.py
+|   |   __init__.py
+|   |   
+|   +---test
+|   |   |   test_market_schema_constructors.py
+|   |   |   test_market_schema_constructor_coverage.py
+|   |   |   test_market_schema_imports.py
+|   |   |   test_market_schema_serialization.py
+|   |   |   test_market_schema_vocabularies.py
+|   |   |   
+|   |   \---__pycache__
+|   |           test_market_schema_constructors.cpython-314-pytest-9.1.1.pyc
+|   |           test_market_schema_constructor_coverage.cpython-314-pytest-9.1.1.pyc
+|   |           test_market_schema_imports.cpython-314-pytest-9.1.1.pyc
+|   |           test_market_schema_serialization.cpython-314-pytest-9.1.1.pyc
+|   |           test_market_schema_vocabularies.cpython-314-pytest-9.1.1.pyc
+|   |           
+|   \---__pycache__
+|           data_quality.cpython-314.pyc
+|           market_account.cpython-314.pyc
+|           market_account_balance.cpython-314.pyc
+|           market_calendar.cpython-314.pyc
+|           market_calendar_event.cpython-314.pyc
+|           market_cashflow.cpython-314.pyc
+|           market_cashflow_type.cpython-314.pyc
+|           market_context.cpython-314.pyc
+|           market_currency.cpython-314.pyc
+|           market_data_acknowledgement.cpython-314.pyc
+|           market_data_acknowledgement_stat.cpython-314.pyc
+|           market_data_batch.cpython-314.pyc
+|           market_data_channel.cpython-314.pyc
+|           market_data_channel_event.cpython-314.pyc
+|           market_data_channel_message.cpython-314.pyc
+|           market_data_channel_message_acknowledgement.cpython-314.pyc
+|           market_data_channel_message_error.cpython-314.pyc
+|           market_data_channel_message_event.cpython-314.pyc
+|           market_data_channel_message_retry.cpython-314.pyc
+|           market_data_channel_message_retry_policy.cpython-314.pyc
+|           market_data_channel_message_status.cpython-314.pyc
+|           market_data_channel_message_type.cpython-314.pyc
+|           market_data_channel_status.cpython-314.pyc
+|           market_data_channel_type.cpython-314.pyc
+|           market_data_envelope.cpython-314.pyc
+|           market_data_error.cpython-314.pyc
+|           market_data_feed.cpython-314.pyc
+|           market_data_field.cpython-314.pyc
+|           market_data_packet.cpython-314.pyc
+|           market_data_point.cpython-314.pyc
+|           market_data_quality.cpython-314.pyc
+|           market_data_record.cpython-314.pyc
+|           market_data_request.cpython-314.pyc
+|           market_data_response.cpython-314.pyc
+|           market_data_source.cpython-314.pyc
+|           market_data_status.cpython-314.pyc
+|           market_data_subscription.cpython-314.pyc
+|           market_data_subscription_status.cpython-314.pyc
+|           market_data_transport.cpython-314.pyc
+|           market_data_value.cpython-314.pyc
+|           market_derivative.cpython-314.pyc
+|           market_drawdown.cpython-314.pyc
+|           market_event.cpython-314.pyc
+|           market_execution.cpython-314.pyc
+|           market_exposure.cpython-314.pyc
+|           market_fee.cpython-314.pyc
+|           market_identity.cpython-314.pyc
+|           market_interval.cpython-314.pyc
+|           market_leverage.cpython-314.pyc
+|           market_liquidity.cpython-314.pyc
+|           market_margin.cpython-314.pyc
+|           market_observation.cpython-314.pyc
+|           market_order.cpython-314.pyc
+|           market_orderbook.cpython-314.pyc
+|           market_participation.cpython-314.pyc
+|           market_phase.cpython-314.pyc
+|           market_portfolio.cpython-314.pyc
+|           market_position.cpython-314.pyc
+|           market_regime.cpython-314.pyc
+|           market_relationship.cpython-314.pyc
+|           market_risk.cpython-314.pyc
+|           market_schedule.cpython-314.pyc
+|           market_series.cpython-314.pyc
+|           market_session.cpython-314.pyc
+|           market_signal.cpython-314.pyc
+|           market_snapshot.cpython-314.pyc
+|           market_state.cpython-314.pyc
+|           market_structure.cpython-314.pyc
+|           market_timeframe.cpython-314.pyc
+|           market_timing.cpython-314.pyc
+|           market_transaction.cpython-314.pyc
+|           market_volatility.cpython-314.pyc
+|           market_window.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
+\---risk
+        risk_result.py
+        __init__.py
+        

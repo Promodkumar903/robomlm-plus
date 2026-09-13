@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBOMLM — Buyer Workspace</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <div class="brand-name">ROBOMLM</div>
+          <div class="brand-tag">Intelligence OS</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="/terminal"><span class="nav-icon">⌂</span> Terminal</a>
+        <a class="nav-item" href="/discovery"><span class="nav-icon">⌕</span> Scanner</a>
+        <a class="nav-item active" href="/buyer"><span class="nav-icon">🛒</span> Buyer</a>
+        <a class="nav-item" href="/memory"><span class="nav-icon">◈</span> Memory</a>
+        <a class="nav-item" href="/research"><span class="nav-icon">⌘</span> Research</a>
+        <a class="nav-item" href="/automation"><span class="nav-icon">⚙</span> Automation</a>
+        <a class="nav-item" href="/account"><span class="nav-icon">◎</span> Account</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>v0.1 · Presentation Layer</span>
+      </div>
+    </aside>
+
+    <main class="main main-tight">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title"><span class="title-icon">🛒</span> Buyer Workspace</div>
+          <div class="page-sub">Select · Apply · Intelligence → D13 → Risk → CAS → PLUS</div>
+        </div>
+      </div>
+
+      <!-- STEP SELECTORS -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">📋</span> Request Setup</div>
+
+        <div class="buyer-steps">
+          <div class="buyer-step">
+            <label>Step 1 · Market</label>
+            <select id="sel-market" class="buyer-select"></select>
+          </div>
+          <div class="buyer-step">
+            <label>Step 2 · Instrument</label>
+            <select id="sel-instrument" class="buyer-select"></select>
+          </div>
+          <div class="buyer-step">
+            <label>Step 3 · Contract</label>
+            <select id="sel-contract" class="buyer-select"></select>
+          </div>
+          <div class="buyer-step">
+            <label>Step 4 · Strategy</label>
+            <select id="sel-strategy" class="buyer-select"></select>
+          </div>
+          <div class="buyer-step buyer-step-action">
+            <button class="btn btn-lg" id="btn-apply">
+              <span class="btn-icon">▶</span> Apply for Analysis
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="buyer-result" style="display:none">
+
+        <!-- Intelligence -->
+        <div class="card buyer-result-card">
+          <div class="card-title"><span class="ct-icon">🧠</span> Intelligence</div>
+          <div class="buyer-result-row">
+            <span class="badge-green" id="r-int-bias">BULLISH</span>
+            <span class="buyer-result-meta">Score: <b id="r-int-score">—</b> · Confidence: <b id="r-int-conf">—</b></span>
+          </div>
+          <div class="buyer-result-reason" id="r-int-reason"></div>
+        </div>
+
+        <!-- D13 Decision -->
+        <div class="card buyer-result-card">
+          <div class="card-title"><span class="ct-icon">🎯</span> D13 Decision (Final Authority)</div>
+          <div class="buyer-result-row">
+            <span class="badge-signal" id="r-dec-signal">—</span>
+            <span class="buyer-result-meta">Grade: <b id="r-dec-grade">—</b> · Score: <b id="r-dec-score">—</b> · Confidence: <b id="r-dec-conf">—</b></span>
+          </div>
+          <div class="buyer-result-reason" id="r-dec-reason"></div>
+        </div>
+
+        <!-- Risk -->
+        <div class="card buyer-result-card">
+          <div class="card-title"><span class="ct-icon">🛡</span> Risk</div>
+          <div class="buyer-result-grid">
+            <div><span class="lbl">Risk Score</span><span class="val" id="r-risk-score">—</span></div>
+            <div><span class="lbl">Level</span><span class="val" id="r-risk-level">—</span></div>
+            <div><span class="lbl">Size Factor</span><span class="val" id="r-risk-size">—</span></div>
+            <div><span class="lbl">SL / TP</span><span class="val" id="r-risk-sltp">—</span></div>
+            <div><span class="lbl">R:R</span><span class="val" id="r-risk-rr">—</span></div>
+          </div>
+          <div class="buyer-result-reason" id="r-risk-reason"></div>
+        </div>
+
+        <!-- CAS Gates -->
+        <div class="card buyer-result-card">
+          <div class="card-title"><span class="ct-icon">🔐</span> CAS — Control / Authorization / Suitability</div>
+          <div class="cas-status" id="r-cas-status">—</div>
+          <div class="cas-grid" id="r-cas-grid"></div>
+        </div>
+
+        <!-- PLUS Handoff -->
+        <div class="card buyer-result-card buyer-plus">
+          <div class="card-title"><span class="ct-icon">⚡</span> PLUS Handoff</div>
+          <div class="plus-status" id="r-plus-status">—</div>
+          <div class="plus-message" id="r-plus-message"></div>
+          <button class="btn btn-lg" id="btn-plus" disabled>
+            <span class="btn-icon">🚀</span> Send to PLUS Execution
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/buyer.js"></script>
+</body>
+</html>

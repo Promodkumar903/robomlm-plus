@@ -1,0 +1,3603 @@
+﻿"""
+ROBOMLM_PLUS User Service
+=========================
+
+Core user-domain service for ROBOMLM_PLUS.
+
+Responsibilities:
+    - User identity/domain representation
+    - User lifecycle state
+    - User preferences/metadata boundary
+    - User contract normalization
+    - User validation
+    - User service authority boundary
+
+This module MUST NOT:
+    - generate market intelligence
+    - generate trading decisions
+    - mutate D13
+    - calculate risk
+    - override CAS
+    - execute orders
+    - mutate positions
+    - perform billing/entitlement decisions
+    - contain UI logic
+
+Billing/subscription authority belongs to:
+    app.subscription
+
+Authentication/security authority belongs to the appropriate
+authentication/security layer.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+USER_SERVICE_ENGINE = "ROBOMLM_USER_SERVICE"
+USER_SERVICE_VERSION = "1.0"
+
+
+# ============================================================================
+# ENUMS
+# ============================================================================
+
+class UserStatus(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    PENDING = "PENDING"
+    ACTIVE = "ACTIVE"
+    SUSPENDED = "SUSPENDED"
+    DISABLED = "DISABLED"
+    DELETED = "DELETED"
+    INVALID = "INVALID"
+
+
+class UserMode(str, Enum):
+    PAPER = "PAPER"
+    DEMO = "DEMO"
+    LIVE = "LIVE"
+    UNKNOWN = "UNKNOWN"
+
+
+class UserPriority(str, Enum):
+    NORMAL = "NORMAL"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class UserSeverity(str, Enum):
+    INFO = "INFO"
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+    CRITICAL = "CRITICAL"
+
+
+class UserContractStatus(str, Enum):
+    CREATED = "CREATED"
+    VALID = "VALID"
+    INVALID = "INVALID"
+    READY = "READY"
+
+
+class UserLifecycleEvent(str, Enum):
+    CREATED = "CREATED"
+    ACTIVATED = "ACTIVATED"
+    UPDATED = "UPDATED"
+    SUSPENDED = "SUSPENDED"
+    REACTIVATED = "REACTIVATED"
+    DISABLED = "DISABLED"
+    DELETED = "DELETED"
+
+
+# ============================================================================
+# HELPERS
+# ============================================================================
+
+def _user_text(value: Any, default: str = "") -> str:
+    if value is None:
+        return default
+    return str(value).strip()
+
+
+def _user_enum(
+    value: Any,
+    enum_type: type[Enum],
+    default: Enum,
+) -> Enum:
+    if isinstance(value, enum_type):
+        return value
+
+    text = _user_text(value).upper()
+
+    if not text:
+        return default
+
+    for member in enum_type:
+        if member.value.upper() == text:
+            return member
+
+    return default
+
+
+def _user_timestamp(value: Any) -> datetime:
+    if isinstance(value, datetime):
+        if value.tzinfo is None:
+            return value.replace(tzinfo=timezone.utc)
+        return value
+
+    if value:
+        try:
+            parsed = datetime.fromisoformat(str(value))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed
+        except (TypeError, ValueError):
+            pass
+
+    return datetime.now(timezone.utc)
+
+
+# ============================================================================
+# AUTHORITY
+# ============================================================================
+
+USER_SERVICE_AUTHORITY: Dict[str, bool] = {
+    # User-domain authority
+    "user_domain_authority": True,
+    "user_lifecycle_authority": True,
+    "user_contract_authority": True,
+    "user_metadata_authority": True,
+
+    # Authentication/security are external boundaries
+    "authentication_authority": False,
+    "credential_authority": False,
+    "security_override_authority": False,
+
+    # Product/commercial boundaries
+    "billing_authority": False,
+    "subscription_authority": False,
+    "entitlement_authority": False,
+
+    # Intelligence boundaries
+    "market_data_authority": False,
+    "evidence_generation_authority": False,
+    "intelligence_generation_authority": False,
+    "market_context_generation_authority": False,
+    "decision_generation_authority": False,
+    "d13_authority": False,
+    "d13_mutation": False,
+
+    # Safety boundaries
+    "risk_generation_authority": False,
+    "risk_override": False,
+    "cas_generation_authority": False,
+    "cas_override": False,
+
+    # Execution boundaries
+    "execution_authority": False,
+    "order_authority": False,
+    "position_authority": False,
+
+    # Cross-domain mutation
+    "upstream_mutation_authority": False,
+}
+
+
+# ============================================================================
+# USER REQUEST
+# ============================================================================
+
+@dataclass
+class UserRequest:
+    """
+    Input contract for user-domain operations.
+    """
+
+    request_id: str = ""
+
+    user_id: str = ""
+    email: str = ""
+    display_name: str = ""
+
+    status: UserStatus = UserStatus.UNKNOWN
+    mode: UserMode = UserMode.UNKNOWN
+    priority: UserPriority = UserPriority.NORMAL
+
+    lifecycle_event: Optional[UserLifecycleEvent] = None
+
+    locale: str = ""
+    timezone: str = ""
+    country: str = ""
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+
+# ============================================================================
+# USER REFERENCE
+# ============================================================================
+
+@dataclass
+class UserReference:
+    """
+    Stable reference used by downstream application services.
+
+    This is a domain reference only. It does not grant authority over
+    authentication, billing, trading, risk, CAS, or execution.
+    """
+
+    user_id: str = ""
+    email: str = ""
+    display_name: str = ""
+
+    user_source: str = "app.users.user_service"
+
+    status: UserStatus = UserStatus.UNKNOWN
+    mode: UserMode = UserMode.UNKNOWN
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER CONTRACT VALIDATION
+# ============================================================================
+
+@dataclass
+class UserContractValidation:
+    """
+    Result of validating a UserRequest/UserReference contract.
+    """
+
+    status: UserContractStatus = UserContractStatus.CREATED
+    valid: bool = False
+
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    checked_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER RECORD
+# ============================================================================
+
+@dataclass
+class UserRecord:
+    """
+    Canonical user-domain record.
+
+    Sensitive authentication credentials are intentionally NOT stored here.
+    """
+
+    user_id: str = ""
+
+    email: str = ""
+    display_name: str = ""
+
+    status: UserStatus = UserStatus.PENDING
+    mode: UserMode = UserMode.UNKNOWN
+
+    locale: str = ""
+    timezone: str = ""
+    country: str = ""
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    updated_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    last_seen_at: Optional[datetime] = None
+
+    lifecycle_event: Optional[UserLifecycleEvent] = None
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER SERVICE RESULT
+# ============================================================================
+
+@dataclass
+class UserServiceResult:
+    """
+    Standard service-level response.
+
+    The result reports user-domain state only.
+    """
+
+    request_id: str = ""
+
+    reference: Optional[UserReference] = None
+    user: Optional[UserRecord] = None
+    validation: Optional[UserContractValidation] = None
+
+    success: bool = False
+
+    errors: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    event: Optional[UserLifecycleEvent] = None
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# NORMALIZATION
+# ============================================================================
+
+def normalize_user_request(request: UserRequest) -> UserRequest:
+    """
+    Normalize a user request without changing its domain meaning.
+    """
+
+    if not isinstance(request, UserRequest):
+        raise TypeError("request must be UserRequest")
+
+    request.request_id = _user_text(request.request_id)
+    request.user_id = _user_text(request.user_id)
+    request.email = _user_text(request.email).lower()
+    request.display_name = _user_text(request.display_name)
+
+    request.status = _user_enum(
+        request.status,
+        UserStatus,
+        UserStatus.UNKNOWN,
+    )
+
+    request.mode = _user_enum(
+        request.mode,
+        UserMode,
+        UserMode.UNKNOWN,
+    )
+
+    request.priority = _user_enum(
+        request.priority,
+        UserPriority,
+        UserPriority.NORMAL,
+    )
+
+    if request.lifecycle_event is not None:
+        request.lifecycle_event = _user_enum(
+            request.lifecycle_event,
+            UserLifecycleEvent,
+            UserLifecycleEvent.CREATED,
+        )
+
+    request.locale = _user_text(request.locale)
+    request.timezone = _user_text(request.timezone)
+    request.country = _user_text(request.country).upper()
+
+    if not isinstance(request.metadata, dict):
+        request.metadata = {}
+
+    request.created_at = _user_timestamp(request.created_at)
+
+    return request
+
+
+# ============================================================================
+# REQUEST VALIDATION
+# ============================================================================
+
+def validate_user_request(
+    request: UserRequest,
+) -> UserContractValidation:
+    """
+    Validate the user-domain request contract.
+
+    This validates structure and domain consistency only.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(request, UserRequest):
+        return UserContractValidation(
+            status=UserContractStatus.INVALID,
+            valid=False,
+            errors=["request must be UserRequest"],
+        )
+
+    normalize_user_request(request)
+
+    if not request.user_id:
+        warnings.append("user_id is empty")
+
+    if not request.email:
+        warnings.append("email is empty")
+
+    if request.email and "@" not in request.email:
+        errors.append("email format is invalid")
+
+    if request.status == UserStatus.UNKNOWN:
+        warnings.append("user status is UNKNOWN")
+
+    if request.mode == UserMode.UNKNOWN:
+        warnings.append("user mode is UNKNOWN")
+
+    if request.lifecycle_event is not None:
+        valid_events = set(UserLifecycleEvent)
+
+        if request.lifecycle_event not in valid_events:
+            errors.append("invalid lifecycle event")
+
+    valid = len(errors) == 0
+
+    return UserContractValidation(
+        status=(
+            UserContractStatus.VALID
+            if valid
+            else UserContractStatus.INVALID
+        ),
+        valid=valid,
+        errors=errors,
+        warnings=warnings,
+        metadata={
+            "validation_only": True,
+            "authentication": False,
+            "billing": False,
+            "subscription": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_generation": False,
+            "cas_override": False,
+            "execution": False,
+        },
+    )
+
+
+# ============================================================================
+# REQUEST BUILDER
+# ============================================================================
+
+def build_user_request(
+    user_id: str = "",
+    email: str = "",
+    display_name: str = "",
+    status: UserStatus = UserStatus.UNKNOWN,
+    mode: UserMode = UserMode.UNKNOWN,
+    priority: UserPriority = UserPriority.NORMAL,
+    lifecycle_event: Optional[UserLifecycleEvent] = None,
+    locale: str = "",
+    timezone_name: str = "",
+    country: str = "",
+    request_id: str = "",
+    metadata: Optional[Dict[str, Any]] = None,
+) -> UserRequest:
+    """
+    Construct a normalized UserRequest.
+    """
+
+    request = UserRequest(
+        request_id=request_id,
+        user_id=user_id,
+        email=email,
+        display_name=display_name,
+        status=status,
+        mode=mode,
+        priority=priority,
+        lifecycle_event=lifecycle_event,
+        locale=locale,
+        timezone=timezone_name,
+        country=country,
+        metadata=dict(metadata or {}),
+    )
+
+    return normalize_user_request(request)
+
+
+# ============================================================================
+# REFERENCE BUILDER
+# ============================================================================
+
+def build_user_reference(
+    user: UserRecord,
+) -> UserReference:
+    """
+    Build a stable downstream reference from a UserRecord.
+    """
+
+    if not isinstance(user, UserRecord):
+        raise TypeError("user must be UserRecord")
+
+    return UserReference(
+        user_id=_user_text(user.user_id),
+        email=_user_text(user.email).lower(),
+        display_name=_user_text(user.display_name),
+        status=user.status,
+        mode=user.mode,
+        created_at=_user_timestamp(user.created_at),
+        metadata={
+            "source": "app.users.user_service",
+            "domain_reference_only": True,
+        },
+    )
+
+
+# ============================================================================
+# AUTHORITY VALIDATION
+# ============================================================================
+
+def validate_user_service_authority() -> UserContractValidation:
+    """
+    Validate that the user service has not been granted forbidden
+    cross-domain authority.
+    """
+
+    forbidden_true = [
+        key
+        for key, value in USER_SERVICE_AUTHORITY.items()
+        if key not in {
+            "user_domain_authority",
+            "user_lifecycle_authority",
+            "user_contract_authority",
+            "user_metadata_authority",
+        }
+        and value is True
+    ]
+
+    if forbidden_true:
+        return UserContractValidation(
+            status=UserContractStatus.INVALID,
+            valid=False,
+            errors=[
+                f"forbidden authority enabled: {key}"
+                for key in forbidden_true
+            ],
+            metadata={
+                "authority_validation": True,
+            },
+        )
+
+    return UserContractValidation(
+        status=UserContractStatus.READY,
+        valid=True,
+        warnings=[],
+        metadata={
+            "authority_validation": True,
+            "cross_domain_authority": False,
+            "d13_authority": False,
+            "risk_override": False,
+            "cas_override": False,
+            "execution": False,
+        },
+    )
+# ============================================================================
+# USER REQUIREMENTS
+# ============================================================================
+
+@dataclass
+class UserRequirements:
+    """
+    Requirements used to assess whether a user-domain record is complete
+    and operational for downstream application use.
+
+    These are domain/data requirements only.
+    """
+
+    require_user_id: bool = True
+    require_email: bool = True
+    require_display_name: bool = False
+    require_active_status: bool = False
+    require_mode: bool = False
+    require_locale: bool = False
+    require_timezone: bool = False
+    require_country: bool = False
+
+    minimum_completeness: float = 0.70
+    minimum_confidence: float = 0.70
+    minimum_quality: float = 0.70
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER ASSESSMENT
+# ============================================================================
+
+@dataclass
+class UserAssessment:
+    """
+    Domain-level user record assessment.
+
+    This is an assessment of user-record quality/state.
+    It is NOT:
+        - authentication validation
+        - subscription validation
+        - entitlement validation
+        - trading suitability
+        - risk validation
+        - CAS validation
+    """
+
+    status: UserStatus = UserStatus.UNKNOWN
+
+    completeness_score: float = 0.0
+    confidence_score: float = 0.0
+    quality_score: float = 0.0
+
+    requirements_met: bool = False
+
+    data_state: str = "MISSING"
+    readiness: str = "NOT_READY"
+
+    flags: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER REQUIREMENT BUILDER
+# ============================================================================
+
+def build_user_requirements(
+    require_user_id: bool = True,
+    require_email: bool = True,
+    require_display_name: bool = False,
+    require_active_status: bool = False,
+    require_mode: bool = False,
+    require_locale: bool = False,
+    require_timezone: bool = False,
+    require_country: bool = False,
+    minimum_completeness: float = 0.70,
+    minimum_confidence: float = 0.70,
+    minimum_quality: float = 0.70,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> UserRequirements:
+    """
+    Build normalized user requirements.
+    """
+
+    return UserRequirements(
+        require_user_id=bool(require_user_id),
+        require_email=bool(require_email),
+        require_display_name=bool(require_display_name),
+        require_active_status=bool(require_active_status),
+        require_mode=bool(require_mode),
+        require_locale=bool(require_locale),
+        require_timezone=bool(require_timezone),
+        require_country=bool(require_country),
+        minimum_completeness=max(
+            0.0,
+            min(1.0, float(minimum_completeness)),
+        ),
+        minimum_confidence=max(
+            0.0,
+            min(1.0, float(minimum_confidence)),
+        ),
+        minimum_quality=max(
+            0.0,
+            min(1.0, float(minimum_quality)),
+        ),
+        metadata=dict(metadata or {}),
+    )
+
+
+# ============================================================================
+# USER REQUIREMENT EVALUATION
+# ============================================================================
+
+def evaluate_user_requirements(
+    user: UserRecord,
+    requirements: UserRequirements,
+) -> tuple[bool, List[str]]:
+    """
+    Evaluate declared user-domain requirements.
+
+    Returns:
+        (requirements_met, flags)
+    """
+
+    if not isinstance(user, UserRecord):
+        return False, ["invalid_user_record"]
+
+    if not isinstance(requirements, UserRequirements):
+        return False, ["invalid_user_requirements"]
+
+    flags: List[str] = []
+
+    if requirements.require_user_id and not user.user_id:
+        flags.append("missing_user_id")
+
+    if requirements.require_email and not user.email:
+        flags.append("missing_email")
+
+    if requirements.require_display_name and not user.display_name:
+        flags.append("missing_display_name")
+
+    if requirements.require_active_status:
+        if user.status != UserStatus.ACTIVE:
+            flags.append("user_not_active")
+
+    if requirements.require_mode:
+        if user.mode == UserMode.UNKNOWN:
+            flags.append("missing_mode")
+
+    if requirements.require_locale and not user.locale:
+        flags.append("missing_locale")
+
+    if requirements.require_timezone and not user.timezone:
+        flags.append("missing_timezone")
+
+    if requirements.require_country and not user.country:
+        flags.append("missing_country")
+
+    return len(flags) == 0, flags
+
+
+# ============================================================================
+# USER COMPLETENESS
+# ============================================================================
+
+def calculate_user_completeness(
+    user: UserRecord,
+    requirements: UserRequirements,
+) -> float:
+    """
+    Calculate completeness against the declared user requirements.
+
+    Each declared requirement contributes equally.
+
+    This is a data-quality measure only.
+    """
+
+    if not isinstance(user, UserRecord):
+        return 0.0
+
+    if not isinstance(requirements, UserRequirements):
+        return 0.0
+
+    checks: List[bool] = []
+
+    if requirements.require_user_id:
+        checks.append(bool(user.user_id))
+
+    if requirements.require_email:
+        checks.append(bool(user.email))
+
+    if requirements.require_display_name:
+        checks.append(bool(user.display_name))
+
+    if requirements.require_active_status:
+        checks.append(user.status == UserStatus.ACTIVE)
+
+    if requirements.require_mode:
+        checks.append(user.mode != UserMode.UNKNOWN)
+
+    if requirements.require_locale:
+        checks.append(bool(user.locale))
+
+    if requirements.require_timezone:
+        checks.append(bool(user.timezone))
+
+    if requirements.require_country:
+        checks.append(bool(user.country))
+
+    if not checks:
+        return 1.0
+
+    return sum(1.0 for item in checks if item) / len(checks)
+
+
+# ============================================================================
+# USER CONFIDENCE
+# ============================================================================
+
+def calculate_user_confidence(
+    user: UserRecord,
+) -> float:
+    """
+    Calculate confidence in the integrity of the user-domain record.
+
+    Confidence reflects record quality, not user trustworthiness and not
+    authentication confidence.
+    """
+
+    if not isinstance(user, UserRecord):
+        return 0.0
+
+    score = 1.0
+
+    if not user.user_id:
+        score -= 0.35
+
+    if not user.email:
+        score -= 0.25
+
+    if user.status == UserStatus.UNKNOWN:
+        score -= 0.15
+
+    if user.mode == UserMode.UNKNOWN:
+        score -= 0.10
+
+    if not user.created_at:
+        score -= 0.05
+
+    if not isinstance(user.metadata, dict):
+        score -= 0.10
+
+    return max(0.0, min(1.0, score))
+
+
+# ============================================================================
+# USER QUALITY
+# ============================================================================
+
+def calculate_user_quality(
+    completeness_score: float,
+    confidence_score: float,
+) -> float:
+    """
+    Calculate user-record quality.
+
+    Quality model:
+        Completeness = 60%
+        Confidence   = 40%
+
+    This score represents record quality only.
+    """
+
+    completeness = max(0.0, min(1.0, float(completeness_score)))
+    confidence = max(0.0, min(1.0, float(confidence_score)))
+
+    return (
+        (completeness * 0.60)
+        + (confidence * 0.40)
+    )
+
+
+# ============================================================================
+# USER DATA STATE
+# ============================================================================
+
+def determine_user_data_state(
+    user: UserRecord,
+    requirements_met: bool,
+    completeness_score: float,
+) -> str:
+    """
+    Determine the data state of the user record.
+    """
+
+    if not isinstance(user, UserRecord):
+        return "INVALID"
+
+    if user.status == UserStatus.INVALID:
+        return "INVALID"
+
+    if user.status == UserStatus.DELETED:
+        return "PARTIAL"
+
+    if completeness_score <= 0.0:
+        return "MISSING"
+
+    if not requirements_met:
+        return "PARTIAL"
+
+    if completeness_score < 1.0:
+        return "PARTIAL"
+
+    return "COMPLETE"
+
+
+# ============================================================================
+# USER READINESS
+# ============================================================================
+
+def determine_user_readiness(
+    user: UserRecord,
+    requirements: UserRequirements,
+    requirements_met: bool,
+    completeness_score: float,
+    confidence_score: float,
+    quality_score: float,
+) -> str:
+    """
+    Determine user-record readiness for downstream application use.
+
+    This does not authorize login, trading, execution, billing or
+    entitlement.
+    """
+
+    if not isinstance(user, UserRecord):
+        return "BLOCKED"
+
+    if user.status in {
+        UserStatus.INVALID,
+        UserStatus.DELETED,
+        UserStatus.DISABLED,
+    }:
+        return "BLOCKED"
+
+    if quality_score < 0.50:
+        return "NOT_READY"
+
+    if not requirements_met:
+        if quality_score >= requirements.minimum_quality:
+            return "CONDITIONALLY_READY"
+        return "NOT_READY"
+
+    if completeness_score < requirements.minimum_completeness:
+        return "CONDITIONALLY_READY"
+
+    if confidence_score < requirements.minimum_confidence:
+        return "CONDITIONALLY_READY"
+
+    if quality_score < requirements.minimum_quality:
+        return "CONDITIONALLY_READY"
+
+    if user.status == UserStatus.SUSPENDED:
+        return "BLOCKED"
+
+    return "READY"
+
+
+# ============================================================================
+# USER ASSESSMENT
+# ============================================================================
+
+def assess_user(
+    user: UserRecord,
+    requirements: Optional[UserRequirements] = None,
+) -> UserAssessment:
+    """
+    Produce a complete user-domain assessment.
+    """
+
+    if requirements is None:
+        requirements = build_user_requirements()
+
+    if not isinstance(user, UserRecord):
+        return UserAssessment(
+            status=UserStatus.INVALID,
+            data_state="INVALID",
+            readiness="BLOCKED",
+            completeness_score=0.0,
+            confidence_score=0.0,
+            quality_score=0.0,
+            requirements_met=False,
+            flags=["invalid_user_record"],
+            metadata={
+                "assessment_only": True,
+                "authentication": False,
+                "billing": False,
+                "subscription": False,
+                "entitlement": False,
+                "intelligence_generation": False,
+                "decision_generation": False,
+                "d13_mutation": False,
+                "risk_generation": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    requirements_met, flags = evaluate_user_requirements(
+        user,
+        requirements,
+    )
+
+    completeness_score = calculate_user_completeness(
+        user,
+        requirements,
+    )
+
+    confidence_score = calculate_user_confidence(user)
+
+    quality_score = calculate_user_quality(
+        completeness_score,
+        confidence_score,
+    )
+
+    data_state = determine_user_data_state(
+        user,
+        requirements_met,
+        completeness_score,
+    )
+
+    readiness = determine_user_readiness(
+        user,
+        requirements,
+        requirements_met,
+        completeness_score,
+        confidence_score,
+        quality_score,
+    )
+
+    if user.status == UserStatus.SUSPENDED:
+        flags.append("user_suspended")
+
+    if user.status == UserStatus.PENDING:
+        flags.append("user_pending")
+
+    if user.status == UserStatus.DISABLED:
+        flags.append("user_disabled")
+
+    return UserAssessment(
+        status=user.status,
+        completeness_score=round(completeness_score, 6),
+        confidence_score=round(confidence_score, 6),
+        quality_score=round(quality_score, 6),
+        requirements_met=requirements_met,
+        data_state=data_state,
+        readiness=readiness,
+        flags=sorted(set(flags)),
+        metadata={
+            "assessment_only": True,
+            "record_quality_only": True,
+            "authentication": False,
+            "credential_validation": False,
+            "billing": False,
+            "subscription": False,
+            "entitlement": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_generation": False,
+            "risk_override": False,
+            "cas_generation": False,
+            "cas_override": False,
+            "execution": False,
+            "upstream_mutation": False,
+        },
+    )
+
+
+# ============================================================================
+# LIFECYCLE VALIDATION
+# ============================================================================
+
+_USER_LIFECYCLE_ALLOWED = {
+    UserStatus.PENDING: {
+        UserLifecycleEvent.CREATED,
+        UserLifecycleEvent.ACTIVATED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.ACTIVE: {
+        UserLifecycleEvent.UPDATED,
+        UserLifecycleEvent.SUSPENDED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.SUSPENDED: {
+        UserLifecycleEvent.REACTIVATED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.DISABLED: {
+        UserLifecycleEvent.REACTIVATED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.DELETED: {
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.UNKNOWN: {
+        UserLifecycleEvent.CREATED,
+    },
+    UserStatus.INVALID: set(),
+}
+def apply_user_lifecycle_event(
+    user: UserRecord,
+    event: UserLifecycleEvent,
+) -> UserRecord:
+    """
+    Apply an already-validated user lifecycle event.
+
+    This function performs user-domain state transition only.
+
+    It does NOT:
+        - authenticate
+        - authorize
+        - modify billing
+        - modify subscription
+        - modify entitlement
+        - generate intelligence
+        - generate decisions
+        - modify D13
+        - modify risk
+        - override CAS
+        - execute orders
+        - modify positions
+    """
+
+    if not isinstance(user, UserRecord):
+        raise TypeError("user must be UserRecord")
+
+    event = _user_enum(
+        event,
+        UserLifecycleEvent,
+        UserLifecycleEvent.CREATED,
+    )
+
+    status_by_event = {
+        UserLifecycleEvent.CREATED: UserStatus.PENDING,
+        UserLifecycleEvent.ACTIVATED: UserStatus.ACTIVE,
+        UserLifecycleEvent.UPDATED: user.status,
+        UserLifecycleEvent.SUSPENDED: UserStatus.SUSPENDED,
+        UserLifecycleEvent.REACTIVATED: UserStatus.ACTIVE,
+        UserLifecycleEvent.DISABLED: UserStatus.DISABLED,
+        UserLifecycleEvent.DELETED: UserStatus.DELETED,
+    }
+
+    new_status = status_by_event[event]
+
+    now = datetime.now(timezone.utc)
+
+    updated_user = UserRecord(
+        user_id=user.user_id,
+        email=user.email,
+        display_name=user.display_name,
+        status=new_status,
+        mode=user.mode,
+        locale=user.locale,
+        timezone=user.timezone,
+        country=user.country,
+        created_at=user.created_at,
+        updated_at=now,
+        last_seen_at=user.last_seen_at,
+        lifecycle_event=event,
+        metadata=dict(user.metadata),
+    )
+
+    updated_user.metadata.update(
+        {
+            "lifecycle_event_applied": event.value,
+            "lifecycle_transition": True,
+            "authentication": False,
+            "billing": False,
+            "subscription": False,
+            "entitlement": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_generation": False,
+            "risk_override": False,
+            "cas_generation": False,
+            "cas_override": False,
+            "execution": False,
+        }
+    )
+
+    return updated_user
+
+
+def validate_user_lifecycle_transition(
+    current_status: UserStatus,
+    event: UserLifecycleEvent,
+) -> UserContractValidation:
+    """
+    Validate a user lifecycle transition.
+
+    This is user-domain lifecycle validation only.
+    """
+
+    current_status = _user_enum(
+        current_status,
+        UserStatus,
+        UserStatus.UNKNOWN,
+    )
+
+    event = _user_enum(
+        event,
+        UserLifecycleEvent,
+        UserLifecycleEvent.CREATED,
+    )
+
+    allowed_events = _USER_LIFECYCLE_ALLOWED.get(
+        current_status,
+        set(),
+    )
+
+    if event not in allowed_events:
+        return UserContractValidation(
+            status=UserContractStatus.INVALID,
+            valid=False,
+            errors=[
+                (
+                    f"lifecycle transition not allowed: "
+                    f"{current_status.value} -> {event.value}"
+                )
+            ],
+            metadata={
+                "lifecycle_validation": True,
+                "authentication": False,
+                "billing": False,
+                "intelligence_generation": False,
+                "d13_mutation": False,
+                "risk_override": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    return UserContractValidation(
+        status=UserContractStatus.VALID,
+        valid=True,
+        metadata={
+            "lifecycle_validation": True,
+            "authentication": False,
+            "billing": False,
+            "intelligence_generation": False,
+            "d13_mutation": False,
+            "risk_override": False,
+            "cas_override": False,
+            "execution": False,
+        },
+    )
+# ============================================================================
+# USER REQUIREMENTS
+# ============================================================================
+
+@dataclass
+class UserRequirements:
+    """
+    Requirements used to assess whether a user-domain record is complete
+    and operational for downstream application use.
+
+    These are domain/data requirements only.
+    """
+
+    require_user_id: bool = True
+    require_email: bool = True
+    require_display_name: bool = False
+    require_active_status: bool = False
+    require_mode: bool = False
+    require_locale: bool = False
+    require_timezone: bool = False
+    require_country: bool = False
+
+    minimum_completeness: float = 0.70
+    minimum_confidence: float = 0.70
+    minimum_quality: float = 0.70
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER ASSESSMENT
+# ============================================================================
+
+@dataclass
+class UserAssessment:
+    """
+    Domain-level user record assessment.
+
+    This is an assessment of user-record quality/state.
+    It is NOT:
+        - authentication validation
+        - subscription validation
+        - entitlement validation
+        - trading suitability
+        - risk validation
+        - CAS validation
+    """
+
+    status: UserStatus = UserStatus.UNKNOWN
+
+    completeness_score: float = 0.0
+    confidence_score: float = 0.0
+    quality_score: float = 0.0
+
+    requirements_met: bool = False
+
+    data_state: str = "MISSING"
+    readiness: str = "NOT_READY"
+
+    flags: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# USER REQUIREMENT BUILDER
+# ============================================================================
+
+def build_user_requirements(
+    require_user_id: bool = True,
+    require_email: bool = True,
+    require_display_name: bool = False,
+    require_active_status: bool = False,
+    require_mode: bool = False,
+    require_locale: bool = False,
+    require_timezone: bool = False,
+    require_country: bool = False,
+    minimum_completeness: float = 0.70,
+    minimum_confidence: float = 0.70,
+    minimum_quality: float = 0.70,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> UserRequirements:
+    """
+    Build normalized user requirements.
+    """
+
+    return UserRequirements(
+        require_user_id=bool(require_user_id),
+        require_email=bool(require_email),
+        require_display_name=bool(require_display_name),
+        require_active_status=bool(require_active_status),
+        require_mode=bool(require_mode),
+        require_locale=bool(require_locale),
+        require_timezone=bool(require_timezone),
+        require_country=bool(require_country),
+        minimum_completeness=max(
+            0.0,
+            min(1.0, float(minimum_completeness)),
+        ),
+        minimum_confidence=max(
+            0.0,
+            min(1.0, float(minimum_confidence)),
+        ),
+        minimum_quality=max(
+            0.0,
+            min(1.0, float(minimum_quality)),
+        ),
+        metadata=dict(metadata or {}),
+    )
+
+
+# ============================================================================
+# USER REQUIREMENT EVALUATION
+# ============================================================================
+
+def evaluate_user_requirements(
+    user: UserRecord,
+    requirements: UserRequirements,
+) -> tuple[bool, List[str]]:
+    """
+    Evaluate declared user-domain requirements.
+
+    Returns:
+        (requirements_met, flags)
+    """
+
+    if not isinstance(user, UserRecord):
+        return False, ["invalid_user_record"]
+
+    if not isinstance(requirements, UserRequirements):
+        return False, ["invalid_user_requirements"]
+
+    flags: List[str] = []
+
+    if requirements.require_user_id and not user.user_id:
+        flags.append("missing_user_id")
+
+    if requirements.require_email and not user.email:
+        flags.append("missing_email")
+
+    if requirements.require_display_name and not user.display_name:
+        flags.append("missing_display_name")
+
+    if requirements.require_active_status:
+        if user.status != UserStatus.ACTIVE:
+            flags.append("user_not_active")
+
+    if requirements.require_mode:
+        if user.mode == UserMode.UNKNOWN:
+            flags.append("missing_mode")
+
+    if requirements.require_locale and not user.locale:
+        flags.append("missing_locale")
+
+    if requirements.require_timezone and not user.timezone:
+        flags.append("missing_timezone")
+
+    if requirements.require_country and not user.country:
+        flags.append("missing_country")
+
+    return len(flags) == 0, flags
+
+
+# ============================================================================
+# USER COMPLETENESS
+# ============================================================================
+
+def calculate_user_completeness(
+    user: UserRecord,
+    requirements: UserRequirements,
+) -> float:
+    """
+    Calculate completeness against the declared user requirements.
+
+    Each declared requirement contributes equally.
+
+    This is a data-quality measure only.
+    """
+
+    if not isinstance(user, UserRecord):
+        return 0.0
+
+    if not isinstance(requirements, UserRequirements):
+        return 0.0
+
+    checks: List[bool] = []
+
+    if requirements.require_user_id:
+        checks.append(bool(user.user_id))
+
+    if requirements.require_email:
+        checks.append(bool(user.email))
+
+    if requirements.require_display_name:
+        checks.append(bool(user.display_name))
+
+    if requirements.require_active_status:
+        checks.append(user.status == UserStatus.ACTIVE)
+
+    if requirements.require_mode:
+        checks.append(user.mode != UserMode.UNKNOWN)
+
+    if requirements.require_locale:
+        checks.append(bool(user.locale))
+
+    if requirements.require_timezone:
+        checks.append(bool(user.timezone))
+
+    if requirements.require_country:
+        checks.append(bool(user.country))
+
+    if not checks:
+        return 1.0
+
+    return sum(1.0 for item in checks if item) / len(checks)
+
+
+# ============================================================================
+# USER CONFIDENCE
+# ============================================================================
+
+def calculate_user_confidence(
+    user: UserRecord,
+) -> float:
+    """
+    Calculate confidence in the integrity of the user-domain record.
+
+    Confidence reflects record quality, not user trustworthiness and not
+    authentication confidence.
+    """
+
+    if not isinstance(user, UserRecord):
+        return 0.0
+
+    score = 1.0
+
+    if not user.user_id:
+        score -= 0.35
+
+    if not user.email:
+        score -= 0.25
+
+    if user.status == UserStatus.UNKNOWN:
+        score -= 0.15
+
+    if user.mode == UserMode.UNKNOWN:
+        score -= 0.10
+
+    if not user.created_at:
+        score -= 0.05
+
+    if not isinstance(user.metadata, dict):
+        score -= 0.10
+
+    return max(0.0, min(1.0, score))
+
+
+# ============================================================================
+# USER QUALITY
+# ============================================================================
+
+def calculate_user_quality(
+    completeness_score: float,
+    confidence_score: float,
+) -> float:
+    """
+    Calculate user-record quality.
+
+    Quality model:
+        Completeness = 60%
+        Confidence   = 40%
+
+    This score represents record quality only.
+    """
+
+    completeness = max(0.0, min(1.0, float(completeness_score)))
+    confidence = max(0.0, min(1.0, float(confidence_score)))
+
+    return (
+        (completeness * 0.60)
+        + (confidence * 0.40)
+    )
+
+
+# ============================================================================
+# USER DATA STATE
+# ============================================================================
+
+def determine_user_data_state(
+    user: UserRecord,
+    requirements_met: bool,
+    completeness_score: float,
+) -> str:
+    """
+    Determine the data state of the user record.
+    """
+
+    if not isinstance(user, UserRecord):
+        return "INVALID"
+
+    if user.status == UserStatus.INVALID:
+        return "INVALID"
+
+    if user.status == UserStatus.DELETED:
+        return "PARTIAL"
+
+    if completeness_score <= 0.0:
+        return "MISSING"
+
+    if not requirements_met:
+        return "PARTIAL"
+
+    if completeness_score < 1.0:
+        return "PARTIAL"
+
+    return "COMPLETE"
+
+
+# ============================================================================
+# USER READINESS
+# ============================================================================
+
+def determine_user_readiness(
+    user: UserRecord,
+    requirements: UserRequirements,
+    requirements_met: bool,
+    completeness_score: float,
+    confidence_score: float,
+    quality_score: float,
+) -> str:
+    """
+    Determine user-record readiness for downstream application use.
+
+    This does not authorize login, trading, execution, billing or
+    entitlement.
+    """
+
+    if not isinstance(user, UserRecord):
+        return "BLOCKED"
+
+    if user.status in {
+        UserStatus.INVALID,
+        UserStatus.DELETED,
+        UserStatus.DISABLED,
+    }:
+        return "BLOCKED"
+
+    if quality_score < 0.50:
+        return "NOT_READY"
+
+    if not requirements_met:
+        if quality_score >= requirements.minimum_quality:
+            return "CONDITIONALLY_READY"
+        return "NOT_READY"
+
+    if completeness_score < requirements.minimum_completeness:
+        return "CONDITIONALLY_READY"
+
+    if confidence_score < requirements.minimum_confidence:
+        return "CONDITIONALLY_READY"
+
+    if quality_score < requirements.minimum_quality:
+        return "CONDITIONALLY_READY"
+
+    if user.status == UserStatus.SUSPENDED:
+        return "BLOCKED"
+
+    return "READY"
+
+
+# ============================================================================
+# USER ASSESSMENT
+# ============================================================================
+
+def assess_user(
+    user: UserRecord,
+    requirements: Optional[UserRequirements] = None,
+) -> UserAssessment:
+    """
+    Produce a complete user-domain assessment.
+    """
+
+    if requirements is None:
+        requirements = build_user_requirements()
+
+    if not isinstance(user, UserRecord):
+        return UserAssessment(
+            status=UserStatus.INVALID,
+            data_state="INVALID",
+            readiness="BLOCKED",
+            completeness_score=0.0,
+            confidence_score=0.0,
+            quality_score=0.0,
+            requirements_met=False,
+            flags=["invalid_user_record"],
+            metadata={
+                "assessment_only": True,
+                "authentication": False,
+                "billing": False,
+                "subscription": False,
+                "entitlement": False,
+                "intelligence_generation": False,
+                "decision_generation": False,
+                "d13_mutation": False,
+                "risk_generation": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    requirements_met, flags = evaluate_user_requirements(
+        user,
+        requirements,
+    )
+
+    completeness_score = calculate_user_completeness(
+        user,
+        requirements,
+    )
+
+    confidence_score = calculate_user_confidence(user)
+
+    quality_score = calculate_user_quality(
+        completeness_score,
+        confidence_score,
+    )
+
+    data_state = determine_user_data_state(
+        user,
+        requirements_met,
+        completeness_score,
+    )
+
+    readiness = determine_user_readiness(
+        user,
+        requirements,
+        requirements_met,
+        completeness_score,
+        confidence_score,
+        quality_score,
+    )
+
+    if user.status == UserStatus.SUSPENDED:
+        flags.append("user_suspended")
+
+    if user.status == UserStatus.PENDING:
+        flags.append("user_pending")
+
+    if user.status == UserStatus.DISABLED:
+        flags.append("user_disabled")
+
+    return UserAssessment(
+        status=user.status,
+        completeness_score=round(completeness_score, 6),
+        confidence_score=round(confidence_score, 6),
+        quality_score=round(quality_score, 6),
+        requirements_met=requirements_met,
+        data_state=data_state,
+        readiness=readiness,
+        flags=sorted(set(flags)),
+        metadata={
+            "assessment_only": True,
+            "record_quality_only": True,
+            "authentication": False,
+            "credential_validation": False,
+            "billing": False,
+            "subscription": False,
+            "entitlement": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_generation": False,
+            "risk_override": False,
+            "cas_generation": False,
+            "cas_override": False,
+            "execution": False,
+            "upstream_mutation": False,
+        },
+    )
+
+
+# ============================================================================
+# LIFECYCLE VALIDATION
+# ============================================================================
+
+_USER_LIFECYCLE_ALLOWED = {
+    UserStatus.PENDING: {
+        UserLifecycleEvent.CREATED,
+        UserLifecycleEvent.ACTIVATED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.ACTIVE: {
+        UserLifecycleEvent.UPDATED,
+        UserLifecycleEvent.SUSPENDED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.SUSPENDED: {
+        UserLifecycleEvent.REACTIVATED,
+        UserLifecycleEvent.DISABLED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.DISABLED: {
+        UserLifecycleEvent.REACTIVATED,
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.DELETED: {
+        UserLifecycleEvent.DELETED,
+    },
+    UserStatus.UNKNOWN: {
+        UserLifecycleEvent.CREATED,
+    },
+    UserStatus.INVALID: set(),
+}
+
+
+def validate_user_lifecycle_transition(
+    current_status: UserStatus,
+    event: UserLifecycleEvent,
+) -> UserContractValidation:
+    """
+    Validate a user lifecycle transition.
+
+    This is user-domain lifecycle validation only.
+    """
+
+    current_status = _user_enum(
+        current_status,
+        UserStatus,
+        UserStatus.UNKNOWN,
+    )
+
+    event = _user_enum(
+        event,
+        UserLifecycleEvent,
+        UserLifecycleEvent.CREATED,
+    )
+
+    allowed_events = _USER_LIFECYCLE_ALLOWED.get(
+        current_status,
+        set(),
+    )
+
+    if event not in allowed_events:
+        return UserContractValidation(
+            status=UserContractStatus.INVALID,
+            valid=False,
+            errors=[
+                (
+                    f"lifecycle transition not allowed: "
+                    f"{current_status.value} -> {event.value}"
+                )
+            ],
+            metadata={
+                "lifecycle_validation": True,
+                "authentication": False,
+                "billing": False,
+                "intelligence_generation": False,
+                "d13_mutation": False,
+                "risk_override": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    return UserContractValidation(
+        status=UserContractStatus.VALID,
+        valid=True,
+        metadata={
+            "lifecycle_validation": True,
+            "authentication": False,
+            "billing": False,
+            "intelligence_generation": False,
+            "d13_mutation": False,
+            "risk_override": False,
+            "cas_override": False,
+            "execution": False,
+        },
+    )
+# USER RESOLUTION
+# -----------------------------------------------------------------------------
+
+class UserResolutionStatus(str, Enum):
+    RESOLVED = "RESOLVED"
+    CONDITIONAL = "CONDITIONAL"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    BLOCKED = "BLOCKED"
+
+
+class UserDecision(str, Enum):
+    ALLOW = "ALLOW"
+    ALLOW_WITH_RESTRICTION = "ALLOW_WITH_RESTRICTION"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    BLOCK = "BLOCK"
+    UNKNOWN = "UNKNOWN"
+
+
+@dataclass
+class UserResolutionRules:
+    allow_when_ready: bool = True
+    allow_when_conditionally_ready: bool = True
+    review_when_not_ready: bool = True
+    block_when_invalid: bool = True
+    block_when_disabled: bool = True
+    block_when_deleted: bool = True
+    block_when_suspended: bool = True
+    block_when_authority_violation: bool = True
+    minimum_quality: float = 0.70
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# -----------------------------------------------------------------------------
+@dataclass
+class UserRegistryEntry:
+    """
+    Registry entry for a user-domain record.
+    """
+
+    user_id: str
+    reference: UserReference
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    updated_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    active: bool = True
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class UserRegistrySnapshot:
+    """
+    Point-in-time user registry snapshot.
+    """
+
+    engine: str = USER_SERVICE_ENGINE
+    version: str = USER_SERVICE_VERSION
+
+    entries: List[UserRegistryEntry] = field(default_factory=list)
+
+    count: int = 0
+
+    captured_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================================
+# REGISTRY
+# ============================================================================
+
+
+# USER REGISTRY
+# ============================================================================
+
+@dataclass
+class UserPresentation:
+    """
+    Presentation-safe representation of resolved user state.
+
+    This layer does not own authentication, billing, subscription,
+    entitlement, intelligence, decision, D13, risk, CAS, or execution.
+    """
+
+    user_id: str = ""
+    display_name: str = ""
+    email: str = ""
+    status: UserStatus = UserStatus.UNKNOWN
+    mode: UserMode = UserMode.UNKNOWN
+    readiness: str = "NOT_READY"
+    decision: UserDecision = UserDecision.UNKNOWN
+    quality_score: float = 0.0
+    flags: List[str] = field(default_factory=list)
+    restrictions: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class UserResult:
+    """
+    Final user-domain resolution result.
+
+    This result has no execution or market authority.
+    """
+
+    request: Optional[UserRequest] = None
+    reference: Optional[UserReference] = None
+    user: Optional[UserRecord] = None
+    assessment: Optional[UserAssessment] = None
+    presentation: Optional[UserPresentation] = None
+
+    decision: UserDecision = UserDecision.UNKNOWN
+    resolution: UserResolutionStatus = (
+        UserResolutionStatus.REVIEW_REQUIRED
+    )
+
+    flags: List[str] = field(default_factory=list)
+    restrictions: List[str] = field(default_factory=list)
+
+    authority_valid: bool = False
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+def collect_user_restrictions(
+    user: UserRecord,
+    assessment: UserAssessment,
+) -> List[str]:
+    """
+    Collect user-domain restrictions only.
+    """
+
+    restrictions: List[str] = []
+
+    if not isinstance(user, UserRecord):
+        restrictions.append("INVALID_USER")
+
+    if not isinstance(assessment, UserAssessment):
+        restrictions.append("INVALID_ASSESSMENT")
+        return restrictions
+
+    if assessment.readiness == "CONDITIONALLY_READY":
+        restrictions.append("CONDITIONAL_READINESS")
+
+    if assessment.readiness == "NOT_READY":
+        restrictions.append("NOT_READY")
+
+    if assessment.readiness == "BLOCKED":
+        restrictions.append("BLOCKED_USER")
+
+    if user.status == UserStatus.SUSPENDED:
+        restrictions.append("SUSPENDED_USER")
+
+    if user.status == UserStatus.PENDING:
+        restrictions.append("PENDING_USER")
+
+    if not assessment.requirements_met:
+        restrictions.append("REQUIREMENTS_INCOMPLETE")
+
+    return list(dict.fromkeys(restrictions))
+
+
+def collect_user_flags(
+    user: UserRecord,
+    assessment: UserAssessment,
+) -> List[str]:
+    """
+    Collect user-domain assessment flags.
+    """
+
+    flags: List[str] = []
+
+    if not isinstance(user, UserRecord):
+        flags.append("INVALID_USER")
+        return flags
+
+    if not isinstance(assessment, UserAssessment):
+        flags.append("INVALID_ASSESSMENT")
+        return flags
+
+    flags.extend(
+        str(flag)
+        for flag in assessment.flags
+        if _user_text(flag)
+    )
+
+    if user.status == UserStatus.SUSPENDED:
+        flags.append("USER_SUSPENDED")
+
+    if user.status == UserStatus.DISABLED:
+        flags.append("USER_DISABLED")
+
+    if user.status == UserStatus.DELETED:
+        flags.append("USER_DELETED")
+
+    if user.status == UserStatus.INVALID:
+        flags.append("USER_INVALID")
+
+    return list(dict.fromkeys(flags))
+
+
+def build_user_presentation(
+    user: UserRecord,
+    assessment: UserAssessment,
+    decision: UserDecision,
+) -> UserPresentation:
+    """
+    Build presentation state from already assessed user-domain data.
+    """
+
+    flags = collect_user_flags(user, assessment)
+    restrictions = collect_user_restrictions(
+        user,
+        assessment,
+    )
+
+    return UserPresentation(
+        user_id=_user_text(user.user_id),
+        display_name=_user_text(user.display_name),
+        email=_user_text(user.email),
+        status=user.status,
+        mode=user.mode,
+        readiness=_user_text(
+            assessment.readiness,
+            "NOT_READY",
+        ),
+        decision=decision,
+        quality_score=float(
+            max(
+                0.0,
+                min(1.0, assessment.quality_score),
+            )
+        ),
+        flags=flags,
+        restrictions=restrictions,
+        metadata={
+            "presentation_only": True,
+            "user_domain": True,
+            "authentication": False,
+            "billing": False,
+            "subscription": False,
+            "entitlement": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_authority": False,
+            "risk_generation": False,
+            "cas_generation": False,
+            "execution": False,
+        },
+    )
+
+
+def resolve_user(
+    request: UserRequest,
+    user: UserRecord,
+    requirements: Optional[UserRequirements] = None,
+    rules: Optional[UserResolutionRules] = None,
+) -> UserResult:
+    """
+    Resolve a user-domain record into a presentation-safe result.
+
+    Resolution does not authenticate, authorize external systems,
+    generate trading decisions, modify D13, generate risk, invoke CAS,
+    authorize execution, or create orders.
+    """
+
+    if requirements is None:
+        requirements = build_user_requirements()
+
+    if rules is None:
+        rules = UserResolutionRules()
+
+    result = UserResult(
+        request=request,
+        user=user,
+        metadata={
+            "resolution": True,
+            "user_domain": True,
+            "authentication": False,
+            "billing": False,
+            "subscription": False,
+            "entitlement": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_generation": False,
+            "risk_override": False,
+            "cas_generation": False,
+            "cas_override": False,
+            "execution": False,
+            "order_creation": False,
+            "position_modification": False,
+        },
+    )
+
+    # ------------------------------------------------------------------
+    # REQUEST VALIDATION
+    # ------------------------------------------------------------------
+
+    request_validation = validate_user_request(request)
+
+    if not request_validation.valid:
+        result.resolution = UserResolutionStatus.BLOCKED
+        result.decision = UserDecision.BLOCK
+        result.flags = ["INVALID_REQUEST"]
+        result.restrictions = list(request_validation.errors)
+        result.metadata["request_valid"] = False
+        result.authority_valid = False
+
+        return result
+
+    result.metadata["request_valid"] = True
+
+    # ------------------------------------------------------------------
+    # USER VALIDATION
+    # ------------------------------------------------------------------
+
+    if not isinstance(user, UserRecord):
+        result.resolution = UserResolutionStatus.BLOCKED
+        result.decision = UserDecision.BLOCK
+        result.flags = ["INVALID_USER"]
+        result.restrictions = ["INVALID_USER"]
+        result.authority_valid = False
+
+        return result
+
+    # ------------------------------------------------------------------
+    # AUTHORITY VALIDATION
+    # ------------------------------------------------------------------
+
+    authority = validate_user_service_authority()
+
+    if not isinstance(
+        authority,
+        UserContractValidation,
+    ):
+        result.resolution = UserResolutionStatus.BLOCKED
+        result.decision = UserDecision.BLOCK
+        result.flags = ["INVALID_AUTHORITY_RESULT"]
+        result.restrictions = ["AUTHORITY_VALIDATION_FAILED"]
+        result.authority_valid = False
+
+        return result
+
+    result.authority_valid = bool(authority.valid)
+
+    result.metadata["authority_status"] = (
+        authority.status.value
+        if isinstance(authority.status, Enum)
+        else _user_text(authority.status)
+    )
+
+    if not authority.valid:
+        result.resolution = UserResolutionStatus.BLOCKED
+        result.decision = UserDecision.BLOCK
+        result.flags = ["AUTHORITY_INVALID"]
+        result.restrictions = list(authority.errors)
+        return result
+
+    # ------------------------------------------------------------------
+    # ASSESSMENT
+    # ------------------------------------------------------------------
+
+    assessment = assess_user(
+        user,
+        requirements,
+    )
+
+    result.assessment = assessment
+    result.reference = build_user_reference(user)
+
+    # ------------------------------------------------------------------
+    # HARD BLOCK CONDITIONS
+    # ------------------------------------------------------------------
+
+    if user.status in {
+        UserStatus.INVALID,
+        UserStatus.DELETED,
+        UserStatus.DISABLED,
+    }:
+        if rules.block_when_invalid or (
+            user.status == UserStatus.DISABLED
+            and rules.block_when_disabled
+        ) or (
+            user.status == UserStatus.DELETED
+            and rules.block_when_deleted
+        ):
+            result.resolution = UserResolutionStatus.BLOCKED
+            result.decision = UserDecision.BLOCK
+
+            result.flags = collect_user_flags(
+                user,
+                assessment,
+            )
+
+            result.restrictions = collect_user_restrictions(
+                user,
+                assessment,
+            )
+
+            result.presentation = build_user_presentation(
+                user,
+                assessment,
+                result.decision,
+            )
+
+            return result
+
+    if (
+        user.status == UserStatus.SUSPENDED
+        and rules.block_when_suspended
+    ):
+        result.resolution = UserResolutionStatus.BLOCKED
+        result.decision = UserDecision.BLOCK
+
+        result.flags = collect_user_flags(
+            user,
+            assessment,
+        )
+
+        result.restrictions = collect_user_restrictions(
+            user,
+            assessment,
+        )
+
+        result.presentation = build_user_presentation(
+            user,
+            assessment,
+            result.decision,
+        )
+
+        return result
+
+    # ------------------------------------------------------------------
+    # READINESS RESOLUTION
+    # ------------------------------------------------------------------
+
+    readiness = _user_text(
+        assessment.readiness,
+        "NOT_READY",
+    )
+
+    quality_score = float(
+        max(
+            0.0,
+            min(1.0, assessment.quality_score),
+        )
+    )
+
+    if readiness == "READY":
+        if (
+            rules.allow_when_ready
+            and quality_score >= rules.minimum_quality
+        ):
+            result.resolution = UserResolutionStatus.RESOLVED
+            result.decision = UserDecision.ALLOW
+
+    elif readiness == "CONDITIONALLY_READY":
+        if rules.allow_when_conditionally_ready:
+            result.resolution = UserResolutionStatus.CONDITIONAL
+            result.decision = UserDecision.ALLOW_WITH_RESTRICTION
+        else:
+            result.resolution = UserResolutionStatus.REVIEW_REQUIRED
+            result.decision = UserDecision.REVIEW_REQUIRED
+
+    elif readiness == "NOT_READY":
+        if rules.review_when_not_ready:
+            result.resolution = UserResolutionStatus.REVIEW_REQUIRED
+            result.decision = UserDecision.REVIEW_REQUIRED
+        else:
+            result.resolution = UserResolutionStatus.BLOCKED
+            result.decision = UserDecision.BLOCK
+
+    else:
+        result.resolution = UserResolutionStatus.REVIEW_REQUIRED
+        result.decision = UserDecision.REVIEW_REQUIRED
+
+    # ------------------------------------------------------------------
+    # FLAGS / RESTRICTIONS / PRESENTATION
+    # ------------------------------------------------------------------
+
+    result.flags = collect_user_flags(
+        user,
+        assessment,
+    )
+
+    result.restrictions = collect_user_restrictions(
+        user,
+        assessment,
+    )
+
+    result.presentation = build_user_presentation(
+        user,
+        assessment,
+        result.decision,
+    )
+
+    result.metadata.update(
+        {
+            "readiness": readiness,
+            "quality_score": quality_score,
+            "requirements_met": bool(
+                assessment.requirements_met
+            ),
+            "action_authority": False,
+            "execution_authority": False,
+            "order_authority": False,
+            "position_authority": False,
+        }
+    )
+
+    return result
+
+
+def validate_user_result(
+    result: UserResult,
+) -> List[str]:
+    """
+    Validate user-domain resolution result.
+    """
+
+    errors: List[str] = []
+
+    if not isinstance(result, UserResult):
+        return ["result must be a UserResult"]
+
+    if result.request is not None:
+        errors.extend(
+            validate_user_request_integrity(
+                result.request
+            )
+        )
+
+    if result.reference is not None:
+        errors.extend(
+            validate_user_reference_integrity(
+                result.reference
+            )
+        )
+
+    if result.user is not None:
+        errors.extend(
+            validate_user_record_integrity(
+                result.user
+            )
+        )
+
+    if result.assessment is not None:
+        errors.extend(
+            validate_user_assessment_integrity(
+                result.assessment
+            )
+        )
+
+    if result.presentation is not None:
+        if not isinstance(
+            result.presentation,
+            UserPresentation,
+        ):
+            errors.append(
+                "presentation must be UserPresentation"
+            )
+
+    if not isinstance(
+        result.decision,
+        UserDecision,
+    ):
+        errors.append(
+            "decision must be UserDecision"
+        )
+
+    if not isinstance(
+        result.resolution,
+        UserResolutionStatus,
+    ):
+        errors.append(
+            "resolution must be UserResolutionStatus"
+        )
+
+    if not isinstance(result.flags, list):
+        errors.append("flags must be a list")
+
+    if not isinstance(result.restrictions, list):
+        errors.append(
+            "restrictions must be a list"
+        )
+
+    if not isinstance(result.authority_valid, bool):
+        errors.append(
+            "authority_valid must be boolean"
+        )
+
+    if not isinstance(result.metadata, dict):
+        errors.append(
+            "metadata must be a dictionary"
+        )
+
+    return errors# ============================================================================
+# REGISTRY
+# ============================================================================
+
+class UserRegistry:
+    """
+    In-memory user-domain registry.
+
+    Persistence/authentication storage is intentionally outside this class.
+    """
+
+    def __init__(self) -> None:
+        self._entries: Dict[str, UserRegistryEntry] = {}
+
+    def exists(self, user_id: str) -> bool:
+        key = _user_text(user_id)
+        return bool(key) and key in self._entries
+
+    def get(self, user_id: str) -> Optional[UserReference]:
+        key = _user_text(user_id)
+
+        entry = self._entries.get(key)
+
+        if entry is None or not entry.active:
+            return None
+
+        return entry.reference
+
+    def get_entry(
+        self,
+        user_id: str,
+    ) -> Optional[UserRegistryEntry]:
+        key = _user_text(user_id)
+
+        entry = self._entries.get(key)
+
+        if entry is None or not entry.active:
+            return None
+
+        return entry
+
+    def add(
+        self,
+        user: UserRecord,
+    ) -> UserReference:
+        if not isinstance(user, UserRecord):
+            raise TypeError("user must be UserRecord")
+
+        user_id = _user_text(user.user_id)
+
+        if not user_id:
+            raise ValueError("user_id is required")
+
+        if self.exists(user_id):
+            raise ValueError(
+                f"user already exists: {user_id}"
+            )
+
+        reference = build_user_reference(user)
+        now = datetime.now(timezone.utc)
+
+        self._entries[user_id] = UserRegistryEntry(
+            user_id=user_id,
+            reference=reference,
+            created_at=now,
+            updated_at=now,
+            active=True,
+            metadata={
+                "source": "app.users.user_service",
+                "domain_registry": True,
+            },
+        )
+
+        return reference
+
+    def replace(
+        self,
+        user: UserRecord,
+    ) -> UserReference:
+        if not isinstance(user, UserRecord):
+            raise TypeError("user must be UserRecord")
+
+        user_id = _user_text(user.user_id)
+
+        if not user_id:
+            raise ValueError("user_id is required")
+
+        reference = build_user_reference(user)
+        now = datetime.now(timezone.utc)
+
+        existing = self._entries.get(user_id)
+
+        created_at = (
+            existing.created_at
+            if existing is not None
+            else now
+        )
+
+        self._entries[user_id] = UserRegistryEntry(
+            user_id=user_id,
+            reference=reference,
+            created_at=created_at,
+            updated_at=now,
+            active=True,
+            metadata={
+                "source": "app.users.user_service",
+                "domain_registry": True,
+            },
+        )
+
+        return reference
+
+    def remove(
+        self,
+        user_id: str,
+    ) -> bool:
+        key = _user_text(user_id)
+
+        entry = self._entries.get(key)
+
+        if entry is None:
+            return False
+
+        entry.active = False
+        entry.updated_at = datetime.now(timezone.utc)
+
+        return True
+
+    def list_references(self) -> List[UserReference]:
+        return [
+            entry.reference
+            for entry in self._entries.values()
+            if entry.active
+        ]
+
+    def snapshot(self) -> UserRegistrySnapshot:
+        entries = [
+            entry
+            for entry in self._entries.values()
+            if entry.active
+        ]
+
+        return UserRegistrySnapshot(
+            engine=USER_SERVICE_ENGINE,
+            version=USER_SERVICE_VERSION,
+            entries=list(entries),
+            count=len(entries),
+            captured_at=datetime.now(timezone.utc),
+            metadata={
+                "registry_snapshot": True,
+                "authentication_storage": False,
+                "billing_storage": False,
+            },
+        )
+
+    def count(self) -> int:
+        return sum(
+            1
+            for entry in self._entries.values()
+            if entry.active
+        )
+
+
+# ============================================================================
+# REGISTRY VALIDATION
+# ============================================================================
+
+def validate_user_registry(
+    registry: UserRegistry,
+) -> UserContractValidation:
+    """
+    Validate the structural integrity of the user registry.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(registry, UserRegistry):
+        return UserContractValidation(
+            status=UserContractStatus.INVALID,
+            valid=False,
+            errors=["registry must be UserRegistry"],
+        )
+
+    seen: set[str] = set()
+
+    for user_id, entry in registry._entries.items():
+        if not user_id:
+            errors.append("registry contains empty user_id")
+
+        if user_id in seen:
+            errors.append(
+                f"duplicate registry user_id: {user_id}"
+            )
+
+        seen.add(user_id)
+
+        if not isinstance(entry, UserRegistryEntry):
+            errors.append(
+                f"invalid registry entry: {user_id}"
+            )
+            continue
+
+        if entry.user_id != user_id:
+            errors.append(
+                f"registry key mismatch: {user_id}"
+            )
+
+        if not isinstance(
+            entry.reference,
+            UserReference,
+        ):
+            errors.append(
+                f"invalid user reference: {user_id}"
+            )
+
+    if not registry._entries:
+        warnings.append("user registry is empty")
+
+    valid = len(errors) == 0
+
+    return UserContractValidation(
+        status=(
+            UserContractStatus.READY
+            if valid
+            else UserContractStatus.INVALID
+        ),
+        valid=valid,
+        errors=errors,
+        warnings=warnings,
+        metadata={
+            "registry_validation": True,
+            "authentication": False,
+            "billing": False,
+            "subscription": False,
+            "intelligence_generation": False,
+            "decision_generation": False,
+            "d13_mutation": False,
+            "risk_override": False,
+            "cas_override": False,
+            "execution": False,
+        },
+    )
+
+
+def user_registry_health(
+    registry: UserRegistry,
+) -> Dict[str, Any]:
+    """
+    Return lightweight registry health information.
+    """
+
+    validation = validate_user_registry(registry)
+
+    return {
+        "healthy": validation.valid,
+        "engine": USER_SERVICE_ENGINE,
+        "version": USER_SERVICE_VERSION,
+        "count": registry.count()
+        if isinstance(registry, UserRegistry)
+        else 0,
+        "errors": list(validation.errors),
+        "warnings": list(validation.warnings),
+    }
+
+
+# ============================================================================
+# USER SERVICE
+# ============================================================================
+
+class UserService:
+    """
+    Application service for user-domain operations.
+
+    This service owns user-domain orchestration only.
+    """
+
+    def __init__(
+        self,
+        registry: Optional[UserRegistry] = None,
+    ) -> None:
+        self.registry = registry or UserRegistry()
+
+    def create(
+        self,
+        request: UserRequest,
+    ) -> UserServiceResult:
+        """
+        Create a user-domain record and register its reference.
+        """
+
+        validation = validate_user_request(request)
+
+        if not validation.valid:
+            return UserServiceResult(
+                request_id=request.request_id
+                if isinstance(request, UserRequest)
+                else "",
+                validation=validation,
+                success=False,
+                errors=list(validation.errors),
+                warnings=list(validation.warnings),
+            )
+
+        if not request.user_id:
+            return UserServiceResult(
+                request_id=request.request_id,
+                validation=validation,
+                success=False,
+                errors=["user_id is required for creation"],
+                warnings=list(validation.warnings),
+            )
+
+        if self.registry.exists(request.user_id):
+            return UserServiceResult(
+                request_id=request.request_id,
+                validation=validation,
+                success=False,
+                errors=[
+                    f"user already exists: {request.user_id}"
+                ],
+                warnings=list(validation.warnings),
+            )
+
+        now = datetime.now(timezone.utc)
+
+        user = UserRecord(
+            user_id=request.user_id,
+            email=request.email,
+            display_name=request.display_name,
+            status=(
+                request.status
+                if request.status != UserStatus.UNKNOWN
+                else UserStatus.PENDING
+            ),
+            mode=request.mode,
+            locale=request.locale,
+            timezone=request.timezone,
+            country=request.country,
+            created_at=now,
+            updated_at=now,
+            lifecycle_event=UserLifecycleEvent.CREATED,
+            metadata=dict(request.metadata),
+        )
+
+        reference = self.registry.add(user)
+
+        return UserServiceResult(
+            request_id=request.request_id,
+            reference=reference,
+            user=user,
+            validation=validation,
+            success=True,
+            event=UserLifecycleEvent.CREATED,
+            warnings=list(validation.warnings),
+            metadata={
+                "operation": "create",
+                "user_domain": True,
+                "authentication": False,
+                "billing": False,
+                "subscription": False,
+                "entitlement": False,
+                "intelligence_generation": False,
+                "decision_generation": False,
+                "d13_mutation": False,
+                "risk_generation": False,
+                "risk_override": False,
+                "cas_generation": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    def get(
+        self,
+        user_id: str,
+    ) -> Optional[UserReference]:
+        return self.registry.get(user_id)
+
+    def get_entry(
+        self,
+        user_id: str,
+    ) -> Optional[UserRegistryEntry]:
+        return self.registry.get_entry(user_id)
+
+    def register(
+        self,
+        user: UserRecord,
+    ) -> UserReference:
+        return self.registry.replace(user)
+
+    def assess(
+        self,
+        user: UserRecord,
+        requirements: Optional[UserRequirements] = None,
+    ) -> UserAssessment:
+        return assess_user(
+            user,
+            requirements,
+        )
+
+    def resolve(
+        self,
+        request: UserRequest,
+        user: UserRecord,
+        requirements: Optional[UserRequirements] = None,
+        rules: Optional[UserResolutionRules] = None,
+    ) -> UserResult:
+        return resolve_user(
+            request,
+            user,
+            requirements,
+            rules,
+        )
+
+    def update_lifecycle(
+        self,
+        user: UserRecord,
+        event: UserLifecycleEvent,
+    ) -> UserServiceResult:
+        """
+        Apply a validated lifecycle transition.
+        """
+
+        validation = validate_user_lifecycle_transition(
+            user.status,
+            event,
+        )
+
+        if not validation.valid:
+            return UserServiceResult(
+                request_id="",
+                reference=build_user_reference(user),
+                user=user,
+                validation=validation,
+                success=False,
+                errors=list(validation.errors),
+                warnings=list(validation.warnings),
+            )
+
+        updated_user = apply_user_lifecycle_event(
+            user,
+            event,
+        )
+
+        reference = self.registry.replace(
+            updated_user,
+        )
+
+        return UserServiceResult(
+            request_id="",
+            reference=reference,
+            user=updated_user,
+            validation=validation,
+            success=True,
+            event=event,
+            warnings=list(validation.warnings),
+            metadata={
+                "operation": "update_lifecycle",
+                "user_domain": True,
+                "authentication": False,
+                "billing": False,
+                "subscription": False,
+                "entitlement": False,
+                "intelligence_generation": False,
+                "decision_generation": False,
+                "d13_mutation": False,
+                "risk_generation": False,
+                "risk_override": False,
+                "cas_generation": False,
+                "cas_override": False,
+                "execution": False,
+            },
+        )
+
+    def list_references(self) -> List[UserReference]:
+        return self.registry.list_references()
+
+    def snapshot(self) -> UserRegistrySnapshot:
+        return self.registry.snapshot()
+
+    def count(self) -> int:
+        return self.registry.count()
+
+    def health(self) -> Dict[str, Any]:
+        return user_registry_health(
+            self.registry,
+        )
+
+    def authority(self) -> UserContractValidation:
+        return validate_user_service_authority()
+
+
+# ============================================================================
+# SINGLETON SERVICE
+# ============================================================================
+
+_USER_SERVICE = UserService()
+
+
+def get_user_service() -> UserService:
+    """
+    Return the process-level UserService instance.
+    """
+
+    return _USER_SERVICE
+
+
+# ============================================================================
+# PUBLIC SERVICE HELPERS
+# ============================================================================
+
+def create_user(
+    request: UserRequest,
+) -> UserServiceResult:
+    return _USER_SERVICE.create(request)
+
+
+def get_user(
+    user_id: str,
+) -> Optional[UserReference]:
+    return _USER_SERVICE.get(user_id)
+
+
+def get_user_entry(
+    user_id: str,
+) -> Optional[UserRegistryEntry]:
+    return _USER_SERVICE.get_entry(user_id)
+
+
+def assess_user_record(
+    user: UserRecord,
+    requirements: Optional[UserRequirements] = None,
+) -> UserAssessment:
+    return _USER_SERVICE.assess(
+        user,
+        requirements,
+    )
+
+
+def resolve_user_record(
+    request: UserRequest,
+    user: UserRecord,
+    requirements: Optional[UserRequirements] = None,
+    rules: Optional[UserResolutionRules] = None,
+) -> UserResult:
+    return _USER_SERVICE.resolve(
+        request,
+        user,
+        requirements,
+        rules,
+    )
+
+
+def update_user_lifecycle(
+    user: UserRecord,
+    event: UserLifecycleEvent,
+) -> UserServiceResult:
+    return _USER_SERVICE.update_lifecycle(
+        user,
+        event,
+    )
+
+
+def register_user(
+    user: UserRecord,
+) -> UserReference:
+    return _USER_SERVICE.register(user)
+
+
+def list_users() -> List[UserReference]:
+    return _USER_SERVICE.list_references()
+
+
+def user_registry_snapshot() -> UserRegistrySnapshot:
+    return _USER_SERVICE.snapshot()
+
+
+def user_count() -> int:
+    return _USER_SERVICE.count()
+
+
+def user_registry_health_check() -> Dict[str, Any]:
+    return _USER_SERVICE.health()
+
+
+def user_service_authority_check() -> UserContractValidation:
+    return _USER_SERVICE.authority()
+# ============================================================
+# USER SERVICE â€” PART 5
+# Serialization â€¢ Integrity â€¢ Summary â€¢ Public Exports
+# ============================================================
+
+def _user_serialize_datetime(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.isoformat()
+    return str(value)
+
+
+def _user_serialize_value(value: Any) -> Any:
+    if isinstance(value, Enum):
+        return value.value
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {str(k): _user_serialize_value(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_user_serialize_value(v) for v in value]
+    if hasattr(value, "__dataclass_fields__"):
+        return {
+            name: _user_serialize_value(getattr(value, name))
+            for name in value.__dataclass_fields__
+        }
+    return value
+
+
+def serialize_user_request(request: UserRequest) -> Dict[str, Any]:
+    return _user_serialize_value(request)
+
+
+def serialize_user_reference(reference: UserReference) -> Dict[str, Any]:
+    return _user_serialize_value(reference)
+
+
+def serialize_user_contract_validation(
+    validation: UserContractValidation,
+) -> Dict[str, Any]:
+    return _user_serialize_value(validation)
+
+
+def serialize_user_record(user: UserRecord) -> Dict[str, Any]:
+    return _user_serialize_value(user)
+
+
+def serialize_user_requirements(
+    requirements: UserRequirements,
+) -> Dict[str, Any]:
+    return _user_serialize_value(requirements)
+
+
+def serialize_user_assessment(
+    assessment: UserAssessment,
+) -> Dict[str, Any]:
+    return _user_serialize_value(assessment)
+
+
+def serialize_user_resolution_rules(
+    rules: UserResolutionRules,
+) -> Dict[str, Any]:
+    return _user_serialize_value(rules)
+
+
+def serialize_user_presentation(
+    presentation: UserPresentation,
+) -> Dict[str, Any]:
+    return _user_serialize_value(presentation)
+
+
+def serialize_user_result(result: UserResult) -> Dict[str, Any]:
+    return _user_serialize_value(result)
+
+
+def serialize_user_registry_entry(
+    entry: UserRegistryEntry,
+) -> Dict[str, Any]:
+    return _user_serialize_value(entry)
+
+
+def serialize_user_registry_snapshot(
+    snapshot: UserRegistrySnapshot,
+) -> Dict[str, Any]:
+    return _user_serialize_value(snapshot)
+
+
+def serialize_user_service_result(
+    result: UserServiceResult,
+) -> Dict[str, Any]:
+    return _user_serialize_value(result)
+
+
+def validate_user_record_integrity(
+    user: UserRecord,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(user, UserRecord):
+        return ["user must be a UserRecord"]
+
+    if not _user_text(user.user_id):
+        errors.append("user_id is required")
+
+    if not _user_text(user.email):
+        errors.append("email is required")
+    elif "@" not in user.email:
+        errors.append("email format is invalid")
+
+    if not isinstance(user.status, UserStatus):
+        errors.append("status is invalid")
+
+    if not isinstance(user.mode, UserMode):
+        errors.append("mode is invalid")
+
+    if not isinstance(user.lifecycle_event, UserLifecycleEvent):
+        errors.append("lifecycle_event is invalid")
+
+    if user.created_at is None:
+        errors.append("created_at is required")
+
+    if user.updated_at is None:
+        errors.append("updated_at is required")
+
+    if not isinstance(user.metadata, dict):
+        errors.append("metadata must be a dictionary")
+
+    return errors
+
+
+def validate_user_reference_integrity(
+    reference: UserReference,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(reference, UserReference):
+        return ["reference must be a UserReference"]
+
+    if not _user_text(reference.user_id):
+        errors.append("user_id is required")
+
+    if not _user_text(reference.email):
+        errors.append("email is required")
+
+    if reference.user_source != "app.users.user_service":
+        errors.append("user_source is invalid")
+
+    if not isinstance(reference.status, UserStatus):
+        errors.append("status is invalid")
+
+    if not isinstance(reference.mode, UserMode):
+        errors.append("mode is invalid")
+
+    return errors
+
+
+def validate_user_request_integrity(
+    request: UserRequest,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(request, UserRequest):
+        return ["request must be a UserRequest"]
+
+    if not _user_text(request.user_id):
+        errors.append("user_id is required")
+
+    if request.email and "@" not in request.email:
+        errors.append("email format is invalid")
+
+    if not isinstance(request.status, UserStatus):
+        errors.append("status is invalid")
+
+    if not isinstance(request.mode, UserMode):
+        errors.append("mode is invalid")
+
+    if not isinstance(request.priority, UserPriority):
+        errors.append("priority is invalid")
+
+    if not isinstance(request.lifecycle_event, UserLifecycleEvent):
+        errors.append("lifecycle_event is invalid")
+
+    if not isinstance(request.metadata, dict):
+        errors.append("metadata must be a dictionary")
+
+    return errors
+
+
+def validate_user_assessment_integrity(
+    assessment: UserAssessment,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(assessment, UserAssessment):
+        return ["assessment must be a UserAssessment"]
+
+    for field_name in (
+        "completeness_score",
+        "confidence_score",
+        "quality_score",
+    ):
+        value = getattr(assessment, field_name)
+        if not isinstance(value, (int, float)):
+            errors.append(f"{field_name} must be numeric")
+        elif not 0.0 <= float(value) <= 1.0:
+            errors.append(f"{field_name} must be between 0 and 1")
+
+    valid_states = {
+        "COMPLETE",
+        "PARTIAL",
+        "MISSING",
+        "INVALID",
+    }
+    valid_readiness = {
+        "READY",
+        "CONDITIONALLY_READY",
+        "NOT_READY",
+        "BLOCKED",
+    }
+
+    if assessment.data_state not in valid_states:
+        errors.append("data_state is invalid")
+
+    if assessment.readiness not in valid_readiness:
+        errors.append("readiness is invalid")
+
+    if not isinstance(assessment.requirements_met, bool):
+        errors.append("requirements_met must be boolean")
+
+    if not isinstance(assessment.flags, list):
+        errors.append("flags must be a list")
+
+    if not isinstance(assessment.metadata, dict):
+        errors.append("metadata must be a dictionary")
+
+    return errors
+
+
+def validate_user_result_integrity(
+    result: UserResult,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(result, UserResult):
+        return ["result must be a UserResult"]
+
+    if result.request is not None:
+        errors.extend(validate_user_request_integrity(result.request))
+
+    if result.reference is not None:
+        errors.extend(validate_user_reference_integrity(result.reference))
+
+    if result.user is not None:
+        errors.extend(validate_user_record_integrity(result.user))
+
+    if result.assessment is not None:
+        errors.extend(validate_user_assessment_integrity(result.assessment))
+
+    if not isinstance(result.authority_valid, bool):
+        errors.append("authority_valid must be boolean")
+
+    if not isinstance(result.flags, list):
+        errors.append("flags must be a list")
+
+    if not isinstance(result.restrictions, list):
+        errors.append("restrictions must be a list")
+
+    if not isinstance(result.metadata, dict):
+        errors.append("metadata must be a dictionary")
+
+    return errors
+
+
+def validate_user_registry_snapshot_integrity(
+    snapshot: UserRegistrySnapshot,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(snapshot, UserRegistrySnapshot):
+        return ["snapshot must be a UserRegistrySnapshot"]
+
+    if snapshot.engine != USER_SERVICE_ENGINE:
+        errors.append("engine mismatch")
+
+    if snapshot.version != USER_SERVICE_VERSION:
+        errors.append("version mismatch")
+
+    if not isinstance(snapshot.entries, list):
+        errors.append("entries must be a list")
+    else:
+        for entry in snapshot.entries:
+            if not isinstance(entry, UserRegistryEntry):
+                errors.append("registry contains invalid entry")
+                continue
+
+            if not _user_text(entry.user_id):
+                errors.append("registry entry user_id is required")
+
+            if not isinstance(entry.reference, UserReference):
+                errors.append("registry entry reference is invalid")
+
+            if not isinstance(entry.active, bool):
+                errors.append(
+                    f"registry entry {entry.user_id} active must be boolean"
+                )
+
+    if snapshot.count != len(snapshot.entries):
+        errors.append("snapshot count mismatch")
+
+    return errors
+
+
+def validate_user_service_result_integrity(
+    result: UserServiceResult,
+) -> List[str]:
+    errors: List[str] = []
+
+    if not isinstance(result, UserServiceResult):
+        return ["result must be a UserServiceResult"]
+
+    if result.reference is not None:
+        errors.extend(validate_user_reference_integrity(result.reference))
+
+    if result.user is not None:
+        errors.extend(validate_user_record_integrity(result.user))
+
+    if result.validation is not None:
+        if not isinstance(
+            result.validation,
+            UserContractValidation,
+        ):
+            errors.append("validation is invalid")
+
+    if not isinstance(result.success, bool):
+        errors.append("success must be boolean")
+
+    if not isinstance(result.errors, list):
+        errors.append("errors must be a list")
+
+    if not isinstance(result.warnings, list):
+        errors.append("warnings must be a list")
+
+    if not isinstance(result.metadata, dict):
+        errors.append("metadata must be a dictionary")
+
+    return errors
+
+
+def user_service_summary(
+    user: Optional[UserRecord] = None,
+    assessment: Optional[UserAssessment] = None,
+    result: Optional[UserResult] = None,
+) -> Dict[str, Any]:
+    summary: Dict[str, Any] = {
+        "engine": USER_SERVICE_ENGINE,
+        "version": USER_SERVICE_VERSION,
+        "user_id": None,
+        "status": None,
+        "mode": None,
+        "readiness": None,
+        "decision": None,
+        "quality_score": None,
+        "requirements_met": None,
+        "authority_valid": None,
+        "flags": [],
+        "restrictions": [],
+    }
+
+    if user is not None:
+        summary["user_id"] = user.user_id
+        summary["status"] = user.status.value
+        summary["mode"] = user.mode.value
+
+    if assessment is not None:
+        summary["readiness"] = assessment.readiness
+        summary["quality_score"] = assessment.quality_score
+        summary["requirements_met"] = assessment.requirements_met
+        summary["flags"] = list(assessment.flags)
+
+    if result is not None:
+        summary["authority_valid"] = result.authority_valid
+
+        if result.presentation is not None:
+            summary["readiness"] = result.presentation.readiness
+            summary["decision"] = result.presentation.decision.value
+            summary["quality_score"] = result.presentation.quality_score
+            summary["flags"] = list(result.presentation.flags)
+            summary["restrictions"] = list(
+                result.presentation.restrictions
+            )
+
+    return summary
+
+
+def user_service_integrity_check(
+    user: Optional[UserRecord] = None,
+    reference: Optional[UserReference] = None,
+    assessment: Optional[UserAssessment] = None,
+    result: Optional[UserResult] = None,
+) -> Dict[str, Any]:
+    errors: List[str] = []
+
+    if user is not None:
+        errors.extend(validate_user_record_integrity(user))
+
+    if reference is not None:
+        errors.extend(validate_user_reference_integrity(reference))
+
+    if assessment is not None:
+        errors.extend(validate_user_assessment_integrity(assessment))
+
+    if result is not None:
+        errors.extend(validate_user_result_integrity(result))
+
+    return {
+        "engine": USER_SERVICE_ENGINE,
+        "version": USER_SERVICE_VERSION,
+        "valid": not errors,
+        "errors": errors,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def user_service_operational_check() -> Dict[str, Any]:
+    service = get_user_service()
+
+    authority = service.authority()
+
+    registry_health = service.health()
+
+    authority_valid = all(
+        value is True
+        for key, value in authority.items()
+        if key.endswith("_authority")
+        and key not in {
+            "authentication_authority",
+            "credential_authority",
+            "security_override_authority",
+            "billing_authority",
+            "subscription_authority",
+            "entitlement_authority",
+            "market_data_authority",
+            "evidence_generation_authority",
+            "intelligence_generation_authority",
+            "market_context_generation_authority",
+            "decision_generation_authority",
+            "d13_authority",
+            "risk_generation_authority",
+            "cas_generation_authority",
+            "execution_authority",
+            "order_authority",
+            "position_authority",
+            "upstream_mutation_authority",
+        }
+    )
+
+    return {
+        "engine": USER_SERVICE_ENGINE,
+        "version": USER_SERVICE_VERSION,
+        "operational": bool(
+            authority_valid
+            and registry_health.get("healthy", False)
+        ),
+        "authority_valid": authority_valid,
+        "registry": registry_health,
+        "user_count": service.count(),
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+__all__ = [
+    # Constants
+    "USER_SERVICE_ENGINE",
+    "USER_SERVICE_VERSION",
+    "USER_SERVICE_AUTHORITY",
+
+    # Enums
+    "UserStatus",
+    "UserMode",
+    "UserPriority",
+    "UserSeverity",
+    "UserContractStatus",
+    "UserLifecycleEvent",
+
+    # Core contracts
+    "UserRequest",
+    "UserReference",
+    "UserContractValidation",
+    "UserRecord",
+    "UserRequirements",
+    "UserAssessment",
+    "UserResolutionRules",
+    "UserPresentation",
+    "UserResult",
+    "UserRegistryEntry",
+    "UserRegistrySnapshot",
+    "UserServiceResult",
+
+    # Request / validation
+    "normalize_user_request",
+    "validate_user_request",
+    "build_user_request",
+    "build_user_reference",
+    "validate_user_service_authority",
+
+    # Assessment
+    "build_user_requirements",
+    "evaluate_user_requirements",
+    "calculate_user_completeness",
+    "calculate_user_confidence",
+    "calculate_user_quality",
+    "determine_user_data_state",
+    "determine_user_readiness",
+    "assess_user",
+
+    # Resolution / lifecycle
+    "validate_user_lifecycle_transition",
+    "apply_user_lifecycle_event",
+    "build_user_presentation",
+    "collect_user_restrictions",
+    "collect_user_flags",
+    "resolve_user",
+    "validate_user_result",
+
+    # Registry
+    "UserRegistry",
+    "validate_user_registry",
+    "user_registry_health",
+
+    # Service
+    "UserService",
+    "get_user_service",
+    "create_user",
+    "get_user",
+    "get_user_entry",
+    "assess_user_record",
+    "resolve_user_record",
+    "update_user_lifecycle",
+    "register_user",
+    "list_users",
+    "user_registry_snapshot",
+    "user_count",
+    "user_registry_health_check",
+    "user_service_authority_check",
+
+    # Serialization
+    "serialize_user_request",
+    "serialize_user_reference",
+    "serialize_user_contract_validation",
+    "serialize_user_record",
+    "serialize_user_requirements",
+    "serialize_user_assessment",
+    "serialize_user_resolution_rules",
+    "serialize_user_presentation",
+    "serialize_user_result",
+    "serialize_user_registry_entry",
+    "serialize_user_registry_snapshot",
+    "serialize_user_service_result",
+
+    # Integrity
+    "validate_user_record_integrity",
+    "validate_user_reference_integrity",
+    "validate_user_request_integrity",
+    "validate_user_assessment_integrity",
+    "validate_user_result_integrity",
+    "validate_user_registry_snapshot_integrity",
+    "validate_user_service_result_integrity",
+    "user_service_integrity_check",
+
+    # Operational
+    "user_service_summary",
+    "user_service_operational_check",
+]
+
+
+
+
+

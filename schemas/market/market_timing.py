@@ -1,0 +1,570 @@
+"""
+ROBOMLM PLUS
+V6 Market Timing Schema
+
+Purpose:
+    Structural representation of market timing, time windows,
+    timing phases and temporal context.
+
+Rules:
+    - Structural schema only.
+    - No trading decisions.
+    - No execution logic.
+    - No risk authorization.
+    - No V7+ dependency.
+    - Immutable data representation.
+    - Timing describes temporal context; it does not generate signals.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from typing import Any, Optional
+from math import isfinite
+
+
+MARKET_TIMING_SCHEMA_VERSION = "1.0.0"
+MARKET_TIMING_SCHEMA = "V6_MARKET_TIMING"
+
+
+@dataclass(frozen=True)
+class MarketTiming:
+    """
+    Immutable structural representation of market timing context.
+    """
+
+    # ------------------------------------------------------------------
+    # Timing identity
+    # ------------------------------------------------------------------
+    timing_id: Optional[str] = None
+    timing_type: Optional[str] = None
+    timing_state: Optional[str] = None
+    timing_phase: Optional[str] = None
+
+    timestamp: Optional[str] = None
+    sequence: Optional[int] = None
+
+    # ------------------------------------------------------------------
+    # Market identity
+    # ------------------------------------------------------------------
+    market: Optional[str] = None
+    instrument: Optional[str] = None
+    symbol: Optional[str] = None
+    exchange: Optional[str] = None
+    venue: Optional[str] = None
+    contract: Optional[str] = None
+    expiry: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Date / timezone context
+    # ------------------------------------------------------------------
+    calendar_date: Optional[str] = None
+    trading_date: Optional[str] = None
+    timezone: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Current temporal position
+    # ------------------------------------------------------------------
+    current_time: Optional[str] = None
+    current_timestamp: Optional[str] = None
+
+    time_of_day_seconds: Optional[float] = None
+    elapsed_seconds: Optional[float] = None
+    remaining_seconds: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # Active timing window
+    # ------------------------------------------------------------------
+    window_id: Optional[str] = None
+    window_name: Optional[str] = None
+    window_type: Optional[str] = None
+
+    window_start: Optional[str] = None
+    window_end: Optional[str] = None
+
+    window_start_timestamp: Optional[str] = None
+    window_end_timestamp: Optional[str] = None
+
+    window_duration_seconds: Optional[float] = None
+    window_elapsed_seconds: Optional[float] = None
+    window_remaining_seconds: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # Window state
+    # ------------------------------------------------------------------
+    is_inside_window: Optional[bool] = None
+    is_before_window: Optional[bool] = None
+    is_after_window: Optional[bool] = None
+
+    # ------------------------------------------------------------------
+    # Session timing context
+    # ------------------------------------------------------------------
+    session_id: Optional[str] = None
+    session_phase: Optional[str] = None
+    session_open: Optional[str] = None
+    session_close: Optional[str] = None
+
+    session_elapsed_seconds: Optional[float] = None
+    session_remaining_seconds: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # Trading period
+    # ------------------------------------------------------------------
+    trading_period: Optional[str] = None
+    trading_phase: Optional[str] = None
+    market_phase: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Recurring temporal classification
+    # ------------------------------------------------------------------
+    day_of_week: Optional[int] = None
+    day_name: Optional[str] = None
+    week_of_year: Optional[int] = None
+    month: Optional[int] = None
+    quarter: Optional[int] = None
+
+    # ------------------------------------------------------------------
+    # Expiry / contract timing
+    # ------------------------------------------------------------------
+    expiry_date: Optional[str] = None
+    expiry_type: Optional[str] = None
+    days_to_expiry: Optional[int] = None
+
+    expiry_timestamp: Optional[str] = None
+    expiry_remaining_seconds: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # Event timing context
+    # ------------------------------------------------------------------
+    event_id: Optional[str] = None
+    event_type: Optional[str] = None
+    event_timestamp: Optional[str] = None
+
+    seconds_to_event: Optional[float] = None
+    seconds_since_event: Optional[float] = None
+
+    # ------------------------------------------------------------------
+    # Related references
+    # ------------------------------------------------------------------
+    calendar_id: Optional[str] = None
+    observation_id: Optional[str] = None
+    context_id: Optional[str] = None
+    regime_id: Optional[str] = None
+    volatility_id: Optional[str] = None
+    liquidity_id: Optional[str] = None
+    participation_id: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Environment
+    # ------------------------------------------------------------------
+    broker: Optional[str] = None
+    provider: Optional[str] = None
+    environment: Optional[str] = None
+    mode: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Request / lifecycle
+    # ------------------------------------------------------------------
+    request_id: Optional[str] = None
+    lifecycle_id: Optional[str] = None
+
+    # ------------------------------------------------------------------
+    # Provenance
+    # ------------------------------------------------------------------
+    source: Optional[str] = None
+    source_type: Optional[str] = None
+    source_reference: Optional[str] = None
+
+    provenance: dict[str, Any] = field(default_factory=dict)
+
+    # ------------------------------------------------------------------
+    # Observed / derived tracking
+    # ------------------------------------------------------------------
+    observed_fields: tuple[str, ...] = field(default_factory=tuple)
+    derived_fields: tuple[str, ...] = field(default_factory=tuple)
+
+    # ------------------------------------------------------------------
+    # Additional metadata
+    # ------------------------------------------------------------------
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # --------------------------------------------------------------
+        # Sequence validation
+        # --------------------------------------------------------------
+        if self.sequence is not None:
+            if isinstance(self.sequence, bool) or not isinstance(
+                self.sequence, int
+            ):
+                raise TypeError("sequence must be an integer")
+
+            if self.sequence < 0:
+                raise ValueError("sequence cannot be negative")
+
+        integer_fields = (
+            "day_of_week",
+            "week_of_year",
+            "month",
+            "quarter",
+            "days_to_expiry",
+        )
+
+        for field_name in integer_fields:
+            value = getattr(self, field_name)
+
+            if value is not None and not isinstance(value, int):
+                raise TypeError(
+                    f"{field_name} must be an integer"
+                )
+
+        numeric_fields = (
+            "time_of_day_seconds",
+            "elapsed_seconds",
+            "remaining_seconds",
+            "window_duration_seconds",
+            "window_elapsed_seconds",
+            "window_remaining_seconds",
+            "session_elapsed_seconds",
+            "session_remaining_seconds",
+            "expiry_remaining_seconds",
+            "seconds_to_event",
+            "seconds_since_event",
+        )
+
+        for field_name in numeric_fields:
+            value = getattr(self, field_name)
+
+            if value is not None and (
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+            ):
+                raise TypeError(
+                    f"{field_name} must be numeric when provided"
+                )
+
+            if value is not None and not isfinite(float(value)):
+                raise ValueError(
+                    f"{field_name} must be finite when provided"
+                )
+
+        if (
+            self.time_of_day_seconds is not None
+            and not 0 <= self.time_of_day_seconds < 86400
+        ):
+            raise ValueError(
+                "time_of_day_seconds must be between 0 and 86399"
+            )
+
+        if self.day_of_week is not None and not 0 <= self.day_of_week <= 6:
+            raise ValueError("day_of_week must be between 0 and 6")
+
+        if self.month is not None and not 1 <= self.month <= 12:
+            raise ValueError("month must be between 1 and 12")
+
+        if self.quarter is not None and not 1 <= self.quarter <= 4:
+            raise ValueError("quarter must be between 1 and 4")
+
+        if (
+            self.days_to_expiry is not None
+            and self.days_to_expiry < 0
+        ):
+            raise ValueError(
+                "days_to_expiry cannot be negative"
+            )
+
+        non_negative_fields = (
+            "elapsed_seconds",
+            "remaining_seconds",
+            "window_duration_seconds",
+            "window_elapsed_seconds",
+            "window_remaining_seconds",
+            "session_elapsed_seconds",
+            "session_remaining_seconds",
+            "expiry_remaining_seconds",
+            "seconds_to_event",
+            "seconds_since_event",
+        )
+
+        for field_name in non_negative_fields:
+            value = getattr(self, field_name)
+
+            if value is not None and value < 0:
+                raise ValueError(
+                    f"{field_name} cannot be negative"
+                )
+
+    # ------------------------------------------------------------------
+    # Identity
+    # ------------------------------------------------------------------
+    def has_identity(self) -> bool:
+        return bool(self.timing_id)
+
+    def has_market_identity(self) -> bool:
+        return bool(
+            self.market
+            or self.instrument
+            or self.symbol
+            or self.exchange
+            or self.venue
+            or self.contract
+        )
+
+    def has_date_identity(self) -> bool:
+        return bool(
+            self.calendar_date
+            or self.trading_date
+        )
+
+    def has_timezone(self) -> bool:
+        return bool(self.timezone)
+
+    # ------------------------------------------------------------------
+    # Current temporal state
+    # ------------------------------------------------------------------
+    def has_current_time(self) -> bool:
+        return bool(
+            self.current_time
+            or self.current_timestamp
+        )
+
+    def has_time_of_day(self) -> bool:
+        return self.time_of_day_seconds is not None
+
+    def has_elapsed_time(self) -> bool:
+        return self.elapsed_seconds is not None
+
+    def has_remaining_time(self) -> bool:
+        return self.remaining_seconds is not None
+
+    # ------------------------------------------------------------------
+    # Timing window
+    # ------------------------------------------------------------------
+    def has_window_identity(self) -> bool:
+        return bool(
+            self.window_id
+            or self.window_name
+            or self.window_type
+        )
+
+    def has_window_boundary(self) -> bool:
+        return bool(
+            self.window_start
+            or self.window_end
+            or self.window_start_timestamp
+            or self.window_end_timestamp
+        )
+
+    def has_window_duration(self) -> bool:
+        return self.window_duration_seconds is not None
+
+    def is_in_active_window(self) -> bool:
+        return self.is_inside_window is True
+
+    # ------------------------------------------------------------------
+    # Session
+    # ------------------------------------------------------------------
+    def has_session_identity(self) -> bool:
+        return bool(self.session_id)
+
+    def has_session_boundary(self) -> bool:
+        return bool(
+            self.session_open
+            or self.session_close
+        )
+
+    # ------------------------------------------------------------------
+    # Expiry
+    # ------------------------------------------------------------------
+    def has_expiry_identity(self) -> bool:
+        return bool(
+            self.expiry
+            or self.expiry_date
+            or self.expiry_timestamp
+        )
+
+    def has_expiry_timing(self) -> bool:
+        return (
+            self.days_to_expiry is not None
+            or self.expiry_remaining_seconds is not None
+        )
+
+    # ------------------------------------------------------------------
+    # Event timing
+    # ------------------------------------------------------------------
+    def has_event_reference(self) -> bool:
+        return bool(
+            self.event_id
+            or self.event_type
+            or self.event_timestamp
+        )
+
+    def has_event_timing(self) -> bool:
+        return (
+            self.seconds_to_event is not None
+            or self.seconds_since_event is not None
+        )
+
+    # ------------------------------------------------------------------
+    # Related references
+    # ------------------------------------------------------------------
+    def has_calendar_reference(self) -> bool:
+        return bool(self.calendar_id)
+
+    def has_observation_reference(self) -> bool:
+        return bool(self.observation_id)
+
+    def has_context_reference(self) -> bool:
+        return bool(self.context_id)
+
+    def has_regime_reference(self) -> bool:
+        return bool(self.regime_id)
+
+    def has_volatility_reference(self) -> bool:
+        return bool(self.volatility_id)
+
+    def has_liquidity_reference(self) -> bool:
+        return bool(self.liquidity_id)
+
+    def has_participation_reference(self) -> bool:
+        return bool(self.participation_id)
+
+    # ------------------------------------------------------------------
+    # Environment
+    # ------------------------------------------------------------------
+    def has_environment_identity(self) -> bool:
+        return bool(
+            self.broker
+            or self.provider
+            or self.environment
+            or self.mode
+        )
+
+    # ------------------------------------------------------------------
+    # Provenance
+    # ------------------------------------------------------------------
+    def has_source_reference(self) -> bool:
+        return bool(
+            self.source
+            or self.source_type
+            or self.source_reference
+        )
+
+    # ------------------------------------------------------------------
+    # Observed / derived
+    # ------------------------------------------------------------------
+    def observed_field_names(self) -> tuple[str, ...]:
+        return tuple(self.observed_fields)
+
+    def derived_field_names(self) -> tuple[str, ...]:
+        return tuple(self.derived_fields)
+
+    # ------------------------------------------------------------------
+    # Structural diagnostics
+    # ------------------------------------------------------------------
+    def issue_flags(self) -> list[str]:
+        issues: list[str] = []
+
+        if not self.has_identity():
+            issues.append("missing_timing_id")
+
+        if self.timestamp is None:
+            issues.append("missing_timestamp")
+
+        if not self.has_market_identity():
+            issues.append("missing_market_identity")
+
+        if not self.has_date_identity():
+            issues.append("missing_date_identity")
+
+        if not self.has_timezone():
+            issues.append("missing_timezone")
+
+        if (
+            self.window_elapsed_seconds is not None
+            and self.window_duration_seconds is not None
+            and self.window_elapsed_seconds
+            > self.window_duration_seconds
+        ):
+            issues.append("window_elapsed_exceeds_duration")
+
+        if (
+            self.window_remaining_seconds is not None
+            and self.window_duration_seconds is not None
+            and self.window_remaining_seconds
+            > self.window_duration_seconds
+        ):
+            issues.append("window_remaining_exceeds_duration")
+
+        if (
+            self.is_inside_window is True
+            and self.is_before_window is True
+        ):
+            issues.append("window_marked_inside_and_before")
+
+        if (
+            self.is_inside_window is True
+            and self.is_after_window is True
+        ):
+            issues.append("window_marked_inside_and_after")
+
+        if (
+            self.days_to_expiry is not None
+            and self.days_to_expiry == 0
+            and self.expiry_remaining_seconds is not None
+            and self.expiry_remaining_seconds > 0
+        ):
+            issues.append(
+                "expiry_day_with_positive_remaining_days"
+            )
+
+        return issues
+
+    def is_structurally_valid(self) -> bool:
+        return not self.issue_flags()
+
+    # ------------------------------------------------------------------
+    # Serialization
+    # ------------------------------------------------------------------
+    def to_dict(self) -> dict[str, Any]:
+        data = asdict(self)
+
+        data["observed_fields"] = list(self.observed_fields)
+        data["derived_fields"] = list(self.derived_fields)
+
+        return data
+
+    def schema_info(self) -> dict[str, str]:
+        return {
+            "schema": MARKET_TIMING_SCHEMA,
+            "version": MARKET_TIMING_SCHEMA_VERSION,
+        }
+
+
+# ----------------------------------------------------------------------
+# Health
+# ----------------------------------------------------------------------
+def market_timing_health() -> dict[str, Any]:
+    return {
+        "layer": MARKET_TIMING_SCHEMA,
+        "version": MARKET_TIMING_SCHEMA_VERSION,
+        "status": "ready",
+        "immutable": True,
+        "structural_only": True,
+        "decision_logic": False,
+        "execution_logic": False,
+        "v7_dependency": False,
+        "supports_temporal_identity": True,
+        "supports_timing_windows": True,
+        "supports_session_timing": True,
+        "supports_expiry_timing": True,
+        "supports_event_timing": True,
+        "supports_timezone_context": True,
+    }
+
+
+__all__ = [
+    "MARKET_TIMING_SCHEMA_VERSION",
+    "MARKET_TIMING_SCHEMA",
+    "MarketTiming",
+    "market_timing_health",
+]

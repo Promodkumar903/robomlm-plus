@@ -1,0 +1,2768 @@
+﻿# ============================================================
+# ROBOMLM PLUS â€” EXECUTION PREPARATION
+# Part 1/5 â€” Foundation + Contracts
+# ============================================================
+
+"""
+ROBOMLM PLUS â€” Execution Preparation Engine
+
+ROLE
+----
+Execution Preparation is the controlled bridge between:
+
+    Advanced Decision
+            â†“
+    Execution Preparation
+            â†“
+    Authorized Action / Execution Layer
+
+This module prepares an execution-intent contract.
+
+It DOES NOT:
+    - place an order
+    - submit an order to a broker
+    - create execution authorization
+    - bypass CAS
+    - replace D13
+    - replace Risk
+    - alter an upstream decision
+    - invent price, quantity, SL, TP or leverage
+    - silently convert incomplete data into executable data
+
+AUTHORITY MODEL
+---------------
+D13       = Decision Authority
+Risk      = Risk Authority
+CAS       = Authorization Authority
+PLUS      = Operational Preparation / Refinement
+Execution = Actual Action Authority
+
+DESIGN PRINCIPLES
+-----------------
+1. Contract First
+2. Fail Closed
+3. No Synthetic Execution Data
+4. No Authority Mutation
+5. CAS Authorization Must Be Preserved
+6. Explicit Readiness States
+7. Traceable Preparation
+8. Immutable Core Contracts
+9. No Hidden Defaults
+10. Execution Preparation != Execution
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Mapping, Optional
+from uuid import uuid4
+
+
+# ============================================================
+# PART 1A â€” ENUMS
+# ============================================================
+
+
+class PreparationStatus(str, Enum):
+    """
+    Public state of the execution-preparation process.
+    """
+
+    READY = "READY"
+    PREPARED = "PREPARED"
+    CONDITIONAL = "CONDITIONAL"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+class PreparationReadiness(str, Enum):
+    """
+    Readiness level before execution.
+
+    IMPORTANT:
+    EXECUTION_READY does NOT mean an order has been executed.
+    It only means the preparation contract has satisfied the
+    required upstream conditions exposed to this layer.
+    """
+
+    NOT_READY = "NOT_READY"
+    INPUT_READY = "INPUT_READY"
+    PREPARATION_READY = "PREPARATION_READY"
+    EXECUTION_READY = "EXECUTION_READY"
+
+
+class PreparationDisposition(str, Enum):
+    """
+    Operational disposition of preparation.
+    """
+
+    PREPARE = "PREPARE"
+    HOLD = "HOLD"
+    WITHHOLD = "WITHHOLD"
+    BLOCK = "BLOCK"
+
+
+class AuthorizationState(str, Enum):
+    """
+    Explicit CAS authorization state.
+
+    UNKNOWN is intentionally separate from DENIED.
+    """
+
+    AUTHORIZED = "AUTHORIZED"
+    DENIED = "DENIED"
+    UNKNOWN = "UNKNOWN"
+
+
+class ExecutionIntent(str, Enum):
+    """
+    Directional execution intent supplied by upstream authority.
+
+    This enum is NOT allowed to create a new market decision.
+    """
+
+    UP = "UP"
+    DOWN = "DOWN"
+    NEUTRAL = "NEUTRAL"
+    HOLD = "HOLD"
+    UNKNOWN = "UNKNOWN"
+
+
+class ContractStatus(str, Enum):
+    """
+    Contract validation state.
+    """
+
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# PART 1B â€” REQUEST CONTRACT
+# ============================================================
+
+
+@dataclass(frozen=True)
+class ExecutionPreparationRequest:
+    """
+    Input contract for Execution Preparation.
+
+    advanced_decision:
+        Output of ROBOMLM PLUS Advanced Decision.
+
+    authorized_action:
+        Optional upstream AuthorizedAction contract.
+
+        It is intentionally optional at this foundation stage
+        because the architecture may place final AuthorizedAction
+        construction in a dedicated execution/CAS boundary.
+
+    execution_context:
+        Venue/instrument/account/execution metadata supplied by
+        an upstream trusted source.
+
+    metadata:
+        Traceability information only.
+    """
+
+    advanced_decision: Any
+
+    authorized_action: Optional[Any] = None
+    execution_context: Optional[Any] = None
+    metadata: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+    request_id: str = field(
+        default_factory=lambda: str(uuid4())
+    )
+
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def validate(self) -> tuple[bool, tuple[str, ...]]:
+        """
+        Validate the request contract.
+
+        This method performs structural validation only.
+        It does not validate market conditions.
+        """
+
+        errors: list[str] = []
+
+        if self.advanced_decision is None:
+            errors.append(
+                "advanced_decision is required"
+            )
+
+        if not self.request_id.strip():
+            errors.append(
+                "request_id must not be empty"
+            )
+
+        if not isinstance(
+            self.metadata,
+            Mapping,
+        ):
+            errors.append(
+                "metadata must be a Mapping"
+            )
+
+        if not isinstance(
+            self.timestamp,
+            datetime,
+        ):
+            errors.append(
+                "timestamp must be a datetime"
+            )
+
+        return (
+            len(errors) == 0,
+            tuple(errors),
+        )
+
+
+# ============================================================
+# PART 1C â€” NORMALIZED AUTHORITY REFERENCES
+# ============================================================
+
+
+@dataclass(frozen=True)
+class DecisionPreparationReference:
+    """
+    Minimal normalized decision reference.
+
+    D13 remains the source of decision authority.
+    """
+
+    decision_id: str
+    intent: ExecutionIntent
+    raw_decision: Any
+
+    confidence: Optional[float] = None
+    strength: Optional[float] = None
+
+    source: str = "D13"
+
+
+@dataclass(frozen=True)
+class CASPreparationReference:
+    """
+    Minimal normalized CAS reference.
+
+    CAS remains the authorization authority.
+    """
+
+    cas_id: str
+    status: str
+    authorization: AuthorizationState
+
+    raw_result: Any
+
+    reason: Optional[str] = None
+
+    source: str = "CAS"
+
+
+@dataclass(frozen=True)
+class RiskPreparationReference:
+    """
+    Minimal normalized Risk reference.
+
+    No new risk calculation is performed here.
+    """
+
+    risk_id: str
+    status: str
+    raw_result: Any
+
+    risk_score: Optional[float] = None
+    severity: Optional[str] = None
+
+    source: str = "RISK"
+
+
+@dataclass(frozen=True)
+class ExecutionContextReference:
+    """
+    Normalized execution-context information.
+
+    Values are references only. This layer does not invent them.
+    """
+
+    instrument: Optional[str] = None
+    venue: Optional[str] = None
+    account_id: Optional[str] = None
+    currency: Optional[str] = None
+
+    raw_context: Any = None
+
+
+# ============================================================
+# PART 1D â€” CONTRACT VALIDATION
+# ============================================================
+
+
+@dataclass(frozen=True)
+class PreparationContractValidation:
+    """
+    Validation result for an execution-preparation request.
+    """
+
+    status: ContractStatus
+    errors: tuple[str, ...] = ()
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status is ContractStatus.VALID
+
+
+def validate_execution_preparation_request(
+    request: ExecutionPreparationRequest,
+) -> PreparationContractValidation:
+    """
+    Validate the execution-preparation input contract.
+    """
+
+    if not isinstance(
+        request,
+        ExecutionPreparationRequest,
+    ):
+        return PreparationContractValidation(
+            status=ContractStatus.INVALID,
+            errors=(
+                "request must be an ExecutionPreparationRequest",
+            ),
+        )
+
+    valid, errors = request.validate()
+
+    return PreparationContractValidation(
+        status=(
+            ContractStatus.VALID
+            if valid
+            else ContractStatus.INVALID
+        ),
+        errors=errors,
+    )
+
+
+# ============================================================
+# PART 1E â€” BASIC NORMALIZATION HELPERS
+# ============================================================
+
+
+def _ep_read_value(
+    source: Any,
+    *names: str,
+    default: Any = None,
+) -> Any:
+    """
+    Read a value from Mapping or object safely.
+    """
+
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        for name in names:
+            if name in source:
+                return source[name]
+
+    for name in names:
+        if hasattr(source, name):
+            try:
+                return getattr(source, name)
+            except Exception:
+                return default
+
+    return default
+
+
+def _ep_text(
+    value: Any,
+    default: Optional[str] = None,
+) -> Optional[str]:
+    """
+    Normalize textual values without assigning intelligence.
+    """
+
+    if value is None:
+        return default
+
+    text = str(value).strip()
+
+    if not text:
+        return default
+
+    return text
+
+
+def _ep_float(
+    value: Any,
+) -> Optional[float]:
+    """
+    Safely normalize an optional numeric value.
+
+    Boolean values are rejected because True/False must never
+    become execution quantities or prices.
+    """
+
+    if value is None:
+        return None
+
+    if isinstance(value, bool):
+        return None
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _ep_authorization_state(
+    value: Any,
+) -> AuthorizationState:
+    """
+    Normalize explicit CAS authorization only.
+
+    No numeric or ambiguous value is interpreted as authorization.
+    """
+
+    if isinstance(value, bool):
+        return (
+            AuthorizationState.AUTHORIZED
+            if value
+            else AuthorizationState.DENIED
+        )
+
+    if value is None:
+        return AuthorizationState.UNKNOWN
+
+    text = str(value).strip().upper()
+
+    if text in {
+        "AUTHORIZED",
+        "AUTHORISED",
+        "APPROVED",
+        "ALLOWED",
+        "PERMITTED",
+        "TRUE",
+        "YES",
+    }:
+        return AuthorizationState.AUTHORIZED
+
+    if text in {
+        "DENIED",
+        "REJECTED",
+        "BLOCKED",
+        "UNAUTHORIZED",
+        "UNAUTHORISED",
+        "NOT_ALLOWED",
+        "FALSE",
+        "NO",
+    }:
+        return AuthorizationState.DENIED
+
+    return AuthorizationState.UNKNOWN
+
+
+def _ep_execution_intent(
+    value: Any,
+) -> ExecutionIntent:
+    """
+    Normalize upstream directional intent.
+
+    IMPORTANT:
+    This function only maps explicit semantic values.
+    It never infers direction from confidence, score, price,
+    risk or any other numeric value.
+    """
+
+    if value is None:
+        return ExecutionIntent.UNKNOWN
+
+    text = str(value).strip().upper()
+
+    if text in {
+        "UP",
+        "BULLISH",
+        "LONG",
+        "CALL",
+    }:
+        return ExecutionIntent.UP
+
+    if text in {
+        "DOWN",
+        "BEARISH",
+        "SHORT",
+        "PUT",
+    }:
+        return ExecutionIntent.DOWN
+
+    if text in {
+        "NEUTRAL",
+        "FLAT",
+    }:
+        return ExecutionIntent.NEUTRAL
+
+    if text == "HOLD":
+        return ExecutionIntent.HOLD
+
+    return ExecutionIntent.UNKNOWN
+
+
+# ============================================================
+# PART 1F â€” AUTHORITY ADAPTERS
+# ============================================================
+
+
+def build_decision_preparation_reference(
+    advanced_decision: Any,
+) -> DecisionPreparationReference:
+    """
+    Build the normalized decision reference from Advanced Decision.
+
+    No direction is created here.
+    """
+
+    decision_source = _ep_read_value(
+        advanced_decision,
+        "decision",
+        default=advanced_decision,
+    )
+
+    decision_id = _ep_text(
+        _ep_read_value(
+            decision_source,
+            "decision_id",
+            "id",
+            "event_id",
+        ),
+        default="UNKNOWN",
+    )
+
+    direction = _ep_read_value(
+        decision_source,
+        "direction",
+        "decision",
+        "action",
+        "verdict",
+    )
+
+    confidence = _ep_float(
+        _ep_read_value(
+            decision_source,
+            "confidence",
+            "confidence_score",
+        )
+    )
+
+    strength = _ep_float(
+        _ep_read_value(
+            decision_source,
+            "strength",
+            "decision_strength",
+        )
+    )
+
+    return DecisionPreparationReference(
+        decision_id=decision_id or "UNKNOWN",
+        intent=_ep_execution_intent(direction),
+        raw_decision=decision_source,
+        confidence=confidence,
+        strength=strength,
+    )
+
+
+def build_risk_preparation_reference(
+    advanced_decision: Any,
+) -> RiskPreparationReference:
+    """
+    Extract the existing Risk authority from Advanced Decision.
+
+    No risk score is recalculated.
+    """
+
+    risk_source = _ep_read_value(
+        advanced_decision,
+        "risk",
+        "risk_result",
+    )
+
+    risk_id = _ep_text(
+        _ep_read_value(
+            risk_source,
+            "risk_id",
+            "id",
+            "event_id",
+        ),
+        default="UNKNOWN",
+    )
+
+    status = _ep_text(
+        _ep_read_value(
+            risk_source,
+            "status",
+            "risk_status",
+            "state",
+        ),
+        default="UNKNOWN",
+    )
+
+    score = _ep_float(
+        _ep_read_value(
+            risk_source,
+            "risk_score",
+            "score",
+        )
+    )
+
+    severity = _ep_text(
+        _ep_read_value(
+            risk_source,
+            "severity",
+            "risk_level",
+        )
+    )
+
+    return RiskPreparationReference(
+        risk_id=risk_id or "UNKNOWN",
+        status=status or "UNKNOWN",
+        raw_result=risk_source,
+        risk_score=score,
+        severity=severity,
+    )
+
+
+def build_cas_preparation_reference(
+    advanced_decision: Any,
+) -> CASPreparationReference:
+    """
+    Extract existing CAS authority from Advanced Decision.
+
+    CAS authorization is copied, not generated.
+    """
+
+    cas_source = _ep_read_value(
+        advanced_decision,
+        "cas",
+        "cas_result",
+    )
+
+    cas_id = _ep_text(
+        _ep_read_value(
+            cas_source,
+            "cas_id",
+            "id",
+            "event_id",
+        ),
+        default="UNKNOWN",
+    )
+
+    status = _ep_text(
+        _ep_read_value(
+            cas_source,
+            "status",
+            "cas_status",
+            "state",
+        ),
+        default="UNKNOWN",
+    )
+
+    authorization_raw = _ep_read_value(
+        cas_source,
+        "authorized",
+        "is_authorized",
+        "execution_authorized",
+    )
+
+    reason = _ep_text(
+        _ep_read_value(
+            cas_source,
+            "reason",
+            "message",
+            "decision_reason",
+        )
+    )
+
+    return CASPreparationReference(
+        cas_id=cas_id or "UNKNOWN",
+        status=status or "UNKNOWN",
+        authorization=_ep_authorization_state(
+            authorization_raw
+        ),
+        raw_result=cas_source,
+        reason=reason,
+    )
+
+
+def build_execution_context_reference(
+    execution_context: Any,
+) -> ExecutionContextReference:
+    """
+    Normalize execution context without fabricating defaults.
+    """
+
+    return ExecutionContextReference(
+        instrument=_ep_text(
+            _ep_read_value(
+                execution_context,
+                "instrument",
+                "symbol",
+                "instrument_symbol",
+            )
+        ),
+        venue=_ep_text(
+            _ep_read_value(
+                execution_context,
+                "venue",
+                "exchange",
+                "broker",
+            )
+        ),
+        account_id=_ep_text(
+            _ep_read_value(
+                execution_context,
+                "account_id",
+            )
+        ),
+        currency=_ep_text(
+            _ep_read_value(
+                execution_context,
+                "currency",
+                "quote_currency",
+            )
+        ),
+        raw_context=execution_context,
+    )
+
+
+# ============================================================
+# END OF PART 1/5
+# ============================================================
+# ============================================================
+# ROBOMLM PLUS â€” EXECUTION PREPARATION
+# Part 2/5 â€” Preparation Intelligence + Readiness Evaluation
+# ============================================================
+
+
+class PreparationConsistency(str, Enum):
+    """
+    Relationship state between upstream authorities and
+    execution-preparation requirements.
+    """
+
+    CONSISTENT = "CONSISTENT"
+    CONFLICTING = "CONFLICTING"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+class PreparationDataState(str, Enum):
+    """
+    Availability state of execution-critical context.
+    """
+
+    COMPLETE = "COMPLETE"
+    PARTIAL = "PARTIAL"
+    MISSING = "MISSING"
+
+
+@dataclass(frozen=True)
+class PreparationIntelligence:
+    """
+    Normalized intelligence used by the preparation layer.
+
+    This is NOT a new market decision.
+
+    It describes whether the already-authorized upstream
+    decision can safely enter preparation.
+    """
+
+    consistency: PreparationConsistency
+    data_state: PreparationDataState
+    disposition: PreparationDisposition
+    readiness: PreparationReadiness
+
+    decision_intent: ExecutionIntent
+    authorization: AuthorizationState
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    source: str = "ROBOMLM_PLUS"
+
+
+@dataclass(frozen=True)
+class PreparationRequirements:
+    """
+    Explicit preparation requirements.
+
+    These are structural requirements, not trading assumptions.
+
+    The values are intentionally boolean/availability based.
+    No market thresholds are invented here.
+    """
+
+    decision_available: bool
+    risk_available: bool
+    cas_available: bool
+
+    direction_available: bool
+    authorization_known: bool
+
+    execution_context_available: bool
+    instrument_available: bool
+    venue_available: bool
+
+    # Optional execution fields.
+    #
+    # They are NOT automatically required at this stage because
+    # their authoritative source/contract depends on the
+    # downstream execution architecture.
+    price_available: bool = False
+    quantity_available: bool = False
+    stop_loss_available: bool = False
+    take_profit_available: bool = False
+
+
+@dataclass(frozen=True)
+class PreparationAssessment:
+    """
+    Complete normalized assessment before an execution
+    preparation contract is produced.
+    """
+
+    intelligence: PreparationIntelligence
+    requirements: PreparationRequirements
+
+    decision: DecisionPreparationReference
+    risk: RiskPreparationReference
+    cas: CASPreparationReference
+    context: ExecutionContextReference
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+
+# ============================================================
+# PART 2A â€” STATUS / BLOCK DETECTION
+# ============================================================
+
+
+def _ep_status_is_blocking(
+    status: Optional[str],
+) -> bool:
+    """
+    Detect explicit blocking status.
+
+    No numeric threshold is used.
+    """
+
+    if not status:
+        return False
+
+    return status.strip().upper() in {
+        "BLOCKED",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "INVALID",
+        "UNSAFE",
+        "CRITICAL",
+        "HALTED",
+        "STOPPED",
+    }
+
+
+def _ep_status_is_unknown(
+    status: Optional[str],
+) -> bool:
+    """
+    Detect absence of meaningful status.
+    """
+
+    if status is None:
+        return True
+
+    return status.strip().upper() in {
+        "",
+        "UNKNOWN",
+        "UNSPECIFIED",
+        "N/A",
+        "NA",
+        "NONE",
+    }
+
+
+def _ep_decision_is_usable(
+    decision: DecisionPreparationReference,
+) -> bool:
+    """
+    Determine whether an explicit upstream decision intent
+    exists.
+
+    No inference from confidence/strength is allowed.
+    """
+
+    return decision.intent in {
+        ExecutionIntent.UP,
+        ExecutionIntent.DOWN,
+        ExecutionIntent.NEUTRAL,
+        ExecutionIntent.HOLD,
+    }
+
+
+# ============================================================
+# PART 2B â€” REQUIREMENT EVALUATION
+# ============================================================
+
+
+def evaluate_preparation_requirements(
+    decision: DecisionPreparationReference,
+    risk: RiskPreparationReference,
+    cas: CASPreparationReference,
+    context: ExecutionContextReference,
+) -> PreparationRequirements:
+    """
+    Evaluate availability of information required by the
+    preparation boundary.
+
+    This function checks availability only.
+
+    It does NOT:
+        - calculate risk
+        - calculate quantity
+        - calculate price
+        - create SL/TP
+        - authorize execution
+    """
+
+    return PreparationRequirements(
+        decision_available=(
+            decision.decision_id != "UNKNOWN"
+        ),
+        risk_available=(
+            risk.risk_id != "UNKNOWN"
+            and not _ep_status_is_unknown(risk.status)
+        ),
+        cas_available=(
+            cas.cas_id != "UNKNOWN"
+            and not _ep_status_is_unknown(cas.status)
+        ),
+        direction_available=_ep_decision_is_usable(
+            decision
+        ),
+        authorization_known=(
+            cas.authorization
+            is not AuthorizationState.UNKNOWN
+        ),
+        execution_context_available=(
+            context.instrument is not None
+            or context.venue is not None
+            or context.account_id is not None
+        ),
+        instrument_available=(
+            context.instrument is not None
+        ),
+        venue_available=(
+            context.venue is not None
+        ),
+    )
+
+
+# ============================================================
+# PART 2C â€” DECISION / RISK / CAS CONSISTENCY
+# ============================================================
+
+
+def evaluate_preparation_consistency(
+    decision: DecisionPreparationReference,
+    risk: RiskPreparationReference,
+    cas: CASPreparationReference,
+) -> PreparationConsistency:
+    """
+    Evaluate whether the upstream authority state is suitable
+    for entering preparation.
+
+    Direction comes only from D13/Advanced Decision.
+
+    Risk can block preparation.
+
+    CAS can authorize or deny preparation.
+
+    Neither Risk nor CAS is allowed to create a new direction.
+    """
+
+    if not _ep_decision_is_usable(decision):
+        return PreparationConsistency.INSUFFICIENT
+
+    if _ep_status_is_blocking(risk.status):
+        return PreparationConsistency.CONFLICTING
+
+    if _ep_status_is_blocking(cas.status):
+        return PreparationConsistency.CONFLICTING
+
+    if cas.authorization is AuthorizationState.DENIED:
+        return PreparationConsistency.CONFLICTING
+
+    if _ep_status_is_unknown(risk.status):
+        return PreparationConsistency.INSUFFICIENT
+
+    if _ep_status_is_unknown(cas.status):
+        return PreparationConsistency.INSUFFICIENT
+
+    if cas.authorization is AuthorizationState.UNKNOWN:
+        return PreparationConsistency.INSUFFICIENT
+
+    return PreparationConsistency.CONSISTENT
+
+
+# ============================================================
+# PART 2D â€” DATA COMPLETENESS
+# ============================================================
+
+
+def evaluate_preparation_data_state(
+    requirements: PreparationRequirements,
+) -> PreparationDataState:
+    """
+    Determine whether the minimum authority/context information
+    required for preparation is available.
+    """
+
+    critical = (
+        requirements.decision_available,
+        requirements.risk_available,
+        requirements.cas_available,
+        requirements.direction_available,
+        requirements.authorization_known,
+    )
+
+    if not all(critical):
+        available_count = sum(
+            1 for item in critical if item
+        )
+
+        if available_count == 0:
+            return PreparationDataState.MISSING
+
+        return PreparationDataState.PARTIAL
+
+    return PreparationDataState.COMPLETE
+
+
+# ============================================================
+# PART 2E â€” PREPARATION INTELLIGENCE
+# ============================================================
+
+
+def build_preparation_intelligence(
+    decision: DecisionPreparationReference,
+    risk: RiskPreparationReference,
+    cas: CASPreparationReference,
+    context: ExecutionContextReference,
+) -> PreparationIntelligence:
+    """
+    Build the preparation-layer intelligence.
+
+    The output answers:
+
+        "Can the existing upstream authority state
+         enter execution preparation?"
+
+    It does NOT answer:
+
+        "What trade should be taken?"
+
+    and it does NOT execute anything.
+    """
+
+    requirements = evaluate_preparation_requirements(
+        decision=decision,
+        risk=risk,
+        cas=cas,
+        context=context,
+    )
+
+    consistency = evaluate_preparation_consistency(
+        decision=decision,
+        risk=risk,
+        cas=cas,
+    )
+
+    data_state = evaluate_preparation_data_state(
+        requirements
+    )
+
+    rationale: list[str] = []
+    warnings: list[str] = []
+
+    # --------------------------------------------------------
+    # Direction integrity
+    # --------------------------------------------------------
+
+    if decision.intent is ExecutionIntent.UNKNOWN:
+        rationale.append(
+            "No explicit upstream execution intent is available."
+        )
+
+        warnings.append(
+            "Execution Preparation will not synthesize a direction."
+        )
+
+    else:
+        rationale.append(
+            "Execution intent is inherited from the upstream "
+            "decision authority."
+        )
+
+    # --------------------------------------------------------
+    # Risk integrity
+    # --------------------------------------------------------
+
+    if _ep_status_is_blocking(risk.status):
+        rationale.append(
+            "Risk exposes an explicit blocking state."
+        )
+
+    elif _ep_status_is_unknown(risk.status):
+        warnings.append(
+            "Risk status is unknown; preparation cannot "
+            "assume risk clearance."
+        )
+
+    else:
+        rationale.append(
+            "No explicit Risk blocking state is exposed."
+        )
+
+    # --------------------------------------------------------
+    # CAS integrity
+    # --------------------------------------------------------
+
+    if cas.authorization is AuthorizationState.DENIED:
+        rationale.append(
+            "CAS authorization is explicitly denied."
+        )
+
+    elif cas.authorization is AuthorizationState.UNKNOWN:
+        warnings.append(
+            "CAS authorization is unknown; execution permission "
+            "cannot be assumed."
+        )
+
+    elif cas.authorization is AuthorizationState.AUTHORIZED:
+        rationale.append(
+            "CAS authorization is explicitly supplied and "
+            "will be preserved without modification."
+        )
+
+    # --------------------------------------------------------
+    # Consistency â†’ disposition
+    # --------------------------------------------------------
+
+    if consistency is PreparationConsistency.CONFLICTING:
+        disposition = PreparationDisposition.BLOCK
+        readiness = PreparationReadiness.NOT_READY
+
+        rationale.append(
+            "Preparation is blocked by an explicit upstream "
+            "authority conflict."
+        )
+
+    elif consistency is PreparationConsistency.INSUFFICIENT:
+        disposition = PreparationDisposition.WITHHOLD
+        readiness = PreparationReadiness.NOT_READY
+
+        rationale.append(
+            "Preparation is withheld because upstream authority "
+            "information is incomplete."
+        )
+
+    elif data_state is PreparationDataState.PARTIAL:
+        disposition = PreparationDisposition.HOLD
+        readiness = PreparationReadiness.INPUT_READY
+
+        rationale.append(
+            "Authority is consistent, but preparation context "
+            "is incomplete."
+        )
+
+    else:
+        disposition = PreparationDisposition.PREPARE
+        readiness = PreparationReadiness.PREPARATION_READY
+
+        rationale.append(
+            "Upstream authority state is consistent and the "
+            "preparation boundary may proceed."
+        )
+
+    # --------------------------------------------------------
+    # Context-specific refinement
+    # --------------------------------------------------------
+
+    if not requirements.instrument_available:
+        warnings.append(
+            "Instrument is not available in execution context."
+        )
+
+    if not requirements.venue_available:
+        warnings.append(
+            "Execution venue is not available in execution context."
+        )
+
+    if not requirements.execution_context_available:
+        warnings.append(
+            "Execution context is insufficient for downstream "
+            "preparation."
+        )
+
+    # --------------------------------------------------------
+    # CAS must never be silently promoted
+    # --------------------------------------------------------
+
+    if cas.authorization is not AuthorizationState.AUTHORIZED:
+        if readiness is PreparationReadiness.PREPARATION_READY:
+            readiness = PreparationReadiness.INPUT_READY
+
+            rationale.append(
+                "Preparation readiness is limited because explicit "
+                "CAS authorization is not confirmed."
+            )
+
+    return PreparationIntelligence(
+        consistency=consistency,
+        data_state=data_state,
+        disposition=disposition,
+        readiness=readiness,
+        decision_intent=decision.intent,
+        authorization=cas.authorization,
+        rationale=tuple(dict.fromkeys(rationale)),
+        warnings=tuple(dict.fromkeys(warnings)),
+    )
+
+
+# ============================================================
+# PART 2F â€” COMPLETE ASSESSMENT
+# ============================================================
+
+
+def build_preparation_assessment(
+    advanced_decision: Any,
+    execution_context: Any = None,
+) -> PreparationAssessment:
+    """
+    Build the complete normalized preparation assessment.
+
+    This is the primary intelligence boundary for Part 2.
+    """
+
+    decision = build_decision_preparation_reference(
+        advanced_decision
+    )
+
+    risk = build_risk_preparation_reference(
+        advanced_decision
+    )
+
+    cas = build_cas_preparation_reference(
+        advanced_decision
+    )
+
+    context = build_execution_context_reference(
+        execution_context
+    )
+
+    requirements = evaluate_preparation_requirements(
+        decision=decision,
+        risk=risk,
+        cas=cas,
+        context=context,
+    )
+
+    intelligence = build_preparation_intelligence(
+        decision=decision,
+        risk=risk,
+        cas=cas,
+        context=context,
+    )
+
+    return PreparationAssessment(
+        intelligence=intelligence,
+        requirements=requirements,
+        decision=decision,
+        risk=risk,
+        cas=cas,
+        context=context,
+        rationale=intelligence.rationale,
+        warnings=intelligence.warnings,
+    )
+
+
+# ============================================================
+# END OF PART 2/5
+# ============================================================
+# ============================================================
+# ROBOMLM PLUS â€” EXECUTION PREPARATION
+# Part 3/5 â€” Execution Specification + Preparation Contract
+# ============================================================
+
+
+class ExecutionParameterState(str, Enum):
+    """
+    Availability state of an execution parameter.
+
+    UNKNOWN is different from INVALID:
+        UNKNOWN = source did not provide it
+        INVALID = source provided an unusable value
+    """
+
+    AVAILABLE = "AVAILABLE"
+    UNKNOWN = "UNKNOWN"
+    INVALID = "INVALID"
+
+
+class PreparationContractState(str, Enum):
+    """
+    State of the normalized preparation contract.
+    """
+
+    VALID = "VALID"
+    INCOMPLETE = "INCOMPLETE"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+@dataclass(frozen=True)
+class ExecutionParameter:
+    """
+    A single execution parameter with explicit provenance.
+
+    The preparation layer NEVER invents a value.
+
+    Example parameters:
+        price
+        quantity
+        stop_loss
+        take_profit
+        leverage
+        order_type
+        time_in_force
+
+    The actual value must come from an upstream authoritative
+    source when present.
+    """
+
+    name: str
+    value: Any
+
+    state: ExecutionParameterState
+
+    source: Optional[str] = None
+    field_name: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class ExecutionSpecification:
+    """
+    Normalized execution specification.
+
+    This is a preparation object, NOT an executable order.
+
+    Every field is optional because the upstream architecture
+    may provide different parameters at different stages.
+    """
+
+    intent: ExecutionIntent
+
+    instrument: Optional[str]
+    venue: Optional[str]
+    account_id: Optional[str]
+    currency: Optional[str]
+
+    order_type: ExecutionParameter
+    price: ExecutionParameter
+    quantity: ExecutionParameter
+
+    stop_loss: ExecutionParameter
+    take_profit: ExecutionParameter
+    leverage: ExecutionParameter
+
+    time_in_force: ExecutionParameter
+
+    source: str = "ROBOMLM_PLUS"
+
+
+@dataclass(frozen=True)
+class ExecutionPreparationContract:
+    """
+    Final normalized preparation contract.
+
+    IMPORTANT:
+        This contract is not an order.
+
+    It contains preparation state and provenance so that the
+    downstream execution layer can decide whether its own
+    authoritative contract requirements are satisfied.
+    """
+
+    preparation_id: str
+    request_id: str
+
+    status: PreparationContractState
+    disposition: PreparationDisposition
+    readiness: PreparationReadiness
+
+    decision: DecisionPreparationReference
+    risk: RiskPreparationReference
+    cas: CASPreparationReference
+    context: ExecutionContextReference
+
+    specification: ExecutionSpecification
+
+    rationale: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status is PreparationContractState.VALID
+
+    @property
+    def is_execution_request(self) -> bool:
+        """
+        Explicit architectural guard.
+
+        Preparation contract must never be treated as an
+        execution request.
+        """
+
+        return False
+
+
+# ============================================================
+# PART 3A â€” AUTHORITATIVE PARAMETER EXTRACTION
+# ============================================================
+
+
+def _ep_parameter(
+    source: Any,
+    *,
+    name: str,
+    field_names: tuple[str, ...],
+    source_name: str,
+) -> ExecutionParameter:
+    """
+    Extract one execution parameter without creating defaults.
+
+    Rules:
+        - Missing source/value -> UNKNOWN
+        - Explicit None -> UNKNOWN
+        - Present value -> AVAILABLE
+        - No conversion that could silently alter semantics
+    """
+
+    value = _ep_read_value(
+        source,
+        *field_names,
+        default=None,
+    )
+
+    if value is None:
+        return ExecutionParameter(
+            name=name,
+            value=None,
+            state=ExecutionParameterState.UNKNOWN,
+            source=source_name,
+            field_name=None,
+        )
+
+    matched_field: Optional[str] = None
+
+    for field_name in field_names:
+        candidate = _ep_read_value(
+            source,
+            field_name,
+            default=None,
+        )
+
+        if candidate is not None:
+            matched_field = field_name
+            break
+
+    return ExecutionParameter(
+        name=name,
+        value=value,
+        state=ExecutionParameterState.AVAILABLE,
+        source=source_name,
+        field_name=matched_field,
+    )
+
+
+def _ep_parameter_from_sources(
+    primary: Any,
+    secondary: Any,
+    *,
+    name: str,
+    field_names: tuple[str, ...],
+    primary_source_name: str,
+    secondary_source_name: str,
+) -> ExecutionParameter:
+    """
+    Resolve a parameter from explicit upstream sources.
+
+    Priority:
+        primary -> secondary
+
+    No calculated fallback is allowed.
+    """
+
+    primary_parameter = _ep_parameter(
+        primary,
+        name=name,
+        field_names=field_names,
+        source_name=primary_source_name,
+    )
+
+    if (
+        primary_parameter.state
+        is ExecutionParameterState.AVAILABLE
+    ):
+        return primary_parameter
+
+    secondary_parameter = _ep_parameter(
+        secondary,
+        name=name,
+        field_names=field_names,
+        source_name=secondary_source_name,
+    )
+
+    if (
+        secondary_parameter.state
+        is ExecutionParameterState.AVAILABLE
+    ):
+        return secondary_parameter
+
+    return primary_parameter
+
+
+# ============================================================
+# PART 3B â€” EXECUTION SPECIFICATION BUILDER
+# ============================================================
+
+
+def build_execution_specification(
+    advanced_decision: Any,
+    execution_context: Any = None,
+) -> ExecutionSpecification:
+    """
+    Build the normalized execution specification.
+
+    Parameter sources are intentionally conservative.
+
+    The function only carries forward values that already exist
+    in supplied upstream contracts.
+
+    It does NOT:
+        - calculate entry price
+        - calculate quantity
+        - calculate SL/TP
+        - calculate leverage
+        - select an order type
+        - select a time-in-force
+    """
+
+    decision_source = _ep_read_value(
+        advanced_decision,
+        "decision",
+        default=advanced_decision,
+    )
+
+    action_source = _ep_read_value(
+        advanced_decision,
+        "authorized_action",
+        "action",
+        default=None,
+    )
+
+    # --------------------------------------------------------
+    # Decision intent
+    # --------------------------------------------------------
+
+    decision = build_decision_preparation_reference(
+        advanced_decision
+    )
+
+    # --------------------------------------------------------
+    # Context
+    # --------------------------------------------------------
+
+    context = build_execution_context_reference(
+        execution_context
+    )
+
+    # --------------------------------------------------------
+    # Execution parameter sources
+    #
+    # AuthorizedAction is preferred when supplied because it is
+    # an execution-domain contract. Advanced Decision remains
+    # the fallback source for values already explicitly exposed.
+    # --------------------------------------------------------
+
+    order_type = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="order_type",
+        field_names=(
+            "order_type",
+            "orderType",
+            "type",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    price = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="price",
+        field_names=(
+            "price",
+            "entry_price",
+            "entryPrice",
+            "limit_price",
+            "limitPrice",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    quantity = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="quantity",
+        field_names=(
+            "quantity",
+            "qty",
+            "size",
+            "order_quantity",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    stop_loss = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="stop_loss",
+        field_names=(
+            "stop_loss",
+            "stopLoss",
+            "sl",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    take_profit = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="take_profit",
+        field_names=(
+            "take_profit",
+            "takeProfit",
+            "tp",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    leverage = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="leverage",
+        field_names=(
+            "leverage",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    time_in_force = _ep_parameter_from_sources(
+        action_source,
+        decision_source,
+        name="time_in_force",
+        field_names=(
+            "time_in_force",
+            "timeInForce",
+            "tif",
+        ),
+        primary_source_name="AUTHORIZED_ACTION",
+        secondary_source_name="ADVANCED_DECISION",
+    )
+
+    return ExecutionSpecification(
+        intent=decision.intent,
+
+        instrument=context.instrument,
+        venue=context.venue,
+        account_id=context.account_id,
+        currency=context.currency,
+
+        order_type=order_type,
+        price=price,
+        quantity=quantity,
+
+        stop_loss=stop_loss,
+        take_profit=take_profit,
+        leverage=leverage,
+
+        time_in_force=time_in_force,
+    )
+
+
+# ============================================================
+# PART 3C â€” PARAMETER VALIDATION
+# ============================================================
+
+
+def _validate_execution_parameter(
+    parameter: ExecutionParameter,
+) -> Optional[str]:
+    """
+    Validate parameter structure.
+
+    No domain-specific trading threshold is introduced.
+    """
+
+    if not parameter.name.strip():
+        return "execution parameter name is empty"
+
+    if parameter.state is ExecutionParameterState.AVAILABLE:
+        if parameter.value is None:
+            return (
+                f"{parameter.name} marked AVAILABLE "
+                "but contains no value"
+            )
+
+        if not parameter.source:
+            return (
+                f"{parameter.name} has no source provenance"
+            )
+
+    return None
+
+
+def validate_execution_specification(
+    specification: ExecutionSpecification,
+) -> tuple[bool, tuple[str, ...]]:
+    """
+    Validate the normalized execution specification.
+
+    This is structural validation only.
+    """
+
+    errors: list[str] = []
+
+    if specification.intent is ExecutionIntent.UNKNOWN:
+        errors.append(
+            "execution intent is UNKNOWN"
+        )
+
+    parameters = (
+        specification.order_type,
+        specification.price,
+        specification.quantity,
+        specification.stop_loss,
+        specification.take_profit,
+        specification.leverage,
+        specification.time_in_force,
+    )
+
+    for parameter in parameters:
+        error = _validate_execution_parameter(
+            parameter
+        )
+
+        if error:
+            errors.append(error)
+
+    return (
+        len(errors) == 0,
+        tuple(errors),
+    )
+
+
+# ============================================================
+# PART 3D â€” PREPARATION CONTRACT BUILDER
+# ============================================================
+
+
+def build_execution_preparation_contract(
+    request: ExecutionPreparationRequest,
+    assessment: PreparationAssessment,
+) -> ExecutionPreparationContract:
+    """
+    Build the normalized execution-preparation contract.
+
+    This function translates assessment state into a
+    preparation contract without creating execution authority.
+    """
+
+    specification = build_execution_specification(
+        advanced_decision=request.advanced_decision,
+        execution_context=request.execution_context,
+    )
+
+    specification_valid, specification_errors = (
+        validate_execution_specification(
+            specification
+        )
+    )
+
+    rationale = list(assessment.rationale)
+    warnings = list(assessment.warnings)
+
+    warnings.extend(specification_errors)
+
+    # --------------------------------------------------------
+    # Determine preparation state
+    # --------------------------------------------------------
+
+    if assessment.intelligence.disposition is (
+        PreparationDisposition.BLOCK
+    ):
+        status = PreparationContractState.BLOCKED
+
+    elif assessment.intelligence.disposition is (
+        PreparationDisposition.WITHHOLD
+    ):
+        status = PreparationContractState.INCOMPLETE
+
+    elif not specification_valid:
+        status = PreparationContractState.INCOMPLETE
+
+        rationale.append(
+            "Execution specification is structurally incomplete; "
+            "no synthetic execution values are being generated."
+        )
+
+    else:
+        status = PreparationContractState.VALID
+
+    # --------------------------------------------------------
+    # Readiness preservation
+    # --------------------------------------------------------
+
+    readiness = assessment.intelligence.readiness
+
+    if status is not PreparationContractState.VALID:
+        readiness = PreparationReadiness.NOT_READY
+
+    # --------------------------------------------------------
+    # Explicit architecture statement
+    # --------------------------------------------------------
+
+    rationale.append(
+        "Execution Preparation creates a preparation contract only; "
+        "actual execution remains outside this module."
+    )
+
+    return ExecutionPreparationContract(
+        preparation_id=str(uuid4()),
+        request_id=request.request_id,
+
+        status=status,
+        disposition=assessment.intelligence.disposition,
+        readiness=readiness,
+
+        decision=assessment.decision,
+        risk=assessment.risk,
+        cas=assessment.cas,
+        context=assessment.context,
+
+        specification=specification,
+
+        rationale=tuple(
+            dict.fromkeys(rationale)
+        ),
+        warnings=tuple(
+            dict.fromkeys(warnings)
+        ),
+    )
+
+
+# ============================================================
+# PART 3E â€” PREPARATION SAFETY CHECK
+# ============================================================
+
+
+def is_preparation_safe_to_forward(
+    contract: ExecutionPreparationContract,
+) -> bool:
+    """
+    Determine whether the preparation contract may be forwarded
+    to the next execution-domain validation layer.
+
+    This does NOT authorize execution.
+
+    It only confirms that this layer has not detected a
+    preparation-level block.
+    """
+
+    if not isinstance(
+        contract,
+        ExecutionPreparationContract,
+    ):
+        return False
+
+    if contract.status is not PreparationContractState.VALID:
+        return False
+
+    if contract.disposition is not (
+        PreparationDisposition.PREPARE
+    ):
+        return False
+
+    if contract.readiness is not (
+        PreparationReadiness.PREPARATION_READY,
+        PreparationReadiness.EXECUTION_READY,
+    ):
+        return False
+
+    if contract.cas.authorization is not (
+        AuthorizationState.AUTHORIZED
+    ):
+        return False
+
+    return True
+
+
+# ============================================================
+# END OF PART 3/5
+# ============================================================
+# ============================================================
+# PART 4/5 â€” EXECUTION PREPARATION ENGINE
+# ============================================================
+
+class ExecutionPreparationEngine:
+    """
+    Orchestrates the Execution Preparation layer.
+
+    Authority:
+        D13  = Decision
+        Risk = Risk Authority
+        CAS  = Authorization Authority
+        PLUS = Preparation only
+        EXEC = Actual execution
+
+    This engine never:
+        - recalculates D13
+        - creates authorization
+        - creates an order
+        - submits an order
+        - calculates price/quantity/SL/TP
+        - overrides Risk or CAS
+    """
+
+    ENGINE_NAME = "ROBOMLM_PLUS_EXECUTION_PREPARATION"
+    ENGINE_VERSION = "1.0"
+
+    # --------------------------------------------------------
+    # Validation
+    # --------------------------------------------------------
+
+    def validate_request(
+        self,
+        request: ExecutionPreparationRequest,
+    ) -> PreparationContractValidation:
+
+        if request is None:
+            return PreparationContractValidation(
+                status=ContractStatus.INVALID,
+                errors=("request is None",),
+            )
+
+        try:
+            errors = request.validate()
+        except Exception as exc:
+            return PreparationContractValidation(
+                status=ContractStatus.INVALID,
+                errors=(f"validation error: {exc}",),
+            )
+
+        return PreparationContractValidation(
+            status=(
+                ContractStatus.INVALID
+                if errors
+                else ContractStatus.VALID
+            ),
+            errors=tuple(errors),
+        )
+
+    # --------------------------------------------------------
+    # Specification
+    # --------------------------------------------------------
+
+    def build_specification(
+        self,
+        request: ExecutionPreparationRequest,
+    ) -> ExecutionSpecification:
+
+        action = request.authorized_action
+        decision = request.advanced_decision
+        context = request.execution_context
+
+        def read(*names):
+            value = _ep_read_value(
+                action, *names, default=None
+            )
+            if value is not None:
+                return value
+
+            return _ep_read_value(
+                decision, *names, default=None
+            )
+
+        intent = build_decision_preparation_reference(
+            decision
+        ).intent
+
+        return ExecutionSpecification(
+            intent=intent,
+
+            instrument=_ep_read_value(
+                context,
+                "instrument",
+                "symbol",
+                "security",
+                default=None,
+            ),
+
+            venue=_ep_read_value(
+                context,
+                "venue",
+                "exchange",
+                "broker",
+                default=None,
+            ),
+
+            account_id=_ep_read_value(
+                context,
+                "account_id",
+                "accountId",
+                "account",
+                default=None,
+            ),
+
+            currency=_ep_read_value(
+                context,
+                "currency",
+                "quote_currency",
+                default=None,
+            ),
+
+            order_type=read(
+                "order_type",
+                "orderType",
+                "type",
+            ),
+
+            price=read(
+                "price",
+                "entry_price",
+                "entryPrice",
+                "limit_price",
+                "limitPrice",
+            ),
+
+            quantity=read(
+                "quantity",
+                "qty",
+                "size",
+                "order_quantity",
+            ),
+
+            stop_loss=read(
+                "stop_loss",
+                "stopLoss",
+                "sl",
+            ),
+
+            take_profit=read(
+                "take_profit",
+                "takeProfit",
+                "tp",
+            ),
+
+            leverage=read("leverage"),
+
+            time_in_force=read(
+                "time_in_force",
+                "timeInForce",
+                "tif",
+            ),
+
+            source="ROBOMLM_PLUS",
+        )
+
+    # --------------------------------------------------------
+    # Fail-Closed Result
+    # --------------------------------------------------------
+
+    def _invalid_contract(
+        self,
+        request,
+        reason,
+        errors=(),
+    ):
+
+        return ExecutionPreparationContract(
+            preparation_id=str(uuid4()),
+            request_id=(
+                request.request_id
+                if request is not None
+                else str(uuid4())
+            ),
+            status=PreparationContractState.INVALID,
+            disposition=PreparationDisposition.BLOCK,
+            readiness=PreparationReadiness.NOT_READY,
+            decision=None,
+            risk=None,
+            cas=None,
+            context=None,
+            specification=None,
+            rationale=(reason,),
+            warnings=tuple(errors),
+            created_at=datetime.now(timezone.utc),
+        )
+
+    # --------------------------------------------------------
+    # Main Pipeline
+    # --------------------------------------------------------
+
+    def process(
+        self,
+        request: ExecutionPreparationRequest,
+    ) -> ExecutionPreparationContract:
+
+        validation = self.validate_request(request)
+
+        if validation.status is ContractStatus.INVALID:
+            return self._invalid_contract(
+                request,
+                "Invalid execution preparation request.",
+                validation.errors,
+            )
+
+        try:
+            assessment = build_preparation_assessment(
+                advanced_decision=request.advanced_decision,
+                execution_context=request.execution_context,
+                authorized_action=request.authorized_action,
+            )
+        except TypeError:
+            # Compatibility with the existing Part-2/3
+            # assessment signature.
+            assessment = build_preparation_assessment(
+                request.advanced_decision,
+                request.execution_context,
+            )
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Preparation assessment failed: {exc}",
+            )
+
+        try:
+            specification = self.build_specification(
+                request
+            )
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Specification build failed: {exc}",
+            )
+
+        try:
+            return build_execution_preparation_contract(
+                request=request,
+                assessment=assessment,
+                specification=specification,
+            )
+        except TypeError:
+            return build_execution_preparation_contract(
+                request,
+                assessment,
+                specification,
+            )
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                f"Preparation contract failed: {exc}",
+            )
+
+    # --------------------------------------------------------
+    # Evaluation Alias
+    # --------------------------------------------------------
+
+    def evaluate(
+        self,
+        request: ExecutionPreparationRequest,
+    ) -> ExecutionPreparationContract:
+
+        return self.process(request)
+
+    # --------------------------------------------------------
+    # Forwarding Gate
+    # --------------------------------------------------------
+
+    def is_ready_for_execution_layer(
+        self,
+        contract: ExecutionPreparationContract,
+    ) -> bool:
+
+        if contract is None:
+            return False
+
+        try:
+            return bool(
+                is_preparation_safe_to_forward(
+                    contract
+                )
+            )
+        except Exception:
+            return False
+
+    # --------------------------------------------------------
+    # Operational Preparation
+    # --------------------------------------------------------
+
+    def is_operationally_prepared(
+        self,
+        contract: ExecutionPreparationContract,
+    ) -> bool:
+
+        if contract is None or not contract.is_valid:
+            return False
+
+        if contract.disposition is not PreparationDisposition.PREPARE:
+            return False
+
+        return contract.readiness in (
+            PreparationReadiness.PREPARATION_READY,
+            PreparationReadiness.EXECUTION_READY,
+        )
+
+    # --------------------------------------------------------
+    # Audit
+    # --------------------------------------------------------
+
+    def audit_summary(
+        self,
+        contract: ExecutionPreparationContract,
+    ) -> Mapping[str, Any]:
+
+        if contract is None:
+            return {
+                "engine": self.ENGINE_NAME,
+                "version": self.ENGINE_VERSION,
+                "valid": False,
+                "ready": False,
+            }
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "preparation_id": contract.preparation_id,
+            "request_id": contract.request_id,
+            "status": (
+                contract.status.value
+                if isinstance(contract.status, Enum)
+                else contract.status
+            ),
+            "disposition": (
+                contract.disposition.value
+                if isinstance(contract.disposition, Enum)
+                else contract.disposition
+            ),
+            "readiness": (
+                contract.readiness.value
+                if isinstance(contract.readiness, Enum)
+                else contract.readiness
+            ),
+            "valid": bool(contract.is_valid),
+            "execution_forwardable": (
+                self.is_ready_for_execution_layer(contract)
+            ),
+            "operationally_prepared": (
+                self.is_operationally_prepared(contract)
+            ),
+            "authority": {
+                "decision": "D13",
+                "risk": "RISK",
+                "authorization": "CAS",
+                "preparation": "ROBOMLM_PLUS",
+                "execution": "EXECUTION_LAYER",
+            },
+            "authorization_created": False,
+            "order_created": False,
+            "order_submitted": False,
+        }
+
+
+# ============================================================
+# Engine Instance
+# ============================================================
+
+execution_preparation_engine = (
+    ExecutionPreparationEngine()
+)
+
+
+# ============================================================
+# Public API
+# ============================================================
+
+def prepare_execution(
+    request: ExecutionPreparationRequest,
+) -> ExecutionPreparationContract:
+
+    return execution_preparation_engine.process(request)
+
+
+def evaluate_execution_preparation(
+    request: ExecutionPreparationRequest,
+) -> ExecutionPreparationContract:
+
+    return execution_preparation_engine.evaluate(request)
+
+
+def execution_preparation_ready(
+    contract: ExecutionPreparationContract,
+) -> bool:
+
+    return (
+        execution_preparation_engine
+        .is_ready_for_execution_layer(contract)
+    )
+
+
+def execution_preparation_audit(
+    contract: ExecutionPreparationContract,
+) -> Mapping[str, Any]:
+
+    return execution_preparation_engine.audit_summary(
+        contract
+    )
+
+
+# ============================================================
+# Engine Health
+# ============================================================
+
+def execution_preparation_health_check() -> Mapping[str, Any]:
+
+    return {
+        "engine": ExecutionPreparationEngine.ENGINE_NAME,
+        "version": ExecutionPreparationEngine.ENGINE_VERSION,
+        "status": "READY",
+        "authority": {
+            "d13_preserved": True,
+            "risk_preserved": True,
+            "cas_preserved": True,
+            "plus_preparation_only": True,
+        },
+        "execution": {
+            "authorization_created": False,
+            "order_created": False,
+            "broker_called": False,
+        },
+    }
+
+
+def get_execution_preparation_engine_info() -> Mapping[str, Any]:
+
+    return {
+        "engine_name": ExecutionPreparationEngine.ENGINE_NAME,
+        "engine_version": ExecutionPreparationEngine.ENGINE_VERSION,
+        "role": "Execution Preparation",
+        "authority": {
+            "decision": "D13",
+            "risk": "RISK",
+            "authorization": "CAS",
+            "preparation": "ROBOMLM_PLUS",
+            "execution": "EXECUTION_LAYER",
+        },
+    }
+
+
+# ============================================================
+# Compatibility Alias
+# ============================================================
+
+ExecutionPreparation = ExecutionPreparationEngine
+# ============================================================
+# PART 5/5 â€” FINAL CONTRACT VALIDATION + SERIALIZATION
+# ============================================================
+
+def validate_execution_preparation_contract(
+    contract: ExecutionPreparationContract,
+) -> Mapping[str, Any]:
+    """
+    Final structural validation.
+
+    This validates the preparation contract only.
+    It does not create authorization or execute an order.
+    """
+
+    if contract is None:
+        return {
+            "valid": False,
+            "errors": ("contract is None",),
+            "warnings": (),
+            "forwardable": False,
+        }
+
+    errors = []
+    warnings = []
+
+    if not getattr(contract, "preparation_id", None):
+        errors.append("preparation_id missing")
+
+    if not getattr(contract, "request_id", None):
+        errors.append("request_id missing")
+
+    if getattr(contract, "status", None) is None:
+        errors.append("status missing")
+
+    if getattr(contract, "disposition", None) is None:
+        errors.append("disposition missing")
+
+    if getattr(contract, "readiness", None) is None:
+        errors.append("readiness missing")
+
+    if getattr(contract, "specification", None) is None:
+        warnings.append("execution specification unavailable")
+
+    try:
+        forwardable = bool(
+            is_preparation_safe_to_forward(contract)
+        )
+    except Exception as exc:
+        forwardable = False
+        warnings.append(
+            f"forwarding validation failed: {exc}"
+        )
+
+    return {
+        "valid": len(errors) == 0,
+        "errors": tuple(errors),
+        "warnings": tuple(warnings),
+        "forwardable": forwardable,
+        "authorization_created": False,
+        "order_created": False,
+        "order_submitted": False,
+    }
+
+
+# ============================================================
+# Stable Serialization
+# ============================================================
+
+def execution_preparation_to_dict(
+    contract: ExecutionPreparationContract,
+) -> Mapping[str, Any]:
+
+    if contract is None:
+        return {
+            "valid": False,
+            "contract": None,
+        }
+
+    def value(v):
+        return v.value if isinstance(v, Enum) else v
+
+    specification = getattr(
+        contract,
+        "specification",
+        None,
+    )
+
+    specification_data = None
+
+    if specification is not None:
+        specification_data = {
+            "intent": value(
+                getattr(specification, "intent", None)
+            ),
+            "instrument": getattr(
+                specification, "instrument", None
+            ),
+            "venue": getattr(
+                specification, "venue", None
+            ),
+            "account_id": getattr(
+                specification, "account_id", None
+            ),
+            "currency": getattr(
+                specification, "currency", None
+            ),
+            "order_type": getattr(
+                specification, "order_type", None
+            ),
+            "price": getattr(
+                specification, "price", None
+            ),
+            "quantity": getattr(
+                specification, "quantity", None
+            ),
+            "stop_loss": getattr(
+                specification, "stop_loss", None
+            ),
+            "take_profit": getattr(
+                specification, "take_profit", None
+            ),
+            "leverage": getattr(
+                specification, "leverage", None
+            ),
+            "time_in_force": getattr(
+                specification, "time_in_force", None
+            ),
+            "source": getattr(
+                specification,
+                "source",
+                "ROBOMLM_PLUS",
+            ),
+        }
+
+    return {
+        "engine": ExecutionPreparationEngine.ENGINE_NAME,
+        "version": ExecutionPreparationEngine.ENGINE_VERSION,
+
+        "preparation_id": contract.preparation_id,
+        "request_id": contract.request_id,
+
+        "status": value(contract.status),
+        "disposition": value(contract.disposition),
+        "readiness": value(contract.readiness),
+
+        "decision": contract.decision,
+        "risk": contract.risk,
+        "cas": contract.cas,
+        "context": contract.context,
+
+        "specification": specification_data,
+
+        "rationale": tuple(
+            contract.rationale or ()
+        ),
+        "warnings": tuple(
+            contract.warnings or ()
+        ),
+
+        "created_at": (
+            contract.created_at.isoformat()
+            if getattr(
+                contract,
+                "created_at",
+                None,
+            )
+            else None
+        ),
+
+        "authority": {
+            "decision": "D13",
+            "risk": "RISK",
+            "authorization": "CAS",
+            "preparation": "ROBOMLM_PLUS",
+            "execution": "EXECUTION_LAYER",
+        },
+
+        "integrity": {
+            "d13_modified": False,
+            "risk_modified": False,
+            "cas_modified": False,
+            "direction_synthesized": False,
+            "authorization_created": False,
+            "order_created": False,
+            "order_submitted": False,
+        },
+    }
+
+
+# ============================================================
+# Safe Forwarding Envelope
+# ============================================================
+
+def build_execution_forwarding_envelope(
+    contract: ExecutionPreparationContract,
+) -> Optional[Mapping[str, Any]]:
+    """
+    Creates a read-only handoff envelope.
+
+    This is NOT an order and NOT an AuthorizedAction.
+    """
+
+    if contract is None:
+        return None
+
+    try:
+        if not is_preparation_safe_to_forward(contract):
+            return None
+    except Exception:
+        return None
+
+    specification = getattr(
+        contract,
+        "specification",
+        None,
+    )
+
+    if specification is None:
+        return None
+
+    intent = getattr(
+        specification,
+        "intent",
+        None,
+    )
+
+    if isinstance(intent, Enum):
+        intent = intent.value
+
+    return {
+        "envelope_type": (
+            "EXECUTION_PREPARATION_FORWARD"
+        ),
+        "preparation_id": contract.preparation_id,
+        "request_id": contract.request_id,
+
+        "intent": intent,
+        "instrument": specification.instrument,
+        "venue": specification.venue,
+        "account_id": specification.account_id,
+        "currency": specification.currency,
+
+        "order_type": specification.order_type,
+        "price": specification.price,
+        "quantity": specification.quantity,
+        "stop_loss": specification.stop_loss,
+        "take_profit": specification.take_profit,
+        "leverage": specification.leverage,
+        "time_in_force": specification.time_in_force,
+
+        "source": "ROBOMLM_PLUS",
+
+        "authority": {
+            "decision": "D13",
+            "risk": "RISK",
+            "authorization": "CAS",
+        },
+
+        "state": "PREPARED_NOT_EXECUTED",
+
+        "authorization_created": False,
+        "order_created": False,
+        "broker_called": False,
+        "broker_order_submitted": False,
+    }
+
+
+# ============================================================
+# Final Integrity Check
+# ============================================================
+
+def execution_preparation_integrity_check() -> Mapping[str, Any]:
+
+    required = (
+        "validate_request",
+        "build_specification",
+        "process",
+        "evaluate",
+        "is_ready_for_execution_layer",
+        "is_operationally_prepared",
+        "audit_summary",
+    )
+
+    missing = tuple(
+        name
+        for name in required
+        if not hasattr(
+            ExecutionPreparationEngine,
+            name,
+        )
+    )
+
+    return {
+        "engine": ExecutionPreparationEngine.ENGINE_NAME,
+        "version": ExecutionPreparationEngine.ENGINE_VERSION,
+        "status": "PASS" if not missing else "FAIL",
+        "missing_methods": missing,
+
+        "authority_integrity": {
+            "d13": "PRESERVED",
+            "risk": "PRESERVED",
+            "cas": "PRESERVED",
+            "plus": "PREPARATION_ONLY",
+        },
+
+        "execution_boundary": {
+            "authorization_creation": False,
+            "order_creation": False,
+            "broker_submission": False,
+        },
+    }
+
+
+# ============================================================
+# Public Final Helpers
+# ============================================================
+
+def validate_execution_preparation(
+    contract: ExecutionPreparationContract,
+) -> Mapping[str, Any]:
+
+    return validate_execution_preparation_contract(
+        contract
+    )
+
+
+def execution_preparation_dict(
+    contract: ExecutionPreparationContract,
+) -> Mapping[str, Any]:
+
+    return execution_preparation_to_dict(
+        contract
+    )
+
+
+def execution_preparation_forward(
+    contract: ExecutionPreparationContract,
+) -> Optional[Mapping[str, Any]]:
+
+    return build_execution_forwarding_envelope(
+        contract
+    )
+
+
+# ============================================================
+# Final Exports
+# ============================================================
+
+__all__ = [
+    "validate_execution_preparation_contract",
+    "execution_preparation_to_dict",
+    "build_execution_forwarding_envelope",
+    "execution_preparation_integrity_check",
+    "validate_execution_preparation",
+    "execution_preparation_dict",
+    "execution_preparation_forward",
+]

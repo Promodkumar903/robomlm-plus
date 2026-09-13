@@ -1,0 +1,4768 @@
+# C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\distribution_engine.py
+
+from __future__ import annotations
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field, replace
+from enum import Enum
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
+
+
+# =============================================================================
+# DISTRIBUTION ENGINE — IDENTITY
+# =============================================================================
+
+DISTRIBUTION_ENGINE = "ROBOMLM_PLUS_DISTRIBUTION_ENGINE"
+DISTRIBUTION_ENGINE_VERSION = "1.0"
+DISTRIBUTION_ENGINE_NAME = "Distribution Intelligence Engine"
+
+
+DISTRIBUTION_ENGINE_DESCRIPTION = (
+    "Research-driven distribution intelligence engine responsible for "
+    "distribution-state analysis from normalized market data, structure "
+    "context, participation behavior, and validated upstream research formulas."
+)
+
+
+# =============================================================================
+# AUTHORITY
+# =============================================================================
+
+DISTRIBUTION_ENGINE_AUTHORITY: Dict[str, bool] = {
+    # -------------------------------------------------------------------------
+    # OWNED INTELLIGENCE RESPONSIBILITIES
+    # -------------------------------------------------------------------------
+    "distribution_analysis": True,
+    "normalization": True,
+    "volume_behavior_analysis": True,
+    "price_behavior_analysis": True,
+    "range_behavior_analysis": True,
+    "participation_behavior_analysis": True,
+    "structure_context_consumption": True,
+    "multi_timeframe_distribution": True,
+    "research_formula_consumption": True,
+
+    # -------------------------------------------------------------------------
+    # RESEARCH FORMULA BOUNDARY
+    # -------------------------------------------------------------------------
+    "research_formula_generation": False,
+    "fixed_formula_assumption": False,
+    "guessed_formula": False,
+    "silent_formula_substitution": False,
+
+    # -------------------------------------------------------------------------
+    # OTHER INTELLIGENCE BOUNDARIES
+    # -------------------------------------------------------------------------
+    "accumulation_generation": False,
+    "breakout_generation": False,
+    "confirmation_generation": False,
+    "relationship_generation": False,
+    "opportunity_generation": False,
+
+    # -------------------------------------------------------------------------
+    # DECISION / RISK / ACTION BOUNDARIES
+    # -------------------------------------------------------------------------
+    "scanner_generation": False,
+    "decision_generation": False,
+    "d13_generation": False,
+    "risk_generation": False,
+    "cas_generation": False,
+    "execution_generation": False,
+    "order_generation": False,
+    "position_generation": False,
+
+    # -------------------------------------------------------------------------
+    # UPSTREAM INTEGRITY
+    # -------------------------------------------------------------------------
+    "upstream_mutation": False,
+}
+
+
+# =============================================================================
+# ENUMERATIONS
+# =============================================================================
+
+class DistributionStatus(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    INSUFFICIENT_DATA = "INSUFFICIENT_DATA"
+    READY = "READY"
+    DEGRADED = "DEGRADED"
+    INVALID = "INVALID"
+
+
+class DistributionState(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    ABSENT = "ABSENT"
+    POSSIBLE = "POSSIBLE"
+    DEVELOPING = "DEVELOPING"
+    CONFIRMED = "CONFIRMED"
+    INVALIDATED = "INVALIDATED"
+
+
+class DistributionDirection(str, Enum):
+    BEARISH = "BEARISH"
+    BULLISH = "BULLISH"
+    NEUTRAL = "NEUTRAL"
+    MIXED = "MIXED"
+    UNKNOWN = "UNKNOWN"
+
+
+class DistributionPhase(str, Enum):
+    EARLY = "EARLY"
+    DEVELOPING = "DEVELOPING"
+    MATURE = "MATURE"
+    TRANSITION = "TRANSITION"
+    UNKNOWN = "UNKNOWN"
+
+
+class DistributionStrength(str, Enum):
+    VERY_LOW = "VERY_LOW"
+    LOW = "LOW"
+    MODERATE = "MODERATE"
+    HIGH = "HIGH"
+    VERY_HIGH = "VERY_HIGH"
+    UNKNOWN = "UNKNOWN"
+
+
+class DistributionConfidence(str, Enum):
+    VERY_LOW = "VERY_LOW"
+    LOW = "LOW"
+    MODERATE = "MODERATE"
+    HIGH = "HIGH"
+    VERY_HIGH = "VERY_HIGH"
+    UNKNOWN = "UNKNOWN"
+
+
+class Timeframe(str, Enum):
+    M5 = "M5"
+    M15 = "M15"
+    H1 = "H1"
+    H4 = "H4"
+    D1 = "D1"
+    W1 = "W1"
+    MN1 = "MN1"
+    UNKNOWN = "UNKNOWN"
+
+
+class DistributionRelation(str, Enum):
+    ALIGNED = "ALIGNED"
+    DIVERGENT = "DIVERGENT"
+    CONFLICTING = "CONFLICTING"
+    NEUTRAL = "NEUTRAL"
+    UNKNOWN = "UNKNOWN"
+
+
+# =============================================================================
+# CORE INPUT CONTRACT
+# =============================================================================
+
+@dataclass
+class DistributionInput:
+    """
+    Normalized market observations supplied to the Distribution Engine.
+
+    The engine consumes market observations and upstream structure context.
+    It does NOT manufacture a distribution formula.
+    """
+
+    instrument_id: str
+    symbol: str
+
+    asset_class: str
+    market_id: str
+    exchange: Optional[str] = None
+
+    timeframe: Timeframe = Timeframe.UNKNOWN
+
+    timestamps: List[Any] = field(default_factory=list)
+
+    opens: List[float] = field(default_factory=list)
+    highs: List[float] = field(default_factory=list)
+    lows: List[float] = field(default_factory=list)
+    closes: List[float] = field(default_factory=list)
+    volumes: List[float] = field(default_factory=list)
+
+    # Upstream structure intelligence.
+    structure_context: Optional[Mapping[str, Any]] = None
+
+    source: Optional[str] = None
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# MULTI-TIMEFRAME INPUT
+# =============================================================================
+
+@dataclass
+class MultiTimeframeDistributionInput:
+    """
+    Collection of distribution inputs across multiple validated timeframes.
+    """
+
+    instrument_id: str
+    symbol: str
+
+    inputs: Dict[Timeframe, DistributionInput] = field(default_factory=dict)
+
+    requested_timeframes: List[Timeframe] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# MEASUREMENT CONTRACT
+# =============================================================================
+
+@dataclass
+class DistributionMeasurement:
+    """
+    Atomic distribution measurement produced by a validated research formula.
+
+    This object intentionally contains no invented score or hard-coded
+    distribution calculation.
+    """
+
+    name: str
+
+    value: Any
+
+    unit: Optional[str] = None
+
+    interpretation: Optional[str] = None
+
+    source: Optional[str] = None
+
+    formula_id: Optional[str] = None
+    formula_version: Optional[str] = None
+
+    research_validated: bool = False
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# DISTRIBUTION WINDOW
+# =============================================================================
+
+@dataclass
+class DistributionWindow:
+    """
+    Descriptive observation window.
+
+    This is structural context only. It is NOT itself a distribution signal.
+    """
+
+    observation_count: int
+
+    first_close: Optional[float] = None
+    last_close: Optional[float] = None
+
+    highest_price: Optional[float] = None
+    lowest_price: Optional[float] = None
+
+    total_volume: Optional[float] = None
+    average_volume: Optional[float] = None
+
+    start_timestamp: Any = None
+    end_timestamp: Any = None
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# DISTRIBUTION ANALYSIS
+# =============================================================================
+
+@dataclass
+class DistributionAnalysis:
+    """
+    Canonical distribution intelligence result.
+
+    Direction/state/phase/strength/confidence must come from a validated
+    research formula provider.
+    """
+
+    status: DistributionStatus = DistributionStatus.UNKNOWN
+
+    state: DistributionState = DistributionState.UNKNOWN
+    direction: DistributionDirection = DistributionDirection.UNKNOWN
+    phase: DistributionPhase = DistributionPhase.UNKNOWN
+
+    strength: DistributionStrength = DistributionStrength.UNKNOWN
+    confidence: DistributionConfidence = DistributionConfidence.UNKNOWN
+
+    timeframe: Timeframe = Timeframe.UNKNOWN
+
+    instrument_id: Optional[str] = None
+    symbol: Optional[str] = None
+
+    window: Optional[DistributionWindow] = None
+
+    measurements: List[DistributionMeasurement] = field(default_factory=list)
+
+    formula_id: Optional[str] = None
+    formula_version: Optional[str] = None
+    formula_name: Optional[str] = None
+
+    research_validated: bool = False
+
+    # Explicit traceability.
+    formula_owner: Optional[str] = None
+    formula_registry_key: Optional[str] = None
+
+    # Prevent accidental interpretation as a trading decision.
+    is_signal: bool = False
+    is_decision: bool = False
+    is_opportunity: bool = False
+
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# MULTI-TIMEFRAME ANALYSIS
+# =============================================================================
+
+@dataclass
+class MultiTimeframeDistribution:
+    """
+    Aggregated distribution intelligence across validated timeframes.
+
+    Aggregation remains semantic orchestration. It does not invent a
+    research formula.
+    """
+
+    status: DistributionStatus = DistributionStatus.UNKNOWN
+
+    instrument_id: Optional[str] = None
+    symbol: Optional[str] = None
+
+    analyses: Dict[Timeframe, DistributionAnalysis] = field(default_factory=dict)
+
+    relation: DistributionRelation = DistributionRelation.UNKNOWN
+
+    dominant_state: DistributionState = DistributionState.UNKNOWN
+    dominant_direction: DistributionDirection = DistributionDirection.UNKNOWN
+
+    average_confidence: DistributionConfidence = DistributionConfidence.UNKNOWN
+
+    research_validated: bool = False
+
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# ENGINE RESULT
+# =============================================================================
+
+@dataclass
+class DistributionEngineResult:
+    """
+    Top-level Distribution Engine result contract.
+    """
+
+    status: DistributionStatus = DistributionStatus.UNKNOWN
+
+    analysis: Optional[DistributionAnalysis] = None
+
+    multi_timeframe: Optional[MultiTimeframeDistribution] = None
+
+    instrument_id: Optional[str] = None
+    symbol: Optional[str] = None
+
+    research_validated: bool = False
+
+    formula_id: Optional[str] = None
+    formula_version: Optional[str] = None
+
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# ENGINE REQUEST
+# =============================================================================
+
+@dataclass
+class DistributionEngineRequest:
+    """
+    Execution request for the Distribution Engine.
+    """
+
+    input_data: Optional[DistributionInput] = None
+
+    multi_timeframe_input: Optional[MultiTimeframeDistributionInput] = None
+
+    formula_id: Optional[str] = None
+    formula_version: Optional[str] = None
+
+    formula_map: Dict[Timeframe, str] = field(default_factory=dict)
+    formula_version_map: Dict[Timeframe, str] = field(default_factory=dict)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# IMMUTABLE SNAPSHOT
+# =============================================================================
+
+@dataclass(frozen=True)
+class DistributionEngineSnapshot:
+    """
+    Immutable audit snapshot of Distribution Engine output.
+    """
+
+    engine: str
+    version: str
+
+    instrument_id: Optional[str]
+    symbol: Optional[str]
+
+    status: DistributionStatus
+
+    formula_id: Optional[str]
+    formula_version: Optional[str]
+
+    research_validated: bool
+
+    analysis: Optional[DistributionAnalysis] = None
+    multi_timeframe: Optional[MultiTimeframeDistribution] = None
+
+    metadata: Tuple[Tuple[str, Any], ...] = ()
+
+
+# =============================================================================
+# ENGINE CONTRACT
+# =============================================================================
+
+DISTRIBUTION_ENGINE_CONTRACT: Dict[str, Any] = {
+    "engine": DISTRIBUTION_ENGINE,
+    "version": DISTRIBUTION_ENGINE_VERSION,
+    "name": DISTRIBUTION_ENGINE_NAME,
+
+    "layer": "INTELLIGENCE_ENGINE",
+    "role": "DISTRIBUTION_INTELLIGENCE",
+
+    "authority_owner": "UPSTREAM_DISTRIBUTION_INTELLIGENCE",
+
+    "inputs": [
+        "NORMALIZED_OHLCV",
+        "STRUCTURE_INTELLIGENCE",
+        "MULTI_TIMEFRAME_CONTEXT",
+        "RESEARCH_FORMULA_REGISTRY",
+        "RESEARCH_VALIDATION_METADATA",
+    ],
+
+    "outputs": [
+        "DISTRIBUTION_ANALYSIS",
+        "MULTI_TIMEFRAME_DISTRIBUTION",
+        "DISTRIBUTION_ENGINE_RESULT",
+        "DISTRIBUTION_ENGINE_SNAPSHOT",
+    ],
+
+    "supported_timeframes": [
+        Timeframe.M5.value,
+        Timeframe.M15.value,
+        Timeframe.H1.value,
+        Timeframe.H4.value,
+        Timeframe.D1.value,
+        Timeframe.W1.value,
+        Timeframe.MN1.value,
+    ],
+
+    "formula_policy": {
+        "pluggable": True,
+        "registry_based": True,
+        "explicit_selection": True,
+        "validated_required": True,
+        "version_traceability_required": True,
+        "default_formula_allowed": False,
+        "formula_guessing_allowed": False,
+        "silent_substitution_allowed": False,
+    },
+
+    "downstream_consumers": [
+        "BOUNDARY_ENGINE",
+        "BREAKOUT_ENGINE",
+        "CONFIRMATION_ENGINE",
+        "RELATIONSHIP_ENGINE",
+        "OPPORTUNITY_ENGINE",
+        "EQUITY_SCANNER",
+        "FUTURE_SCANNER",
+    ],
+
+    "forbidden_responsibilities": [
+        "ACCUMULATION_GENERATION",
+        "BREAKOUT_GENERATION",
+        "CONFIRMATION_GENERATION",
+        "OPPORTUNITY_GENERATION",
+        "SCANNER_GENERATION",
+        "DECISION_GENERATION",
+        "D13_GENERATION",
+        "RISK_GENERATION",
+        "CAS_GENERATION",
+        "EXECUTION_GENERATION",
+        "ORDER_GENERATION",
+        "POSITION_GENERATION",
+        "UPSTREAM_MUTATION",
+    ],
+}
+
+
+# =============================================================================
+# AUTHORITY VALIDATION
+# =============================================================================
+
+def validate_distribution_authority() -> Dict[str, Any]:
+    """
+    Validate the Distribution Engine authority boundary.
+    """
+
+    required_true = (
+        "distribution_analysis",
+        "normalization",
+        "volume_behavior_analysis",
+        "price_behavior_analysis",
+        "range_behavior_analysis",
+        "participation_behavior_analysis",
+        "structure_context_consumption",
+        "multi_timeframe_distribution",
+        "research_formula_consumption",
+    )
+
+    required_false = (
+        "research_formula_generation",
+        "fixed_formula_assumption",
+        "guessed_formula",
+        "silent_formula_substitution",
+        "accumulation_generation",
+        "breakout_generation",
+        "confirmation_generation",
+        "opportunity_generation",
+        "scanner_generation",
+        "decision_generation",
+        "d13_generation",
+        "risk_generation",
+        "cas_generation",
+        "execution_generation",
+        "order_generation",
+        "position_generation",
+        "upstream_mutation",
+    )
+
+    true_failures = [
+        key
+        for key in required_true
+        if DISTRIBUTION_ENGINE_AUTHORITY.get(key) is not True
+    ]
+
+    false_failures = [
+        key
+        for key in required_false
+        if DISTRIBUTION_ENGINE_AUTHORITY.get(key) is not False
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "valid": not true_failures and not false_failures,
+        "missing_required_true": true_failures,
+        "unexpected_required_true": false_failures,
+    }
+
+
+# =============================================================================
+# ENGINE SUMMARY
+# =============================================================================
+
+def distribution_engine_summary() -> Dict[str, Any]:
+    """
+    Static summary of the Distribution Engine.
+    """
+
+    authority = validate_distribution_authority()
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "name": DISTRIBUTION_ENGINE_NAME,
+        "description": DISTRIBUTION_ENGINE_DESCRIPTION,
+        "layer": DISTRIBUTION_ENGINE_CONTRACT["layer"],
+        "role": DISTRIBUTION_ENGINE_CONTRACT["role"],
+        "authority_owner": DISTRIBUTION_ENGINE_CONTRACT["authority_owner"],
+        "authority_valid": authority["valid"],
+        "formula_policy": dict(
+            DISTRIBUTION_ENGINE_CONTRACT["formula_policy"]
+        ),
+        "supported_timeframes": list(
+            DISTRIBUTION_ENGINE_CONTRACT["supported_timeframes"]
+        ),
+        "downstream_consumers": list(
+            DISTRIBUTION_ENGINE_CONTRACT["downstream_consumers"]
+        ),
+    }
+
+
+# =============================================================================
+# PART 1 END
+# =============================================================================
+# =============================================================================
+# DISTRIBUTION ENGINE — PART 2
+# Normalization + Input Validation + Formula Registry
+# =============================================================================
+
+# NOTE:
+# Part 2 continues directly after Part 1.
+# Do not duplicate Part 1 imports/classes if appending to the same file.
+
+
+# =============================================================================
+# NORMALIZATION HELPERS
+# =============================================================================
+
+def _normalize_distribution_series(
+    values: Optional[Sequence[Any]],
+) -> List[float]:
+    """
+    Normalize a numerical market-data series.
+
+    No intelligence is calculated here.
+    """
+
+    if values is None:
+        return []
+
+    normalized: List[float] = []
+
+    for value in values:
+        if value is None:
+            continue
+
+        try:
+            normalized.append(float(value))
+        except (TypeError, ValueError):
+            raise ValueError(
+                f"Invalid numerical market-data value: {value!r}"
+            )
+
+    return normalized
+
+
+def _normalize_distribution_timestamps(
+    timestamps: Optional[Sequence[Any]],
+) -> List[Any]:
+    """
+    Preserve timestamp objects while normalizing container shape.
+    """
+
+    if timestamps is None:
+        return []
+
+    return list(timestamps)
+
+
+def normalize_distribution_input(
+    input_data: DistributionInput,
+) -> DistributionInput:
+    """
+    Normalize DistributionInput into a deterministic internal representation.
+
+    This function does NOT:
+        - calculate distribution
+        - infer accumulation
+        - infer breakout
+        - generate signals
+        - generate decisions
+    """
+
+    if not isinstance(input_data, DistributionInput):
+        raise TypeError(
+            "normalize_distribution_input expects DistributionInput"
+        )
+
+    return replace(
+        input_data,
+        instrument_id=str(input_data.instrument_id).strip(),
+        symbol=str(input_data.symbol).strip(),
+        asset_class=str(input_data.asset_class).strip(),
+        market_id=str(input_data.market_id).strip(),
+        exchange=(
+            str(input_data.exchange).strip()
+            if input_data.exchange is not None
+            else None
+        ),
+        timestamps=_normalize_distribution_timestamps(
+            input_data.timestamps
+        ),
+        opens=_normalize_distribution_series(
+            input_data.opens
+        ),
+        highs=_normalize_distribution_series(
+            input_data.highs
+        ),
+        lows=_normalize_distribution_series(
+            input_data.lows
+        ),
+        closes=_normalize_distribution_series(
+            input_data.closes
+        ),
+        volumes=_normalize_distribution_series(
+            input_data.volumes
+        ),
+        structure_context=(
+            dict(input_data.structure_context)
+            if input_data.structure_context is not None
+            else None
+        ),
+        source=(
+            str(input_data.source).strip()
+            if input_data.source is not None
+            else None
+        ),
+        metadata=dict(input_data.metadata),
+    )
+
+
+def normalize_multitimeframe_distribution_input(
+    input_data: MultiTimeframeDistributionInput,
+) -> MultiTimeframeDistributionInput:
+    """
+    Normalize all timeframe-specific DistributionInput objects.
+    """
+
+    if not isinstance(
+        input_data,
+        MultiTimeframeDistributionInput,
+    ):
+        raise TypeError(
+            "normalize_multitimeframe_distribution_input expects "
+            "MultiTimeframeDistributionInput"
+        )
+
+    normalized_inputs: Dict[
+        Timeframe,
+        DistributionInput,
+    ] = {}
+
+    for timeframe, distribution_input in input_data.inputs.items():
+
+        if not isinstance(timeframe, Timeframe):
+            try:
+                timeframe = Timeframe(str(timeframe))
+            except ValueError:
+                timeframe = Timeframe.UNKNOWN
+
+        normalized_inputs[timeframe] = normalize_distribution_input(
+            distribution_input
+        )
+
+    requested = []
+
+    for timeframe in input_data.requested_timeframes:
+        if isinstance(timeframe, Timeframe):
+            requested.append(timeframe)
+            continue
+
+        try:
+            requested.append(Timeframe(str(timeframe)))
+        except ValueError:
+            requested.append(Timeframe.UNKNOWN)
+
+    return replace(
+        input_data,
+        instrument_id=str(input_data.instrument_id).strip(),
+        symbol=str(input_data.symbol).strip(),
+        inputs=normalized_inputs,
+        requested_timeframes=requested,
+        metadata=dict(input_data.metadata),
+    )
+
+
+# =============================================================================
+# INPUT VALIDATION
+# =============================================================================
+
+def validate_distribution_input(
+    input_data: DistributionInput,
+) -> Dict[str, Any]:
+    """
+    Validate structural integrity of normalized DistributionInput.
+
+    Validation here is data-contract validation only.
+    It does NOT validate whether distribution exists in the market.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(input_data, DistributionInput):
+        return {
+            "valid": False,
+            "ready": False,
+            "errors": [
+                "input_data must be DistributionInput"
+            ],
+            "warnings": [],
+        }
+
+    if not input_data.instrument_id and not input_data.symbol:
+        errors.append(
+            "instrument_id or symbol is required"
+        )
+
+    if not input_data.asset_class:
+        errors.append("asset_class is required")
+
+    if not input_data.market_id:
+        errors.append("market_id is required")
+
+    if input_data.timeframe == Timeframe.UNKNOWN:
+        warnings.append(
+            "timeframe is UNKNOWN"
+        )
+
+    series = {
+        "opens": input_data.opens,
+        "highs": input_data.highs,
+        "lows": input_data.lows,
+        "closes": input_data.closes,
+    }
+
+    lengths = {
+        name: len(values)
+        for name, values in series.items()
+    }
+
+    non_zero_lengths = {
+        value
+        for value in lengths.values()
+        if value > 0
+    }
+
+    if not non_zero_lengths:
+        errors.append(
+            "At least one OHLC observation is required"
+        )
+
+    if len(non_zero_lengths) > 1:
+        errors.append(
+            "OHLC series lengths are inconsistent"
+        )
+
+    expected_length = (
+        next(iter(non_zero_lengths))
+        if len(non_zero_lengths) == 1
+        else 0
+    )
+
+    if expected_length > 0:
+
+        for name, values in series.items():
+            if values and len(values) != expected_length:
+                errors.append(
+                    f"{name} length does not match OHLC observation count"
+                )
+
+        if input_data.volumes:
+            if len(input_data.volumes) != expected_length:
+                errors.append(
+                    "volumes length does not match OHLC observation count"
+                )
+        else:
+            warnings.append(
+                "volume data is unavailable"
+            )
+
+        if input_data.timestamps:
+            if len(input_data.timestamps) != expected_length:
+                errors.append(
+                    "timestamps length does not match OHLC observation count"
+                )
+        else:
+            warnings.append(
+                "timestamps are unavailable"
+            )
+
+    # Price relationship validation.
+    if input_data.highs and input_data.lows:
+
+        if len(input_data.highs) == len(input_data.lows):
+
+            for index, (high, low) in enumerate(
+                zip(input_data.highs, input_data.lows)
+            ):
+                if high < low:
+                    errors.append(
+                        f"high < low at observation index {index}"
+                    )
+
+                if high <= 0 or low <= 0:
+                    errors.append(
+                        f"non-positive high/low at observation index {index}"
+                    )
+
+    for name, values in series.items():
+
+        for index, value in enumerate(values):
+
+            if value <= 0:
+                errors.append(
+                    f"{name}[{index}] must be positive"
+                )
+
+    for index, volume in enumerate(input_data.volumes):
+
+        if volume < 0:
+            errors.append(
+                f"volume[{index}] cannot be negative"
+            )
+
+    return {
+        "valid": not errors,
+        "ready": not errors and expected_length > 0,
+        "observation_count": expected_length,
+        "volume_available": bool(input_data.volumes),
+        "timestamps_available": bool(input_data.timestamps),
+        "structure_context_available": (
+            input_data.structure_context is not None
+        ),
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+def distribution_input_readiness(
+    input_data: DistributionInput,
+) -> Dict[str, Any]:
+    """
+    Report whether the input is suitable for distribution-formula execution.
+
+    This does not claim that distribution intelligence is available.
+    """
+
+    validation = validate_distribution_input(input_data)
+
+    missing: List[str] = []
+
+    if not input_data.instrument_id and not input_data.symbol:
+        missing.append("instrument_id_or_symbol")
+
+    if not input_data.asset_class:
+        missing.append("asset_class")
+
+    if not input_data.market_id:
+        missing.append("market_id")
+
+    if not input_data.opens:
+        missing.append("opens")
+
+    if not input_data.highs:
+        missing.append("highs")
+
+    if not input_data.lows:
+        missing.append("lows")
+
+    if not input_data.closes:
+        missing.append("closes")
+
+    if not input_data.volumes:
+        missing.append("volumes")
+
+    return {
+        "ready": validation["ready"],
+        "valid": validation["valid"],
+        "missing": missing,
+        "observation_count": validation["observation_count"],
+        "volume_available": validation["volume_available"],
+        "timestamps_available": validation["timestamps_available"],
+        "structure_context_available": (
+            validation["structure_context_available"]
+        ),
+        "errors": list(validation["errors"]),
+        "warnings": list(validation["warnings"]),
+    }
+
+
+# =============================================================================
+# DISTRIBUTION WINDOW
+# =============================================================================
+
+def build_distribution_window(
+    input_data: DistributionInput,
+) -> DistributionWindow:
+    """
+    Build descriptive statistics for the observation window.
+
+    IMPORTANT:
+    These values are descriptive observations only.
+    They are NOT a distribution score or distribution classification.
+    """
+
+    validation = validate_distribution_input(input_data)
+
+    if not validation["valid"]:
+        raise ValueError(
+            "Cannot build distribution window from invalid input: "
+            + "; ".join(validation["errors"])
+        )
+
+    observation_count = validation["observation_count"]
+
+    closes = list(input_data.closes)
+    highs = list(input_data.highs)
+    lows = list(input_data.lows)
+    volumes = list(input_data.volumes)
+
+    first_close = closes[0] if closes else None
+    last_close = closes[-1] if closes else None
+
+    highest_price = max(highs) if highs else None
+    lowest_price = min(lows) if lows else None
+
+    total_volume = (
+        float(sum(volumes))
+        if volumes
+        else None
+    )
+
+    average_volume = (
+        float(total_volume / len(volumes))
+        if volumes and total_volume is not None
+        else None
+    )
+
+    start_timestamp = (
+        input_data.timestamps[0]
+        if input_data.timestamps
+        else None
+    )
+
+    end_timestamp = (
+        input_data.timestamps[-1]
+        if input_data.timestamps
+        else None
+    )
+
+    return DistributionWindow(
+        observation_count=observation_count,
+        first_close=first_close,
+        last_close=last_close,
+        highest_price=highest_price,
+        lowest_price=lowest_price,
+        total_volume=total_volume,
+        average_volume=average_volume,
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
+        metadata={
+            "descriptive_only": True,
+            "distribution_classification_generated": False,
+        },
+    )
+
+
+# =============================================================================
+# ATOMIC MEASUREMENT FACTORY
+# =============================================================================
+
+def create_distribution_measurement(
+    name: str,
+    value: Any,
+    *,
+    unit: Optional[str] = None,
+    interpretation: Optional[str] = None,
+    source: Optional[str] = None,
+    formula_id: Optional[str] = None,
+    formula_version: Optional[str] = None,
+    research_validated: bool = False,
+    metadata: Optional[Mapping[str, Any]] = None,
+) -> DistributionMeasurement:
+    """
+    Create a traceable distribution measurement.
+
+    No formula is executed here.
+    """
+
+    if not name or not str(name).strip():
+        raise ValueError(
+            "Distribution measurement name is required"
+        )
+
+    return DistributionMeasurement(
+        name=str(name).strip(),
+        value=value,
+        unit=unit,
+        interpretation=interpretation,
+        source=source,
+        formula_id=formula_id,
+        formula_version=formula_version,
+        research_validated=bool(research_validated),
+        metadata=dict(metadata or {}),
+    )
+
+
+# =============================================================================
+# MULTI-TIMEFRAME HELPERS
+# =============================================================================
+
+def normalize_requested_distribution_timeframes(
+    timeframes: Optional[Iterable[Any]],
+) -> List[Timeframe]:
+    """
+    Normalize requested timeframe identifiers.
+    """
+
+    if timeframes is None:
+        return []
+
+    normalized: List[Timeframe] = []
+
+    for timeframe in timeframes:
+
+        if isinstance(timeframe, Timeframe):
+            normalized.append(timeframe)
+            continue
+
+        try:
+            normalized.append(
+                Timeframe(str(timeframe).upper())
+            )
+        except ValueError:
+            normalized.append(
+                Timeframe.UNKNOWN
+            )
+
+    return normalized
+
+
+def build_multitimeframe_distribution_input(
+    instrument_id: str,
+    symbol: str,
+    inputs: Mapping[Any, DistributionInput],
+    requested_timeframes: Optional[Iterable[Any]] = None,
+    metadata: Optional[Mapping[str, Any]] = None,
+) -> MultiTimeframeDistributionInput:
+    """
+    Build a multi-timeframe Distribution input contract.
+    """
+
+    normalized_inputs: Dict[
+        Timeframe,
+        DistributionInput,
+    ] = {}
+
+    for timeframe, distribution_input in inputs.items():
+
+        if not isinstance(timeframe, Timeframe):
+            try:
+                timeframe = Timeframe(str(timeframe).upper())
+            except ValueError:
+                timeframe = Timeframe.UNKNOWN
+
+        normalized_inputs[timeframe] = normalize_distribution_input(
+            distribution_input
+        )
+
+    requested = normalize_requested_distribution_timeframes(
+        requested_timeframes
+    )
+
+    return MultiTimeframeDistributionInput(
+        instrument_id=str(instrument_id).strip(),
+        symbol=str(symbol).strip(),
+        inputs=normalized_inputs,
+        requested_timeframes=requested,
+        metadata=dict(metadata or {}),
+    )
+
+
+# =============================================================================
+# FORMULA DESCRIPTOR
+# =============================================================================
+
+@dataclass(frozen=True)
+class DistributionFormulaDescriptor:
+    """
+    Metadata contract for a research-owned distribution formula.
+    """
+
+    formula_id: str
+    formula_version: str
+
+    name: str
+    description: str
+
+    supported_asset_classes: Tuple[str, ...] = ()
+    supported_timeframes: Tuple[Timeframe, ...] = ()
+
+    validated: bool = False
+    enabled: bool = True
+
+    owner: str = "UPSTREAM_DISTRIBUTION_INTELLIGENCE"
+
+    metadata: Tuple[Tuple[str, Any], ...] = ()
+
+
+# =============================================================================
+# FORMULA PROVIDER INTERFACE
+# =============================================================================
+
+class DistributionFormulaProvider(ABC):
+    """
+    Abstract research-formula provider.
+
+    The Distribution Engine does not invent formulas.
+    A validated research provider must implement this interface.
+    """
+
+    @abstractmethod
+    def describe(self) -> DistributionFormulaDescriptor:
+        """
+        Return formula metadata and validation status.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def analyze(
+        self,
+        input_data: DistributionInput,
+    ) -> DistributionAnalysis:
+        """
+        Execute the research-owned distribution formula.
+        """
+
+        raise NotImplementedError
+
+
+# =============================================================================
+# FORMULA REGISTRY
+# =============================================================================
+
+class DistributionFormulaRegistry:
+    """
+    Registry for explicit, versioned, research-owned distribution formulas.
+    """
+
+    def __init__(self) -> None:
+        self._providers: Dict[
+            Tuple[str, str],
+            DistributionFormulaProvider,
+        ] = {}
+
+    def register(
+        self,
+        provider: DistributionFormulaProvider,
+        *,
+        replace_existing: bool = False,
+    ) -> DistributionFormulaDescriptor:
+        """
+        Register a formula provider.
+
+        Registration does not mark a formula as validated.
+        Validation status comes from the provider descriptor.
+        """
+
+        if not isinstance(
+            provider,
+            DistributionFormulaProvider,
+        ):
+            raise TypeError(
+                "provider must implement DistributionFormulaProvider"
+            )
+
+        descriptor = provider.describe()
+
+        if not isinstance(
+            descriptor,
+            DistributionFormulaDescriptor,
+        ):
+            raise TypeError(
+                "provider.describe() must return "
+                "DistributionFormulaDescriptor"
+            )
+
+        key = (
+            descriptor.formula_id,
+            descriptor.formula_version,
+        )
+
+        if key in self._providers and not replace_existing:
+            raise ValueError(
+                "Distribution formula already registered: "
+                f"{descriptor.formula_id}@"
+                f"{descriptor.formula_version}"
+            )
+
+        self._providers[key] = provider
+
+        return descriptor
+
+    def get(
+        self,
+        formula_id: str,
+        formula_version: Optional[str] = None,
+    ) -> Optional[DistributionFormulaProvider]:
+        """
+        Resolve a formula provider by explicit ID/version.
+        """
+
+        if formula_version is not None:
+            return self._providers.get(
+                (
+                    str(formula_id),
+                    str(formula_version),
+                )
+            )
+
+        candidates = [
+            provider
+            for (registered_id, _),
+            provider in self._providers.items()
+            if registered_id == str(formula_id)
+        ]
+
+        if len(candidates) == 1:
+            return candidates[0]
+
+        return None
+
+    def unregister(
+        self,
+        formula_id: str,
+        formula_version: str,
+    ) -> bool:
+        """
+        Remove an explicitly registered formula provider.
+        """
+
+        key = (
+            str(formula_id),
+            str(formula_version),
+        )
+
+        if key not in self._providers:
+            return False
+
+        del self._providers[key]
+        return True
+
+    def descriptors(
+        self,
+    ) -> List[DistributionFormulaDescriptor]:
+        """
+        Return descriptors for all registered providers.
+        """
+
+        return [
+            provider.describe()
+            for provider in self._providers.values()
+        ]
+
+    def clear(self) -> None:
+        """
+        Clear registry.
+        """
+
+        self._providers.clear()
+
+    def __len__(self) -> int:
+        return len(self._providers)
+
+
+# =============================================================================
+# DEFAULT REGISTRY
+# =============================================================================
+
+_DEFAULT_DISTRIBUTION_FORMULA_REGISTRY = (
+    DistributionFormulaRegistry()
+)
+
+
+def get_distribution_formula_registry() -> DistributionFormulaRegistry:
+    """
+    Return the process-level Distribution Formula Registry.
+    """
+
+    return _DEFAULT_DISTRIBUTION_FORMULA_REGISTRY
+
+
+def resolve_distribution_formula(
+    formula_id: Optional[str],
+    formula_version: Optional[str] = None,
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Optional[DistributionFormulaProvider]:
+    """
+    Resolve an explicitly requested distribution formula.
+
+    No implicit/default formula is selected.
+    """
+
+    if not formula_id:
+        return None
+
+    active_registry = (
+        registry
+        if registry is not None
+        else get_distribution_formula_registry()
+    )
+
+    return active_registry.get(
+        formula_id=str(formula_id),
+        formula_version=(
+            str(formula_version)
+            if formula_version is not None
+            else None
+        ),
+    )
+
+
+# =============================================================================
+# FORMULA READINESS
+# =============================================================================
+
+def distribution_formula_readiness(
+    formula_id: Optional[str],
+    formula_version: Optional[str] = None,
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    """
+    Determine whether an explicit validated research formula is available.
+    """
+
+    if not formula_id:
+        return {
+            "ready": False,
+            "formula_selected": False,
+            "formula_found": False,
+            "research_validated": False,
+            "formula_id": None,
+            "formula_version": None,
+            "reason": "NO_FORMULA_SELECTED",
+        }
+
+    provider = resolve_distribution_formula(
+        formula_id,
+        formula_version,
+        registry=registry,
+    )
+
+    if provider is None:
+        return {
+            "ready": False,
+            "formula_selected": True,
+            "formula_found": False,
+            "research_validated": False,
+            "formula_id": formula_id,
+            "formula_version": formula_version,
+            "reason": "FORMULA_NOT_FOUND",
+        }
+
+    descriptor = provider.describe()
+
+    if not descriptor.enabled:
+        return {
+            "ready": False,
+            "formula_selected": True,
+            "formula_found": True,
+            "research_validated": bool(descriptor.validated),
+            "formula_id": descriptor.formula_id,
+            "formula_version": descriptor.formula_version,
+            "reason": "FORMULA_DISABLED",
+        }
+
+    if not descriptor.validated:
+        return {
+            "ready": False,
+            "formula_selected": True,
+            "formula_found": True,
+            "research_validated": False,
+            "formula_id": descriptor.formula_id,
+            "formula_version": descriptor.formula_version,
+            "reason": "FORMULA_NOT_RESEARCH_VALIDATED",
+        }
+
+    return {
+        "ready": True,
+        "formula_selected": True,
+        "formula_found": True,
+        "research_validated": True,
+        "formula_id": descriptor.formula_id,
+        "formula_version": descriptor.formula_version,
+        "reason": "VALIDATED_FORMULA_AVAILABLE",
+    }
+
+
+# =============================================================================
+# PART 2 CONTRACT CHECK
+# =============================================================================
+
+def distribution_part2_contract_check() -> Dict[str, Any]:
+    """
+    Structural self-check for Part 2.
+    """
+
+    required_symbols = [
+        "_normalize_distribution_series",
+        "_normalize_distribution_timestamps",
+        "normalize_distribution_input",
+        "normalize_multitimeframe_distribution_input",
+        "validate_distribution_input",
+        "distribution_input_readiness",
+        "build_distribution_window",
+        "create_distribution_measurement",
+        "normalize_requested_distribution_timeframes",
+        "build_multitimeframe_distribution_input",
+        "DistributionFormulaDescriptor",
+        "DistributionFormulaProvider",
+        "DistributionFormulaRegistry",
+        "get_distribution_formula_registry",
+        "resolve_distribution_formula",
+        "distribution_formula_readiness",
+    ]
+
+    missing = [
+        symbol
+        for symbol in required_symbols
+        if symbol not in globals()
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "part": 2,
+        "valid": not missing,
+        "missing_symbols": missing,
+        "formula_generation_here": False,
+        "formula_guessing_allowed": False,
+        "default_formula_allowed": False,
+        "research_validation_required": True,
+    }
+
+
+# =============================================================================
+# PART 2 END
+# =============================================================================
+# =============================================================================
+# DISTRIBUTION ENGINE — PART 3
+# Formula Execution + MTF Orchestration + Result + Snapshot
+# =============================================================================
+
+
+# =============================================================================
+# FORMULA METADATA
+# =============================================================================
+
+def _distribution_formula_metadata(
+    descriptor: DistributionFormulaDescriptor,
+) -> Dict[str, Any]:
+    """
+    Convert formula descriptor into traceability metadata.
+    """
+
+    return {
+        "formula_id": descriptor.formula_id,
+        "formula_version": descriptor.formula_version,
+        "formula_name": descriptor.name,
+        "formula_owner": descriptor.owner,
+        "formula_registry_key": (
+            f"{descriptor.formula_id}@{descriptor.formula_version}"
+        ),
+        "research_validated": bool(descriptor.validated),
+        "formula_enabled": bool(descriptor.enabled),
+        "engine_generated_formula": False,
+        "upstream_research_formula": True,
+    }
+
+
+# =============================================================================
+# SINGLE-TIMEFRAME DISTRIBUTION ANALYSIS
+# =============================================================================
+
+def analyze_distribution(
+    input_data: DistributionInput,
+    *,
+    formula_id: Optional[str] = None,
+    formula_version: Optional[str] = None,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    """
+    Execute a research-owned Distribution Formula against normalized input.
+
+    IMPORTANT:
+    The Distribution Engine itself does not calculate or invent the
+    distribution intelligence formula.
+
+    A validated upstream provider MUST supply:
+        state
+        direction
+        phase
+        strength
+        confidence
+        measurements
+    """
+
+    warnings: List[str] = []
+    errors: List[str] = []
+
+    # -------------------------------------------------------------------------
+    # INPUT TYPE
+    # -------------------------------------------------------------------------
+
+    if not isinstance(input_data, DistributionInput):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            errors=[
+                "input_data must be DistributionInput"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # NORMALIZATION
+    # -------------------------------------------------------------------------
+
+    try:
+        normalized_input = normalize_distribution_input(
+            input_data
+        )
+    except Exception as exc:
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=input_data.instrument_id,
+            symbol=input_data.symbol,
+            errors=[
+                f"distribution input normalization failed: {exc}"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # INPUT VALIDATION
+    # -------------------------------------------------------------------------
+
+    validation = validate_distribution_input(
+        normalized_input
+    )
+
+    warnings.extend(validation.get("warnings", []))
+    errors.extend(validation.get("errors", []))
+
+    if not validation.get("valid", False):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            warnings=warnings,
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "input_validation": validation,
+                "formula_execution": False,
+            },
+        )
+
+    if not validation.get("ready", False):
+        return DistributionEngineResult(
+            status=DistributionStatus.INSUFFICIENT_DATA,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            warnings=warnings,
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "input_validation": validation,
+                "formula_execution": False,
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # EXPLICIT FORMULA REQUIREMENT
+    # -------------------------------------------------------------------------
+
+    if not formula_id:
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            warnings=warnings + [
+                "No distribution research formula selected"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "research_formula_required": True,
+                "intelligence_generated": False,
+                "reason": "NO_FORMULA_SELECTED",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # FORMULA RESOLUTION
+    # -------------------------------------------------------------------------
+
+    provider = resolve_distribution_formula(
+        formula_id=formula_id,
+        formula_version=formula_version,
+        registry=registry,
+    )
+
+    if provider is None:
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=formula_id,
+            formula_version=formula_version,
+            warnings=warnings + [
+                "Requested distribution formula was not found"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "research_formula_required": True,
+                "reason": "FORMULA_NOT_FOUND",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # FORMULA DESCRIPTOR
+    # -------------------------------------------------------------------------
+
+    try:
+        descriptor = provider.describe()
+    except Exception as exc:
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=formula_id,
+            formula_version=formula_version,
+            errors=[
+                f"distribution formula descriptor failed: {exc}"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "reason": "FORMULA_DESCRIPTOR_ERROR",
+            },
+        )
+
+    if not isinstance(
+        descriptor,
+        DistributionFormulaDescriptor,
+    ):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=formula_id,
+            formula_version=formula_version,
+            errors=[
+                "Distribution formula descriptor has invalid type"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "reason": "INVALID_FORMULA_DESCRIPTOR",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # ENABLEMENT
+    # -------------------------------------------------------------------------
+
+    if not descriptor.enabled:
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=descriptor.formula_id,
+            formula_version=descriptor.formula_version,
+            warnings=warnings + [
+                "Distribution research formula is disabled"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "research_validated": bool(descriptor.validated),
+                "reason": "FORMULA_DISABLED",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # RESEARCH VALIDATION GATE
+    # -------------------------------------------------------------------------
+
+    if not descriptor.validated:
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=descriptor.formula_id,
+            formula_version=descriptor.formula_version,
+            warnings=warnings + [
+                "Distribution formula is not research validated"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "research_validated": False,
+                "reason": "FORMULA_NOT_RESEARCH_VALIDATED",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # VERSION TRACEABILITY
+    # -------------------------------------------------------------------------
+
+    if (
+        formula_version is not None
+        and str(formula_version)
+        != str(descriptor.formula_version)
+    ):
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=descriptor.formula_id,
+            formula_version=descriptor.formula_version,
+            warnings=warnings + [
+                "Requested distribution formula version does not match "
+                "registered provider version"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": False,
+                "research_validated": bool(descriptor.validated),
+                "requested_formula_version": formula_version,
+                "registered_formula_version": (
+                    descriptor.formula_version
+                ),
+                "reason": "FORMULA_VERSION_MISMATCH",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # FORMULA EXECUTION
+    # -------------------------------------------------------------------------
+
+    try:
+        analysis = provider.analyze(
+            normalized_input
+        )
+    except Exception as exc:
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=descriptor.formula_id,
+            formula_version=descriptor.formula_version,
+            warnings=warnings,
+            errors=[
+                f"distribution formula execution failed: {exc}"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": True,
+                "research_validated": bool(descriptor.validated),
+                "reason": "FORMULA_EXECUTION_ERROR",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # RESULT TYPE VALIDATION
+    # -------------------------------------------------------------------------
+
+    if not isinstance(
+        analysis,
+        DistributionAnalysis,
+    ):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            formula_id=descriptor.formula_id,
+            formula_version=descriptor.formula_version,
+            warnings=warnings,
+            errors=[
+                "Distribution formula returned invalid analysis type"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "formula_execution": True,
+                "reason": "INVALID_FORMULA_RESULT",
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # TRACEABILITY ENFORCEMENT
+    # -------------------------------------------------------------------------
+
+    formula_metadata = _distribution_formula_metadata(
+        descriptor
+    )
+
+    analysis = replace(
+        analysis,
+        instrument_id=(
+            analysis.instrument_id
+            or normalized_input.instrument_id
+        ),
+        symbol=(
+            analysis.symbol
+            or normalized_input.symbol
+        ),
+        timeframe=(
+            analysis.timeframe
+            if analysis.timeframe != Timeframe.UNKNOWN
+            else normalized_input.timeframe
+        ),
+        formula_id=descriptor.formula_id,
+        formula_version=descriptor.formula_version,
+        formula_name=descriptor.name,
+        formula_owner=descriptor.owner,
+        formula_registry_key=(
+            f"{descriptor.formula_id}@{descriptor.formula_version}"
+        ),
+        research_validated=True,
+        is_signal=False,
+        is_decision=False,
+        is_opportunity=False,
+        metadata={
+            **dict(analysis.metadata),
+            **formula_metadata,
+            "distribution_engine": DISTRIBUTION_ENGINE,
+            "distribution_engine_version": (
+                DISTRIBUTION_ENGINE_VERSION
+            ),
+        },
+    )
+
+    # -------------------------------------------------------------------------
+    # ANALYSIS STATUS
+    # -------------------------------------------------------------------------
+
+    final_status = (
+        DistributionStatus.READY
+        if analysis.status
+        not in (
+            DistributionStatus.INVALID,
+            DistributionStatus.INSUFFICIENT_DATA,
+        )
+        else analysis.status
+    )
+
+    return DistributionEngineResult(
+        status=final_status,
+        analysis=analysis,
+        instrument_id=normalized_input.instrument_id,
+        symbol=normalized_input.symbol,
+        research_validated=True,
+        formula_id=descriptor.formula_id,
+        formula_version=descriptor.formula_version,
+        warnings=warnings + list(analysis.warnings),
+        errors=errors + list(analysis.errors),
+        metadata={
+            "engine": DISTRIBUTION_ENGINE,
+            "engine_version": DISTRIBUTION_ENGINE_VERSION,
+            "formula_execution": True,
+            "research_validated": True,
+            "intelligence_generated_by": "UPSTREAM_RESEARCH_FORMULA",
+            "engine_generated_formula": False,
+            "upstream_truth_preserved": True,
+        },
+    )
+
+
+# =============================================================================
+# MULTI-TIMEFRAME RELATION
+# =============================================================================
+
+def classify_distribution_relation(
+    analyses: Mapping[Timeframe, DistributionAnalysis],
+) -> DistributionRelation:
+    """
+    Determine semantic relationship between timeframe analyses.
+
+    This is aggregation/orchestration only.
+
+    It does NOT replace the research formula governing each timeframe.
+    """
+
+    valid_analyses = [
+        analysis
+        for analysis in analyses.values()
+        if isinstance(
+            analysis,
+            DistributionAnalysis,
+        )
+        and analysis.research_validated
+    ]
+
+    if not valid_analyses:
+        return DistributionRelation.UNKNOWN
+
+    states = {
+        analysis.state
+        for analysis in valid_analyses
+        if analysis.state != DistributionState.UNKNOWN
+    }
+
+    directions = {
+        analysis.direction
+        for analysis in valid_analyses
+        if analysis.direction != DistributionDirection.UNKNOWN
+    }
+
+    # Explicit invalidation versus confirmed distribution is a direct
+    # semantic conflict.
+    if (
+        DistributionState.CONFIRMED in states
+        and DistributionState.INVALIDATED in states
+    ):
+        return DistributionRelation.CONFLICTING
+
+    # Bearish and bullish distribution direction simultaneously present.
+    if (
+        DistributionDirection.BEARISH in directions
+        and DistributionDirection.BULLISH in directions
+    ):
+        return DistributionRelation.CONFLICTING
+
+    # If all meaningful states agree, the timeframes are aligned.
+    if len(states) == 1 and len(directions) <= 1:
+        return DistributionRelation.ALIGNED
+
+    # If one meaningful state exists but directions vary neutrally,
+    # retain a neutral semantic relationship.
+    if len(states) <= 1 and len(directions) <= 1:
+        return DistributionRelation.NEUTRAL
+
+    # Different timeframe states without a direct contradiction.
+    return DistributionRelation.DIVERGENT
+
+
+# =============================================================================
+# DOMINANT DISTRIBUTION STATE
+# =============================================================================
+
+def determine_dominant_distribution_state(
+    analyses: Mapping[Timeframe, DistributionAnalysis],
+) -> DistributionState:
+    """
+    Determine dominant state using explicit semantic precedence.
+
+    This is NOT a distribution formula and does not calculate distribution.
+    """
+
+    priority = {
+        DistributionState.CONFIRMED: 6,
+        DistributionState.DEVELOPING: 5,
+        DistributionState.POSSIBLE: 4,
+        DistributionState.ABSENT: 3,
+        DistributionState.INVALIDATED: 2,
+        DistributionState.UNKNOWN: 1,
+    }
+
+    candidates = [
+        analysis.state
+        for analysis in analyses.values()
+        if isinstance(
+            analysis,
+            DistributionAnalysis,
+        )
+        and analysis.research_validated
+    ]
+
+    if not candidates:
+        return DistributionState.UNKNOWN
+
+    return max(
+        candidates,
+        key=lambda state: priority.get(
+            state,
+            0,
+        ),
+    )
+
+
+# =============================================================================
+# DOMINANT DISTRIBUTION DIRECTION
+# =============================================================================
+
+def determine_dominant_distribution_direction(
+    analyses: Mapping[Timeframe, DistributionAnalysis],
+) -> DistributionDirection:
+    """
+    Determine semantic dominant direction across validated analyses.
+    """
+
+    counts = {
+        DistributionDirection.BEARISH: 0,
+        DistributionDirection.BULLISH: 0,
+        DistributionDirection.NEUTRAL: 0,
+        DistributionDirection.MIXED: 0,
+    }
+
+    for analysis in analyses.values():
+
+        if not isinstance(
+            analysis,
+            DistributionAnalysis,
+        ):
+            continue
+
+        if not analysis.research_validated:
+            continue
+
+        direction = analysis.direction
+
+        if direction in counts:
+            counts[direction] += 1
+
+    total = sum(counts.values())
+
+    if total == 0:
+        return DistributionDirection.UNKNOWN
+
+    maximum = max(counts.values())
+
+    winners = [
+        direction
+        for direction, count in counts.items()
+        if count == maximum
+    ]
+
+    if (
+        DistributionDirection.BEARISH in winners
+        and DistributionDirection.BULLISH in winners
+    ):
+        return DistributionDirection.MIXED
+
+    if len(winners) > 1:
+        return DistributionDirection.NEUTRAL
+
+    return winners[0]
+
+
+# =============================================================================
+# CONFIDENCE AGGREGATION
+# =============================================================================
+
+def _distribution_confidence_rank(
+    confidence: DistributionConfidence,
+) -> int:
+    return {
+        DistributionConfidence.VERY_LOW: 1,
+        DistributionConfidence.LOW: 2,
+        DistributionConfidence.MODERATE: 3,
+        DistributionConfidence.HIGH: 4,
+        DistributionConfidence.VERY_HIGH: 5,
+    }.get(
+        confidence,
+        0,
+    )
+
+
+def _distribution_confidence_from_rank(
+    rank: float,
+) -> DistributionConfidence:
+
+    if rank >= 4.5:
+        return DistributionConfidence.VERY_HIGH
+
+    if rank >= 3.5:
+        return DistributionConfidence.HIGH
+
+    if rank >= 2.5:
+        return DistributionConfidence.MODERATE
+
+    if rank >= 1.5:
+        return DistributionConfidence.LOW
+
+    if rank > 0:
+        return DistributionConfidence.VERY_LOW
+
+    return DistributionConfidence.UNKNOWN
+
+
+def _average_distribution_confidence(
+    analyses: Mapping[Timeframe, DistributionAnalysis],
+) -> DistributionConfidence:
+    """
+    Descriptive confidence aggregation.
+
+    No new confidence formula is invented here.
+    """
+
+    ranks = [
+        _distribution_confidence_rank(
+            analysis.confidence
+        )
+        for analysis in analyses.values()
+        if isinstance(
+            analysis,
+            DistributionAnalysis,
+        )
+        and analysis.research_validated
+        and analysis.confidence
+        != DistributionConfidence.UNKNOWN
+    ]
+
+    if not ranks:
+        return DistributionConfidence.UNKNOWN
+
+    return _distribution_confidence_from_rank(
+        sum(ranks) / len(ranks)
+    )
+
+
+# =============================================================================
+# MULTI-TIMEFRAME DISTRIBUTION ANALYSIS
+# =============================================================================
+
+def analyze_multitimeframe_distribution(
+    input_data: MultiTimeframeDistributionInput,
+    *,
+    formula_map: Optional[Mapping[Timeframe, str]] = None,
+    formula_version_map: Optional[Mapping[Timeframe, str]] = None,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    """
+    Execute distribution intelligence independently for each timeframe and
+    aggregate the resulting validated analyses.
+    """
+
+    if not isinstance(
+        input_data,
+        MultiTimeframeDistributionInput,
+    ):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            errors=[
+                "multi_timeframe_input must be "
+                "MultiTimeframeDistributionInput"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "mtf_execution": False,
+            },
+        )
+
+    normalized_input = (
+        normalize_multitimeframe_distribution_input(
+            input_data
+        )
+    )
+
+    active_formula_map = dict(
+        formula_map or {}
+    )
+
+    active_version_map = dict(
+        formula_version_map or {}
+    )
+
+    analyses: Dict[
+        Timeframe,
+        DistributionAnalysis,
+    ] = {}
+
+    warnings: List[str] = []
+    errors: List[str] = []
+
+    # -------------------------------------------------------------------------
+    # TIMEFRAME EXECUTION
+    # -------------------------------------------------------------------------
+
+    for timeframe, timeframe_input in normalized_input.inputs.items():
+
+        selected_formula_id = active_formula_map.get(
+            timeframe
+        )
+
+        selected_formula_version = active_version_map.get(
+            timeframe
+        )
+
+        result = analyze_distribution(
+            timeframe_input,
+            formula_id=selected_formula_id,
+            formula_version=selected_formula_version,
+            registry=registry,
+        )
+
+        warnings.extend(result.warnings)
+        errors.extend(result.errors)
+
+        if result.analysis is not None:
+            analyses[timeframe] = result.analysis
+
+    # -------------------------------------------------------------------------
+    # NO ANALYSES
+    # -------------------------------------------------------------------------
+
+    if not analyses:
+        return DistributionEngineResult(
+            status=DistributionStatus.DEGRADED,
+            instrument_id=normalized_input.instrument_id,
+            symbol=normalized_input.symbol,
+            warnings=warnings + [
+                "No validated timeframe distribution analyses available"
+            ],
+            errors=errors,
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "mtf_execution": True,
+                "intelligence_generated": False,
+            },
+        )
+
+    # -------------------------------------------------------------------------
+    # RESEARCH VALIDATION
+    # -------------------------------------------------------------------------
+
+    all_validated = all(
+        analysis.research_validated
+        for analysis in analyses.values()
+    )
+
+    # -------------------------------------------------------------------------
+    # SEMANTIC AGGREGATION
+    # -------------------------------------------------------------------------
+
+    relation = classify_distribution_relation(
+        analyses
+    )
+
+    dominant_state = determine_dominant_distribution_state(
+        analyses
+    )
+
+    dominant_direction = determine_dominant_distribution_direction(
+        analyses
+    )
+
+    average_confidence = _average_distribution_confidence(
+        analyses
+    )
+
+    mtf_status = (
+        DistributionStatus.READY
+        if all_validated
+        else DistributionStatus.DEGRADED
+    )
+
+    multi_timeframe = MultiTimeframeDistribution(
+        status=mtf_status,
+        instrument_id=normalized_input.instrument_id,
+        symbol=normalized_input.symbol,
+        analyses=analyses,
+        relation=relation,
+        dominant_state=dominant_state,
+        dominant_direction=dominant_direction,
+        average_confidence=average_confidence,
+        research_validated=all_validated,
+        warnings=warnings,
+        errors=errors,
+        metadata={
+            "engine": DISTRIBUTION_ENGINE,
+            "engine_version": DISTRIBUTION_ENGINE_VERSION,
+            "mtf_execution": True,
+            "semantic_aggregation": True,
+            "research_formula_generated_here": False,
+            "upstream_truth_preserved": True,
+        },
+    )
+
+    return DistributionEngineResult(
+        status=mtf_status,
+        analysis=None,
+        multi_timeframe=multi_timeframe,
+        instrument_id=normalized_input.instrument_id,
+        symbol=normalized_input.symbol,
+        research_validated=all_validated,
+        warnings=warnings,
+        errors=errors,
+        metadata={
+            "engine": DISTRIBUTION_ENGINE,
+            "engine_version": DISTRIBUTION_ENGINE_VERSION,
+            "mtf_execution": True,
+            "validated_timeframe_count": sum(
+                1
+                for analysis in analyses.values()
+                if analysis.research_validated
+            ),
+            "timeframe_count": len(analyses),
+            "research_formula_generated_here": False,
+            "intelligence_source": (
+                "UPSTREAM_RESEARCH_FORMULA"
+            ),
+        },
+    )
+
+
+# =============================================================================
+# ENGINE RUNNER
+# =============================================================================
+
+def run_distribution_engine(
+    request: DistributionEngineRequest,
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    """
+    Execute a Distribution Engine request.
+
+    Exactly one execution mode is selected:
+        single timeframe
+        OR
+        multi-timeframe
+    """
+
+    if not isinstance(
+        request,
+        DistributionEngineRequest,
+    ):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            errors=[
+                "request must be DistributionEngineRequest"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "execution": False,
+            },
+        )
+
+    has_single = request.input_data is not None
+    has_mtf = request.multi_timeframe_input is not None
+
+    if not has_single and not has_mtf:
+        return DistributionEngineResult(
+            status=DistributionStatus.INSUFFICIENT_DATA,
+            warnings=[
+                "No Distribution Engine input supplied"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "execution": False,
+            },
+        )
+
+    if has_single and has_mtf:
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            errors=[
+                "Provide either input_data or "
+                "multi_timeframe_input, not both"
+            ],
+            metadata={
+                "engine": DISTRIBUTION_ENGINE,
+                "execution": False,
+            },
+        )
+
+    if has_mtf:
+        return analyze_multitimeframe_distribution(
+            request.multi_timeframe_input,
+            formula_map=request.formula_map,
+            formula_version_map=request.formula_version_map,
+            registry=registry,
+        )
+
+    return analyze_distribution(
+        request.input_data,
+        formula_id=request.formula_id,
+        formula_version=request.formula_version,
+        registry=registry,
+    )
+
+
+# =============================================================================
+# IMMUTABLE SNAPSHOT BUILDER
+# =============================================================================
+
+def build_distribution_engine_snapshot(
+    result: DistributionEngineResult,
+) -> DistributionEngineSnapshot:
+    """
+    Build an immutable audit snapshot from an engine result.
+    """
+
+    if not isinstance(
+        result,
+        DistributionEngineResult,
+    ):
+        raise TypeError(
+            "result must be DistributionEngineResult"
+        )
+
+    metadata = dict(result.metadata)
+
+    metadata.update(
+        {
+            "snapshot_engine": DISTRIBUTION_ENGINE,
+            "snapshot_version": DISTRIBUTION_ENGINE_VERSION,
+            "research_validated": bool(
+                result.research_validated
+            ),
+            "engine_generated_formula": False,
+            "upstream_truth_preserved": True,
+        }
+    )
+
+    return DistributionEngineSnapshot(
+        engine=DISTRIBUTION_ENGINE,
+        version=DISTRIBUTION_ENGINE_VERSION,
+        instrument_id=result.instrument_id,
+        symbol=result.symbol,
+        status=result.status,
+        formula_id=result.formula_id,
+        formula_version=result.formula_version,
+        research_validated=result.research_validated,
+        analysis=result.analysis,
+        multi_timeframe=result.multi_timeframe,
+        metadata=tuple(
+            sorted(
+                metadata.items(),
+                key=lambda item: str(item[0]),
+            )
+        ),
+    )
+
+
+# =============================================================================
+# PART 3 CONTRACT CHECK
+# =============================================================================
+
+def distribution_part3_contract_check() -> Dict[str, Any]:
+    """
+    Structural self-check for Part 3.
+    """
+
+    required_symbols = [
+        "_distribution_formula_metadata",
+        "analyze_distribution",
+        "classify_distribution_relation",
+        "determine_dominant_distribution_state",
+        "determine_dominant_distribution_direction",
+        "_distribution_confidence_rank",
+        "_distribution_confidence_from_rank",
+        "_average_distribution_confidence",
+        "analyze_multitimeframe_distribution",
+        "run_distribution_engine",
+        "build_distribution_engine_snapshot",
+    ]
+
+    missing = [
+        symbol
+        for symbol in required_symbols
+        if symbol not in globals()
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "part": 3,
+        "valid": not missing,
+        "missing_symbols": missing,
+        "formula_execution_supported": True,
+        "formula_generated_here": False,
+        "formula_guessing_allowed": False,
+        "default_formula_allowed": False,
+        "validated_formula_required": True,
+        "d13_generation": False,
+        "decision_generation": False,
+        "risk_generation": False,
+        "execution_generation": False,
+    }
+
+
+# =============================================================================
+# PART 3 END
+# =============================================================================
+# =============================================================================
+# DISTRIBUTION ENGINE — PART 4
+# Serialization + Validation + Integrity + Health + Diagnostics
+# =============================================================================
+
+
+# =============================================================================
+# SERIALIZATION CORE
+# =============================================================================
+
+def _serialize_distribution_value(value: Any) -> Any:
+    """
+    Recursively convert Distribution Engine objects into JSON-safe values.
+    """
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, Mapping):
+        return {
+            str(key): _serialize_distribution_value(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [
+            _serialize_distribution_value(item)
+            for item in value
+        ]
+
+    if hasattr(value, "__dataclass_fields__"):
+        return {
+            field_name: _serialize_distribution_value(
+                getattr(value, field_name)
+            )
+            for field_name in value.__dataclass_fields__
+        }
+
+    return value
+
+
+# =============================================================================
+# INPUT SERIALIZERS
+# =============================================================================
+
+def serialize_distribution_input(
+    input_data: DistributionInput,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionInput.
+    """
+
+    if not isinstance(input_data, DistributionInput):
+        raise TypeError(
+            "input_data must be DistributionInput"
+        )
+
+    return _serialize_distribution_value(input_data)
+
+
+def serialize_multitimeframe_distribution_input(
+    input_data: MultiTimeframeDistributionInput,
+) -> Dict[str, Any]:
+    """
+    Serialize MultiTimeframeDistributionInput.
+    """
+
+    if not isinstance(
+        input_data,
+        MultiTimeframeDistributionInput,
+    ):
+        raise TypeError(
+            "input_data must be MultiTimeframeDistributionInput"
+        )
+
+    return _serialize_distribution_value(input_data)
+
+
+# =============================================================================
+# MEASUREMENT / WINDOW SERIALIZERS
+# =============================================================================
+
+def serialize_distribution_measurement(
+    measurement: DistributionMeasurement,
+) -> Dict[str, Any]:
+    """
+    Serialize an atomic DistributionMeasurement.
+    """
+
+    if not isinstance(
+        measurement,
+        DistributionMeasurement,
+    ):
+        raise TypeError(
+            "measurement must be DistributionMeasurement"
+        )
+
+    return _serialize_distribution_value(measurement)
+
+
+def serialize_distribution_window(
+    window: DistributionWindow,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionWindow.
+    """
+
+    if not isinstance(
+        window,
+        DistributionWindow,
+    ):
+        raise TypeError(
+            "window must be DistributionWindow"
+        )
+
+    return _serialize_distribution_value(window)
+
+
+# =============================================================================
+# ANALYSIS SERIALIZERS
+# =============================================================================
+
+def serialize_distribution_analysis(
+    analysis: DistributionAnalysis,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionAnalysis.
+    """
+
+    if not isinstance(
+        analysis,
+        DistributionAnalysis,
+    ):
+        raise TypeError(
+            "analysis must be DistributionAnalysis"
+        )
+
+    return _serialize_distribution_value(analysis)
+
+
+def serialize_multitimeframe_distribution(
+    multi_timeframe: MultiTimeframeDistribution,
+) -> Dict[str, Any]:
+    """
+    Serialize MultiTimeframeDistribution.
+    """
+
+    if not isinstance(
+        multi_timeframe,
+        MultiTimeframeDistribution,
+    ):
+        raise TypeError(
+            "multi_timeframe must be MultiTimeframeDistribution"
+        )
+
+    return _serialize_distribution_value(multi_timeframe)
+
+
+# =============================================================================
+# RESULT / REQUEST / SNAPSHOT SERIALIZERS
+# =============================================================================
+
+def serialize_distribution_engine_result(
+    result: DistributionEngineResult,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionEngineResult.
+    """
+
+    if not isinstance(
+        result,
+        DistributionEngineResult,
+    ):
+        raise TypeError(
+            "result must be DistributionEngineResult"
+        )
+
+    return _serialize_distribution_value(result)
+
+
+def serialize_distribution_engine_request(
+    request: DistributionEngineRequest,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionEngineRequest.
+    """
+
+    if not isinstance(
+        request,
+        DistributionEngineRequest,
+    ):
+        raise TypeError(
+            "request must be DistributionEngineRequest"
+        )
+
+    return _serialize_distribution_value(request)
+
+
+def serialize_distribution_engine_snapshot(
+    snapshot: DistributionEngineSnapshot,
+) -> Dict[str, Any]:
+    """
+    Serialize immutable DistributionEngineSnapshot.
+    """
+
+    if not isinstance(
+        snapshot,
+        DistributionEngineSnapshot,
+    ):
+        raise TypeError(
+            "snapshot must be DistributionEngineSnapshot"
+        )
+
+    return _serialize_distribution_value(snapshot)
+
+
+def serialize_distribution_formula_descriptor(
+    descriptor: DistributionFormulaDescriptor,
+) -> Dict[str, Any]:
+    """
+    Serialize formula descriptor.
+    """
+
+    if not isinstance(
+        descriptor,
+        DistributionFormulaDescriptor,
+    ):
+        raise TypeError(
+            "descriptor must be DistributionFormulaDescriptor"
+        )
+
+    return _serialize_distribution_value(descriptor)
+
+
+# =============================================================================
+# MEASUREMENT VALIDATION
+# =============================================================================
+
+def validate_distribution_measurement(
+    measurement: DistributionMeasurement,
+) -> Dict[str, Any]:
+    """
+    Validate atomic measurement traceability.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        measurement,
+        DistributionMeasurement,
+    ):
+        return {
+            "valid": False,
+            "errors": [
+                "measurement must be DistributionMeasurement"
+            ],
+            "warnings": [],
+        }
+
+    if not measurement.name.strip():
+        errors.append(
+            "measurement name is required"
+        )
+
+    if measurement.research_validated:
+        if not measurement.formula_id:
+            errors.append(
+                "validated measurement requires formula_id"
+            )
+
+        if not measurement.formula_version:
+            errors.append(
+                "validated measurement requires formula_version"
+            )
+
+    if measurement.value is None:
+        warnings.append(
+            f"measurement '{measurement.name}' has no value"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# WINDOW VALIDATION
+# =============================================================================
+
+def validate_distribution_window(
+    window: DistributionWindow,
+) -> Dict[str, Any]:
+    """
+    Validate descriptive observation window.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        window,
+        DistributionWindow,
+    ):
+        return {
+            "valid": False,
+            "errors": [
+                "window must be DistributionWindow"
+            ],
+            "warnings": [],
+        }
+
+    if window.observation_count < 0:
+        errors.append(
+            "observation_count cannot be negative"
+        )
+
+    if (
+        window.highest_price is not None
+        and window.lowest_price is not None
+        and window.highest_price < window.lowest_price
+    ):
+        errors.append(
+            "highest_price cannot be below lowest_price"
+        )
+
+    if (
+        window.total_volume is not None
+        and window.total_volume < 0
+    ):
+        errors.append(
+            "total_volume cannot be negative"
+        )
+
+    if (
+        window.average_volume is not None
+        and window.average_volume < 0
+    ):
+        errors.append(
+            "average_volume cannot be negative"
+        )
+
+    if window.observation_count == 0:
+        warnings.append(
+            "distribution window contains zero observations"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# ANALYSIS VALIDATION
+# =============================================================================
+
+def validate_distribution_analysis(
+    analysis: DistributionAnalysis,
+) -> Dict[str, Any]:
+    """
+    Validate canonical DistributionAnalysis.
+
+    Research validation is mandatory for usable intelligence.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        analysis,
+        DistributionAnalysis,
+    ):
+        return {
+            "valid": False,
+            "research_validated": False,
+            "errors": [
+                "analysis must be DistributionAnalysis"
+            ],
+            "warnings": [],
+        }
+
+    # -------------------------------------------------------------------------
+    # RESEARCH TRACEABILITY
+    # -------------------------------------------------------------------------
+
+    if analysis.research_validated:
+
+        if not analysis.formula_id:
+            errors.append(
+                "research_validated analysis requires formula_id"
+            )
+
+        if not analysis.formula_version:
+            errors.append(
+                "research_validated analysis requires formula_version"
+            )
+
+        if not analysis.formula_owner:
+            errors.append(
+                "research_validated analysis requires formula_owner"
+            )
+
+        if not analysis.formula_registry_key:
+            errors.append(
+                "research_validated analysis requires formula_registry_key"
+            )
+
+    else:
+        warnings.append(
+            "analysis is not research validated"
+        )
+
+    # -------------------------------------------------------------------------
+    # INTELLIGENCE BOUNDARY
+    # -------------------------------------------------------------------------
+
+    if analysis.is_signal:
+        errors.append(
+            "DistributionAnalysis cannot be marked as signal"
+        )
+
+    if analysis.is_decision:
+        errors.append(
+            "DistributionAnalysis cannot be marked as decision"
+        )
+
+    if analysis.is_opportunity:
+        errors.append(
+            "DistributionAnalysis cannot be marked as opportunity"
+        )
+
+    # -------------------------------------------------------------------------
+    # ENUM VALIDATION
+    # -------------------------------------------------------------------------
+
+    if not isinstance(
+        analysis.status,
+        DistributionStatus,
+    ):
+        errors.append(
+            "invalid distribution status"
+        )
+
+    if not isinstance(
+        analysis.state,
+        DistributionState,
+    ):
+        errors.append(
+            "invalid distribution state"
+        )
+
+    if not isinstance(
+        analysis.direction,
+        DistributionDirection,
+    ):
+        errors.append(
+            "invalid distribution direction"
+        )
+
+    if not isinstance(
+        analysis.phase,
+        DistributionPhase,
+    ):
+        errors.append(
+            "invalid distribution phase"
+        )
+
+    if not isinstance(
+        analysis.strength,
+        DistributionStrength,
+    ):
+        errors.append(
+            "invalid distribution strength"
+        )
+
+    if not isinstance(
+        analysis.confidence,
+        DistributionConfidence,
+    ):
+        errors.append(
+            "invalid distribution confidence"
+        )
+
+    if not isinstance(
+        analysis.timeframe,
+        Timeframe,
+    ):
+        errors.append(
+            "invalid timeframe"
+        )
+
+    # -------------------------------------------------------------------------
+    # MEASUREMENTS
+    # -------------------------------------------------------------------------
+
+    for index, measurement in enumerate(
+        analysis.measurements
+    ):
+        validation = validate_distribution_measurement(
+            measurement
+        )
+
+        if not validation["valid"]:
+            errors.extend(
+                [
+                    f"measurement[{index}]: {error}"
+                    for error in validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"measurement[{index}]: {warning}"
+                for warning in validation["warnings"]
+            ]
+        )
+
+    # -------------------------------------------------------------------------
+    # WINDOW
+    # -------------------------------------------------------------------------
+
+    if analysis.window is not None:
+
+        window_validation = validate_distribution_window(
+            analysis.window
+        )
+
+        if not window_validation["valid"]:
+            errors.extend(
+                [
+                    f"window: {error}"
+                    for error in window_validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"window: {warning}"
+                for warning in window_validation["warnings"]
+            ]
+        )
+
+    return {
+        "valid": not errors,
+        "research_validated": bool(
+            analysis.research_validated
+        ),
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# MULTI-TIMEFRAME VALIDATION
+# =============================================================================
+
+def validate_multitimeframe_distribution(
+    multi_timeframe: MultiTimeframeDistribution,
+) -> Dict[str, Any]:
+    """
+    Validate multi-timeframe distribution intelligence.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        multi_timeframe,
+        MultiTimeframeDistribution,
+    ):
+        return {
+            "valid": False,
+            "research_validated": False,
+            "errors": [
+                "multi_timeframe must be "
+                "MultiTimeframeDistribution"
+            ],
+            "warnings": [],
+        }
+
+    if not isinstance(
+        multi_timeframe.relation,
+        DistributionRelation,
+    ):
+        errors.append(
+            "invalid multi-timeframe relation"
+        )
+
+    if not isinstance(
+        multi_timeframe.dominant_state,
+        DistributionState,
+    ):
+        errors.append(
+            "invalid dominant distribution state"
+        )
+
+    if not isinstance(
+        multi_timeframe.dominant_direction,
+        DistributionDirection,
+    ):
+        errors.append(
+            "invalid dominant distribution direction"
+        )
+
+    if not isinstance(
+        multi_timeframe.average_confidence,
+        DistributionConfidence,
+    ):
+        errors.append(
+            "invalid average distribution confidence"
+        )
+
+    if not multi_timeframe.analyses:
+        warnings.append(
+            "multi-timeframe distribution contains no analyses"
+        )
+
+    validated_count = 0
+
+    for timeframe, analysis in (
+        multi_timeframe.analyses.items()
+    ):
+
+        if not isinstance(
+            timeframe,
+            Timeframe,
+        ):
+            errors.append(
+                f"invalid timeframe key: {timeframe!r}"
+            )
+
+        validation = validate_distribution_analysis(
+            analysis
+        )
+
+        if not validation["valid"]:
+            errors.extend(
+                [
+                    f"{timeframe}: {error}"
+                    for error in validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"{timeframe}: {warning}"
+                for warning in validation["warnings"]
+            ]
+        )
+
+        if analysis.research_validated:
+            validated_count += 1
+
+    if multi_timeframe.research_validated:
+
+        if validated_count != len(
+            multi_timeframe.analyses
+        ):
+            errors.append(
+                "multi-timeframe result marked research_validated "
+                "but not all analyses are validated"
+            )
+
+    return {
+        "valid": not errors,
+        "research_validated": bool(
+            multi_timeframe.research_validated
+        ),
+        "validated_analysis_count": validated_count,
+        "analysis_count": len(
+            multi_timeframe.analyses
+        ),
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# RESULT VALIDATION
+# =============================================================================
+
+def validate_distribution_engine_result(
+    result: DistributionEngineResult,
+) -> Dict[str, Any]:
+    """
+    Validate complete DistributionEngineResult.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        result,
+        DistributionEngineResult,
+    ):
+        return {
+            "valid": False,
+            "research_validated": False,
+            "errors": [
+                "result must be DistributionEngineResult"
+            ],
+            "warnings": [],
+        }
+
+    if (
+        result.analysis is not None
+        and result.multi_timeframe is not None
+    ):
+        errors.append(
+            "result cannot contain both single analysis "
+            "and multi-timeframe analysis"
+        )
+
+    if result.analysis is not None:
+
+        validation = validate_distribution_analysis(
+            result.analysis
+        )
+
+        if not validation["valid"]:
+            errors.extend(
+                [
+                    f"analysis: {error}"
+                    for error in validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"analysis: {warning}"
+                for warning in validation["warnings"]
+            ]
+        )
+
+    if result.multi_timeframe is not None:
+
+        validation = validate_multitimeframe_distribution(
+            result.multi_timeframe
+        )
+
+        if not validation["valid"]:
+            errors.extend(
+                [
+                    f"multi_timeframe: {error}"
+                    for error in validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"multi_timeframe: {warning}"
+                for warning in validation["warnings"]
+            ]
+        )
+
+    if result.research_validated:
+
+        if result.analysis is not None:
+            if not result.analysis.research_validated:
+                errors.append(
+                    "result marked validated but analysis is not validated"
+                )
+
+        if result.multi_timeframe is not None:
+            if not result.multi_timeframe.research_validated:
+                errors.append(
+                    "result marked validated but MTF analysis "
+                    "is not validated"
+                )
+
+    return {
+        "valid": not errors,
+        "research_validated": bool(
+            result.research_validated
+        ),
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# FORMULA DESCRIPTOR VALIDATION
+# =============================================================================
+
+def validate_distribution_formula_descriptor(
+    descriptor: DistributionFormulaDescriptor,
+) -> Dict[str, Any]:
+    """
+    Validate research formula descriptor.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    if not isinstance(
+        descriptor,
+        DistributionFormulaDescriptor,
+    ):
+        return {
+            "valid": False,
+            "errors": [
+                "descriptor must be DistributionFormulaDescriptor"
+            ],
+            "warnings": [],
+        }
+
+    if not descriptor.formula_id.strip():
+        errors.append(
+            "formula_id is required"
+        )
+
+    if not descriptor.formula_version.strip():
+        errors.append(
+            "formula_version is required"
+        )
+
+    if not descriptor.name.strip():
+        errors.append(
+            "formula name is required"
+        )
+
+    if not descriptor.owner.strip():
+        errors.append(
+            "formula owner is required"
+        )
+
+    if descriptor.validated is False:
+        warnings.append(
+            "formula descriptor is not research validated"
+        )
+
+    if descriptor.enabled and not descriptor.validated:
+        warnings.append(
+            "enabled formula is not research validated"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# ENGINE INTEGRITY
+# =============================================================================
+
+def validate_distribution_engine_integrity(
+    result: Optional[DistributionEngineResult] = None,
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    """
+    Validate engine-level architectural integrity.
+    """
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    authority = validate_distribution_authority()
+
+    if not authority["valid"]:
+        errors.append(
+            "Distribution Engine authority validation failed"
+        )
+
+    contract = DISTRIBUTION_ENGINE_CONTRACT
+
+    required_contract_keys = (
+        "engine",
+        "version",
+        "name",
+        "layer",
+        "role",
+        "authority_owner",
+        "inputs",
+        "outputs",
+        "formula_policy",
+        "downstream_consumers",
+        "forbidden_responsibilities",
+    )
+
+    for key in required_contract_keys:
+        if key not in contract:
+            errors.append(
+                f"missing contract key: {key}"
+            )
+
+    if contract.get("engine") != DISTRIBUTION_ENGINE:
+        errors.append(
+            "contract engine identifier mismatch"
+        )
+
+    if contract.get("version") != DISTRIBUTION_ENGINE_VERSION:
+        errors.append(
+            "contract version mismatch"
+        )
+
+    formula_policy = contract.get(
+        "formula_policy",
+        {},
+    )
+
+    if formula_policy.get(
+        "validated_required"
+    ) is not True:
+        errors.append(
+            "validated research formula must be required"
+        )
+
+    if formula_policy.get(
+        "formula_guessing_allowed"
+    ) is not False:
+        errors.append(
+            "formula guessing must remain disabled"
+        )
+
+    if formula_policy.get(
+        "default_formula_allowed"
+    ) is not False:
+        errors.append(
+            "default formula selection must remain disabled"
+        )
+
+    # -------------------------------------------------------------------------
+    # REGISTRY CHECK
+    # -------------------------------------------------------------------------
+
+    active_registry = (
+        registry
+        if registry is not None
+        else get_distribution_formula_registry()
+    )
+
+    registered_descriptors = (
+        active_registry.descriptors()
+    )
+
+    invalid_descriptors = []
+
+    for descriptor in registered_descriptors:
+
+        validation = validate_distribution_formula_descriptor(
+            descriptor
+        )
+
+        if not validation["valid"]:
+            invalid_descriptors.append(
+                descriptor.formula_id
+            )
+
+    if invalid_descriptors:
+        errors.append(
+            "invalid registered formula descriptors: "
+            + ", ".join(invalid_descriptors)
+        )
+
+    if not registered_descriptors:
+        warnings.append(
+            "no Distribution research formula is currently registered"
+        )
+
+    # -------------------------------------------------------------------------
+    # RESULT CHECK
+    # -------------------------------------------------------------------------
+
+    result_validation: Optional[Dict[str, Any]] = None
+
+    if result is not None:
+
+        result_validation = (
+            validate_distribution_engine_result(
+                result
+            )
+        )
+
+        if not result_validation["valid"]:
+            errors.extend(
+                [
+                    f"result: {error}"
+                    for error in result_validation["errors"]
+                ]
+            )
+
+        warnings.extend(
+            [
+                f"result: {warning}"
+                for warning in result_validation["warnings"]
+            ]
+        )
+
+    return {
+        "valid": not errors,
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "authority_valid": authority["valid"],
+        "registry_size": len(active_registry),
+        "registered_formula_count": len(
+            registered_descriptors
+        ),
+        "result_validation": result_validation,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# =============================================================================
+# HEALTH CONTRACT
+# =============================================================================
+
+@dataclass
+class DistributionEngineHealth:
+    """
+    Operational health state of Distribution Engine.
+
+    Operational != intelligence available.
+
+    A healthy engine can legitimately report that no validated research
+    formula is currently available.
+    """
+
+    engine: str = DISTRIBUTION_ENGINE
+    version: str = DISTRIBUTION_ENGINE_VERSION
+
+    operational: bool = False
+    authority_valid: bool = False
+
+    input_normalization_available: bool = True
+    multi_timeframe_available: bool = True
+
+    formula_registry_available: bool = False
+    validated_formula_available: bool = False
+
+    research_formula_required: bool = True
+    research_formula_generated_here: bool = False
+
+    distribution_intelligence_generated: bool = False
+
+    opportunity_generation: bool = False
+    decision_generation: bool = False
+    d13_generation: bool = False
+    risk_generation: bool = False
+    cas_generation: bool = False
+    execution_generation: bool = False
+
+    warnings: List[str] = field(default_factory=list)
+    errors: List[str] = field(default_factory=list)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# =============================================================================
+# HEALTH BUILDER
+# =============================================================================
+
+def build_distribution_engine_health(
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+    result: Optional[DistributionEngineResult] = None,
+) -> DistributionEngineHealth:
+    """
+    Build current Distribution Engine health state.
+    """
+
+    active_registry = (
+        registry
+        if registry is not None
+        else get_distribution_formula_registry()
+    )
+
+    authority = validate_distribution_authority()
+
+    warnings: List[str] = []
+    errors: List[str] = []
+
+    validated_formula_available = False
+
+    for descriptor in active_registry.descriptors():
+
+        if (
+            descriptor.enabled
+            and descriptor.validated
+        ):
+            validated_formula_available = True
+            break
+
+    integrity = validate_distribution_engine_integrity(
+        result=result,
+        registry=active_registry,
+    )
+
+    warnings.extend(
+        integrity["warnings"]
+    )
+
+    errors.extend(
+        integrity["errors"]
+    )
+
+    intelligence_generated = bool(
+        result is not None
+        and (
+            result.analysis is not None
+            or result.multi_timeframe is not None
+        )
+        and result.research_validated
+    )
+
+    return DistributionEngineHealth(
+        engine=DISTRIBUTION_ENGINE,
+        version=DISTRIBUTION_ENGINE_VERSION,
+        operational=bool(
+            authority["valid"]
+            and not errors
+        ),
+        authority_valid=authority["valid"],
+        input_normalization_available=True,
+        multi_timeframe_available=True,
+        formula_registry_available=True,
+        validated_formula_available=(
+            validated_formula_available
+        ),
+        research_formula_required=True,
+        research_formula_generated_here=False,
+        distribution_intelligence_generated=(
+            intelligence_generated
+        ),
+        opportunity_generation=False,
+        decision_generation=False,
+        d13_generation=False,
+        risk_generation=False,
+        cas_generation=False,
+        execution_generation=False,
+        warnings=warnings,
+        errors=errors,
+        metadata={
+            "registry_size": len(active_registry),
+            "intelligence_available": (
+                validated_formula_available
+            ),
+            "result_supplied": result is not None,
+            "engine_generated_formula": False,
+            "upstream_truth_preserved": True,
+        },
+    )
+
+
+# =============================================================================
+# HEALTH SERIALIZER
+# =============================================================================
+
+def serialize_distribution_engine_health(
+    health: DistributionEngineHealth,
+) -> Dict[str, Any]:
+    """
+    Serialize DistributionEngineHealth.
+    """
+
+    if not isinstance(
+        health,
+        DistributionEngineHealth,
+    ):
+        raise TypeError(
+            "health must be DistributionEngineHealth"
+        )
+
+    return _serialize_distribution_value(health)
+
+
+# =============================================================================
+# OPERATIONAL CHECK
+# =============================================================================
+
+def distribution_engine_operational_check(
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    """
+    Check engine operation independently from research availability.
+    """
+
+    health = build_distribution_engine_health(
+        registry=registry
+    )
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "operational": health.operational,
+        "authority_valid": health.authority_valid,
+        "formula_registry_available": (
+            health.formula_registry_available
+        ),
+        "validated_formula_available": (
+            health.validated_formula_available
+        ),
+        "intelligence_available": (
+            health.validated_formula_available
+        ),
+        "research_formula_required": (
+            health.research_formula_required
+        ),
+        "warnings": list(health.warnings),
+        "errors": list(health.errors),
+    }
+
+
+# =============================================================================
+# DIAGNOSTICS
+# =============================================================================
+
+def distribution_engine_diagnostics(
+    *,
+    registry: Optional[DistributionFormulaRegistry] = None,
+    result: Optional[DistributionEngineResult] = None,
+) -> Dict[str, Any]:
+    """
+    Full diagnostics report.
+    """
+
+    active_registry = (
+        registry
+        if registry is not None
+        else get_distribution_formula_registry()
+    )
+
+    health = build_distribution_engine_health(
+        registry=active_registry,
+        result=result,
+    )
+
+    descriptors = [
+        serialize_distribution_formula_descriptor(
+            descriptor
+        )
+        for descriptor in active_registry.descriptors()
+    ]
+
+    result_validation = None
+
+    if result is not None:
+        result_validation = (
+            validate_distribution_engine_result(
+                result
+            )
+        )
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "summary": distribution_engine_summary(),
+        "authority": validate_distribution_authority(),
+        "operational": (
+            distribution_engine_operational_check(
+                registry=active_registry
+            )
+        ),
+        "health": serialize_distribution_engine_health(
+            health
+        ),
+        "formula_registry": {
+            "size": len(active_registry),
+            "descriptors": descriptors,
+        },
+        "result_validation": result_validation,
+    }
+
+
+# =============================================================================
+# PART 4 SELF-CHECK
+# =============================================================================
+
+def distribution_part4_self_check() -> Dict[str, Any]:
+    """
+    Architectural self-check for Part 4.
+
+    The self-check deliberately does not require a formula to be registered.
+    """
+
+    registry = get_distribution_formula_registry()
+
+    authority = validate_distribution_authority()
+
+    operational = distribution_engine_operational_check(
+        registry=registry
+    )
+
+    required_symbols = [
+        "_serialize_distribution_value",
+        "serialize_distribution_input",
+        "serialize_multitimeframe_distribution_input",
+        "serialize_distribution_measurement",
+        "serialize_distribution_window",
+        "serialize_distribution_analysis",
+        "serialize_multitimeframe_distribution",
+        "serialize_distribution_engine_result",
+        "serialize_distribution_engine_request",
+        "serialize_distribution_engine_snapshot",
+        "serialize_distribution_formula_descriptor",
+        "validate_distribution_measurement",
+        "validate_distribution_window",
+        "validate_distribution_analysis",
+        "validate_multitimeframe_distribution",
+        "validate_distribution_engine_result",
+        "validate_distribution_formula_descriptor",
+        "validate_distribution_engine_integrity",
+        "DistributionEngineHealth",
+        "build_distribution_engine_health",
+        "serialize_distribution_engine_health",
+        "distribution_engine_operational_check",
+        "distribution_engine_diagnostics",
+    ]
+
+    missing_symbols = [
+        symbol
+        for symbol in required_symbols
+        if symbol not in globals()
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "part": 4,
+        "valid": (
+            authority["valid"]
+            and operational["operational"]
+            and not missing_symbols
+        ),
+        "authority_valid": authority["valid"],
+        "operational": operational["operational"],
+        "missing_symbols": missing_symbols,
+        "registered_formula_count": len(registry),
+        "validated_formula_available": (
+            operational["validated_formula_available"]
+        ),
+        "formula_generated_here": False,
+        "formula_guessing_allowed": False,
+        "default_formula_allowed": False,
+        "research_validation_required": True,
+        "d13_generation": False,
+        "decision_generation": False,
+        "risk_generation": False,
+        "cas_generation": False,
+        "execution_generation": False,
+    }
+
+
+# =============================================================================
+# PART 4 END
+# =============================================================================
+# ============================================================
+# DISTRIBUTION INTELLIGENCE ENGINE
+# PART 5 / 5
+# Final orchestration, helpers, manifest, self-check
+# ============================================================
+
+from typing import Any, Dict, Mapping, Optional, Sequence
+
+
+# ------------------------------------------------------------
+# REQUEST FACTORY
+# ------------------------------------------------------------
+
+def create_distribution_request(
+    input_data: Optional[DistributionInput] = None,
+    multi_timeframe_input: Optional[MultiTimeframeDistributionInput] = None,
+    formula_id: Optional[str] = None,
+    formula_version: Optional[str] = None,
+    formula_map: Optional[Mapping[Timeframe, str]] = None,
+    formula_version_map: Optional[Mapping[Timeframe, str]] = None,
+    metadata: Optional[Mapping[str, Any]] = None,
+) -> DistributionEngineRequest:
+    """
+    Create an explicit distribution-engine request.
+
+    Formula selection remains explicit.
+    No default or guessed formula is inserted.
+    """
+
+    return DistributionEngineRequest(
+        input_data=input_data,
+        multi_timeframe_input=multi_timeframe_input,
+        formula_id=formula_id,
+        formula_version=formula_version,
+        formula_map=dict(formula_map or {}),
+        formula_version_map=dict(formula_version_map or {}),
+        metadata=dict(metadata or {}),
+    )
+
+
+def execute_distribution_request(
+    request: DistributionEngineRequest,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    """
+    Execute a DistributionEngineRequest.
+
+    Exactly one analysis path is allowed:
+        single timeframe OR multi-timeframe.
+    """
+
+    if not isinstance(request, DistributionEngineRequest):
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=None,
+            symbol=None,
+            research_validated=False,
+            errors=["request must be DistributionEngineRequest"],
+            metadata={"request_type_valid": False},
+        )
+
+    if request.input_data is not None and request.multi_timeframe_input is not None:
+        return DistributionEngineResult(
+            status=DistributionStatus.INVALID,
+            instrument_id=None,
+            symbol=None,
+            research_validated=False,
+            errors=["request cannot contain both input_data and multi_timeframe_input"],
+            metadata={"request_mode": "CONFLICTING"},
+        )
+
+    if request.multi_timeframe_input is not None:
+        return run_distribution_engine(
+            multi_timeframe_input=request.multi_timeframe_input,
+            formula_map=request.formula_map,
+            formula_version_map=request.formula_version_map,
+            registry=registry,
+        )
+
+    if request.input_data is not None:
+        return run_distribution_engine(
+            input_data=request.input_data,
+            formula_id=request.formula_id,
+            formula_version=request.formula_version,
+            registry=registry,
+        )
+
+    return DistributionEngineResult(
+        status=DistributionStatus.INSUFFICIENT_DATA,
+        instrument_id=None,
+        symbol=None,
+        research_validated=False,
+        warnings=["no distribution input supplied"],
+        metadata={"request_mode": "EMPTY"},
+    )
+
+
+# ------------------------------------------------------------
+# RESULT HELPERS
+# ------------------------------------------------------------
+
+def distribution_result_is_ready(
+    result: Optional[DistributionEngineResult],
+) -> bool:
+    return bool(
+        isinstance(result, DistributionEngineResult)
+        and result.status == DistributionStatus.READY
+    )
+
+
+def distribution_result_has_validated_research(
+    result: Optional[DistributionEngineResult],
+) -> bool:
+    return bool(
+        isinstance(result, DistributionEngineResult)
+        and result.research_validated
+    )
+
+
+def distribution_result_has_errors(
+    result: Optional[DistributionEngineResult],
+) -> bool:
+    return bool(
+        isinstance(result, DistributionEngineResult)
+        and len(result.errors) > 0
+    )
+
+
+def distribution_result_has_warnings(
+    result: Optional[DistributionEngineResult],
+) -> bool:
+    return bool(
+        isinstance(result, DistributionEngineResult)
+        and len(result.warnings) > 0
+    )
+
+
+# ------------------------------------------------------------
+# ANALYSIS SUMMARY
+# ------------------------------------------------------------
+
+def summarize_distribution_analysis(
+    analysis: Optional[DistributionAnalysis],
+) -> Dict[str, Any]:
+    if analysis is None:
+        return {
+            "available": False,
+            "status": DistributionStatus.UNKNOWN.value,
+        }
+
+    return {
+        "available": True,
+        "status": analysis.status.value,
+        "instrument_id": analysis.instrument_id,
+        "symbol": analysis.symbol,
+        "timeframe": analysis.timeframe.value,
+        "state": analysis.state.value,
+        "direction": analysis.direction.value,
+        "phase": analysis.phase.value,
+        "strength": analysis.strength.value,
+        "confidence": analysis.confidence.value,
+        "research_validated": analysis.research_validated,
+        "formula_id": analysis.formula_id,
+        "formula_version": analysis.formula_version,
+        "formula_name": analysis.formula_name,
+        "formula_owner": analysis.formula_owner,
+        "formula_registry_key": analysis.formula_registry_key,
+        "is_signal": analysis.is_signal,
+        "is_decision": analysis.is_decision,
+        "is_opportunity": analysis.is_opportunity,
+        "measurement_count": len(analysis.measurements),
+        "warning_count": len(analysis.warnings),
+        "error_count": len(analysis.errors),
+    }
+
+
+def summarize_multitimeframe_distribution(
+    mtf: Optional[MultiTimeframeDistribution],
+) -> Dict[str, Any]:
+    if mtf is None:
+        return {
+            "available": False,
+            "status": DistributionStatus.UNKNOWN.value,
+        }
+
+    return {
+        "available": True,
+        "status": mtf.status.value,
+        "instrument_id": mtf.instrument_id,
+        "symbol": mtf.symbol,
+        "analysis_count": len(mtf.analyses),
+        "relation": mtf.relation.value,
+        "dominant_state": mtf.dominant_state.value,
+        "dominant_direction": mtf.dominant_direction.value,
+        "average_confidence": mtf.average_confidence.value,
+        "research_validated": mtf.research_validated,
+        "warning_count": len(mtf.warnings),
+        "error_count": len(mtf.errors),
+    }
+
+
+def distribution_result_summary(
+    result: Optional[DistributionEngineResult],
+) -> Dict[str, Any]:
+    if result is None:
+        return {
+            "available": False,
+            "status": DistributionStatus.UNKNOWN.value,
+        }
+
+    return {
+        "available": True,
+        "status": result.status.value,
+        "instrument_id": result.instrument_id,
+        "symbol": result.symbol,
+        "research_validated": result.research_validated,
+        "formula_id": result.formula_id,
+        "formula_version": result.formula_version,
+        "has_analysis": result.analysis is not None,
+        "has_multi_timeframe": result.multi_timeframe is not None,
+        "analysis": summarize_distribution_analysis(result.analysis),
+        "multi_timeframe": summarize_multitimeframe_distribution(
+            result.multi_timeframe
+        ),
+        "warning_count": len(result.warnings),
+        "error_count": len(result.errors),
+    }
+
+
+def distribution_formula_registry_summary(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    registry = registry or get_distribution_formula_registry()
+
+    descriptors = registry.descriptors()
+
+    return {
+        "registry_available": True,
+        "formula_count": len(descriptors),
+        "validated_formula_count": sum(
+            1 for descriptor in descriptors
+            if descriptor.validated
+        ),
+        "enabled_formula_count": sum(
+            1 for descriptor in descriptors
+            if descriptor.enabled
+        ),
+        "formulas": [
+            {
+                "formula_id": descriptor.formula_id,
+                "formula_version": descriptor.formula_version,
+                "name": descriptor.name,
+                "validated": descriptor.validated,
+                "enabled": descriptor.enabled,
+                "owner": descriptor.owner,
+                "supported_asset_classes": list(
+                    descriptor.supported_asset_classes
+                ),
+                "supported_timeframes": list(
+                    descriptor.supported_timeframes
+                ),
+            }
+            for descriptor in descriptors
+        ],
+    }
+
+
+# ------------------------------------------------------------
+# CONTRACT / MODULE INTEGRITY
+# ------------------------------------------------------------
+
+def validate_distribution_contract_integrity(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    registry = registry or get_distribution_formula_registry()
+
+    errors = []
+    warnings = []
+
+    authority = validate_distribution_authority()
+
+    if authority.get("valid") is not True:
+        errors.append("distribution authority validation failed")
+
+    required_contract_keys = {
+        "layer",
+        "role",
+        "authority_owner",
+        "inputs",
+        "outputs",
+        "formula_policy",
+        "downstream_consumers",
+        "forbidden_responsibilities",
+    }
+
+    missing_keys = required_contract_keys.difference(
+        DISTRIBUTION_ENGINE_CONTRACT.keys()
+    )
+
+    if missing_keys:
+        errors.append(
+            "missing contract keys: "
+            + ", ".join(sorted(missing_keys))
+        )
+
+    formula_policy = DISTRIBUTION_ENGINE_CONTRACT.get(
+        "formula_policy",
+        {},
+    )
+
+    if not formula_policy.get("registry_based", False):
+        errors.append("formula registry policy is not enabled")
+
+    if not formula_policy.get("validated_required", False):
+        errors.append("validated research formula requirement missing")
+
+    if formula_policy.get("default_formula_allowed", True):
+        errors.append("default formula must remain forbidden")
+
+    if formula_policy.get("guessing_allowed", True):
+        errors.append("formula guessing must remain forbidden")
+
+    if formula_policy.get("silent_substitution_allowed", True):
+        errors.append(
+            "silent formula substitution must remain forbidden"
+        )
+
+    registry_check = {
+        "registry_available": registry is not None,
+        "formula_count": len(registry) if registry is not None else 0,
+        "validated_formula_count": sum(
+            1 for descriptor in registry.descriptors()
+            if descriptor.validated
+        ) if registry is not None else 0,
+        "enabled_formula_count": sum(
+            1 for descriptor in registry.descriptors()
+            if descriptor.enabled
+        ) if registry is not None else 0,
+    }
+
+    if not registry_check["registry_available"]:
+        errors.append("formula registry unavailable")
+
+    if errors:
+        status = "INVALID"
+    elif warnings:
+        status = "DEGRADED"
+    else:
+        status = "VALID"
+
+    return {
+        "status": status,
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+        "authority_valid": authority,
+        "formula_registry": registry_check,
+    }
+
+
+# ------------------------------------------------------------
+# FINAL CONTRACT MANIFEST
+# ------------------------------------------------------------
+
+def distribution_engine_contract_manifest() -> Dict[str, Any]:
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "name": DISTRIBUTION_ENGINE_NAME,
+        "layer": "INTELLIGENCE_ENGINE",
+        "role": "DISTRIBUTION_INTELLIGENCE",
+        "importance": "CLASS_A_INTELLIGENCE_COMPONENT",
+
+        "pipeline": [
+            "RAW_MARKET_DATA",
+            "NORMALIZED_MARKET_DATA",
+            "STRUCTURE_INTELLIGENCE",
+            "DISTRIBUTION_INPUT",
+            "VALIDATED_RESEARCH_FORMULA",
+            "DISTRIBUTION_ANALYSIS",
+            "MULTI_TIMEFRAME_DISTRIBUTION",
+            "BOUNDARY_ENGINE",
+            "BREAKOUT_ENGINE",
+            "CONFIRMATION_ENGINE",
+            "OPPORTUNITY_ENGINE",
+            "EQUITY_SCANNER",
+            "FUTURE_SCANNER",
+        ],
+
+        "formula_policy": {
+            "registry_based": True,
+            "validated_required": True,
+            "explicit_selection": True,
+            "version_traceability": True,
+            "formula_guessing": False,
+            "default_formula": False,
+            "silent_substitution": False,
+            "engine_generates_formula": False,
+        },
+
+        "truth_policy": {
+            "math_first": True,
+            "research_first": True,
+            "structure_context_is_input": True,
+            "distribution_is_not_breakout": True,
+            "distribution_is_not_signal": True,
+            "distribution_is_not_decision": True,
+            "pattern_secondary": True,
+            "pattern_cannot_override_math": True,
+            "upstream_truth_preserved": True,
+        },
+
+        "research_hooks": [
+            "DISTRIBUTION_STRUCTURE_FORMULA",
+            "DISTRIBUTION_VOLUME_FORMULA",
+            "DISTRIBUTION_PRICE_BEHAVIOR_FORMULA",
+            "DISTRIBUTION_RANGE_BEHAVIOR_FORMULA",
+            "DISTRIBUTION_PARTICIPATION_FORMULA",
+            "DISTRIBUTION_QUALITY_FORMULA",
+            "DISTRIBUTION_INVALIDATION_FORMULA",
+            "MULTI_TIMEFRAME_DISTRIBUTION_FORMULA",
+        ],
+
+        "authority": {
+            "distribution_analysis": True,
+            "multi_timeframe_distribution": True,
+            "research_formula_consumption": True,
+            "opportunity_generation": False,
+            "scanner_generation": False,
+            "decision_generation": False,
+            "d13_generation": False,
+            "risk_generation": False,
+            "cas_generation": False,
+            "execution_generation": False,
+            "upstream_mutation": False,
+        },
+
+        "downstream_consumers": [
+            "BOUNDARY_ENGINE",
+            "BREAKOUT_ENGINE",
+            "CONFIRMATION_ENGINE",
+            "RELATIONSHIP_ENGINE",
+            "OPPORTUNITY_ENGINE",
+            "EQUITY_SCANNER",
+            "FUTURE_SCANNER",
+        ],
+    }
+
+
+# ------------------------------------------------------------
+# MODULE VALIDATION
+# ------------------------------------------------------------
+
+def validate_distribution_module_integrity(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    registry = registry or get_distribution_formula_registry()
+
+    contract_check = validate_distribution_contract_integrity(registry)
+    operational = distribution_engine_operational_check(registry)
+    diagnostics = distribution_engine_diagnostics(registry)
+    self_check = distribution_part4_self_check(registry)
+
+    errors = []
+    warnings = []
+
+    errors.extend(contract_check.get("errors", []))
+    errors.extend(operational.get("errors", []))
+    errors.extend(self_check.get("errors", []))
+
+    warnings.extend(contract_check.get("warnings", []))
+    warnings.extend(operational.get("warnings", []))
+    warnings.extend(diagnostics.get("warnings", []))
+    warnings.extend(self_check.get("warnings", []))
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "valid": len(errors) == 0,
+        "status": "VALID" if not errors else "INVALID",
+        "errors": list(dict.fromkeys(errors)),
+        "warnings": list(dict.fromkeys(warnings)),
+        "contract": contract_check,
+        "operational": operational,
+        "diagnostics": diagnostics,
+        "self_check": self_check,
+        "manifest": distribution_engine_contract_manifest(),
+    }
+
+
+def distribution_engine_module_check(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> bool:
+    return bool(
+        validate_distribution_module_integrity(registry).get(
+            "valid",
+            False,
+        )
+    )
+
+
+# ------------------------------------------------------------
+# FINAL SELF-CHECK
+# ------------------------------------------------------------
+
+def distribution_engine_self_check(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    """
+    Final architectural self-check.
+
+    Critical rule:
+    the engine must NEVER fabricate distribution intelligence
+    without a validated upstream research formula.
+    """
+
+    registry = registry or get_distribution_formula_registry()
+
+    checks = {
+        "authority_valid": validate_distribution_authority(),
+        "contract_manifest_available": bool(
+            distribution_engine_contract_manifest()
+        ),
+        "formula_registry_available": registry is not None,
+        "no_formula_guessing": (
+            DISTRIBUTION_ENGINE_CONTRACT
+            .get("formula_policy", {})
+            .get("guessing_allowed", True)
+            is False
+        ),
+        "no_default_formula": (
+            DISTRIBUTION_ENGINE_CONTRACT
+            .get("formula_policy", {})
+            .get("default_formula_allowed", True)
+            is False
+        ),
+        "no_silent_substitution": (
+            DISTRIBUTION_ENGINE_CONTRACT
+            .get("formula_policy", {})
+            .get("silent_substitution_allowed", True)
+            is False
+        ),
+        "engine_does_not_generate_formula": (
+            DISTRIBUTION_ENGINE_CONTRACT
+            .get("formula_policy", {})
+            .get("engine_generates_formula", True)
+            is False
+        ),
+        "distribution_not_signal": (
+            DISTRIBUTION_ENGINE_AUTHORITY
+            .get("confirmation_generation", True)
+            is False
+            and DISTRIBUTION_ENGINE_AUTHORITY
+            .get("opportunity_generation", True)
+            is False
+        ),
+        "distribution_not_decision": (
+            DISTRIBUTION_ENGINE_AUTHORITY
+            .get("decision_generation", True) is False
+            and DISTRIBUTION_ENGINE_AUTHORITY
+            .get("d13_generation", True) is False
+        ),
+        "distribution_not_risk": (
+            DISTRIBUTION_ENGINE_AUTHORITY
+            .get("risk_generation", True) is False
+        ),
+        "distribution_not_execution": (
+            DISTRIBUTION_ENGINE_AUTHORITY
+            .get("execution_generation", True) is False
+        ),
+    }
+
+    errors = [
+        key for key, passed in checks.items()
+        if not passed
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "version": DISTRIBUTION_ENGINE_VERSION,
+        "valid": not errors,
+        "status": "PASS" if not errors else "FAIL",
+        "checks": checks,
+        "errors": errors,
+        "warnings": [],
+        "validated_formula_count": sum(
+            1
+            for descriptor in registry.descriptors()
+            if descriptor.validated and descriptor.enabled
+        ),
+        "critical_truth": (
+            "No validated research formula = no fabricated "
+            "distribution intelligence."
+        ),
+    }
+
+
+# ------------------------------------------------------------
+# DEFAULT REQUEST
+# ------------------------------------------------------------
+
+def create_default_distribution_engine_request(
+    instrument_id: Optional[str] = None,
+    symbol: Optional[str] = None,
+    asset_class: Optional[str] = None,
+    market_id: Optional[str] = None,
+    timeframe: Timeframe = Timeframe.UNKNOWN,
+) -> DistributionEngineRequest:
+    """
+    Create a structurally valid request shell.
+
+    No market intelligence and no formula are fabricated.
+    """
+
+    input_data = DistributionInput(
+        instrument_id=instrument_id,
+        symbol=symbol,
+        asset_class=asset_class,
+        market_id=market_id,
+        timeframe=timeframe,
+        metadata={
+            "request_shell": True,
+            "intelligence_available": False,
+            "formula_selected": False,
+        },
+    )
+
+    return create_distribution_request(
+        input_data=input_data,
+        metadata={
+            "default_request": True,
+            "formula_required": True,
+            "research_formula_required": True,
+        },
+    )
+
+
+# ------------------------------------------------------------
+# CONVENIENCE API
+# ------------------------------------------------------------
+
+def analyze_single_timeframe_distribution(
+    input_data: DistributionInput,
+    formula_id: str,
+    formula_version: Optional[str] = None,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    return run_distribution_engine(
+        input_data=input_data,
+        formula_id=formula_id,
+        formula_version=formula_version,
+        registry=registry,
+    )
+
+
+def analyze_distribution_timeframes(
+    multi_timeframe_input: MultiTimeframeDistributionInput,
+    formula_map: Optional[Mapping[Timeframe, str]] = None,
+    formula_version_map: Optional[Mapping[Timeframe, str]] = None,
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> DistributionEngineResult:
+    return run_distribution_engine(
+        multi_timeframe_input=multi_timeframe_input,
+        formula_map=formula_map,
+        formula_version_map=formula_version_map,
+        registry=registry,
+    )
+
+
+# ------------------------------------------------------------
+# PART 5 CONTRACT CHECK
+# ------------------------------------------------------------
+
+def distribution_part5_contract_check(
+    registry: Optional[DistributionFormulaRegistry] = None,
+) -> Dict[str, Any]:
+    registry = registry or get_distribution_formula_registry()
+
+    checks = {
+        "request_factory_available": callable(
+            create_distribution_request
+        ),
+        "request_executor_available": callable(
+            execute_distribution_request
+        ),
+        "result_helpers_available": all(
+            callable(fn)
+            for fn in (
+                distribution_result_is_ready,
+                distribution_result_has_validated_research,
+                distribution_result_has_errors,
+                distribution_result_has_warnings,
+            )
+        ),
+        "summary_helpers_available": all(
+            callable(fn)
+            for fn in (
+                summarize_distribution_analysis,
+                summarize_multitimeframe_distribution,
+                distribution_result_summary,
+                distribution_formula_registry_summary,
+            )
+        ),
+        "contract_manifest_available": callable(
+            distribution_engine_contract_manifest
+        ),
+        "module_validator_available": callable(
+            validate_distribution_module_integrity
+        ),
+        "self_check_available": callable(
+            distribution_engine_self_check
+        ),
+        "convenience_api_available": all(
+            callable(fn)
+            for fn in (
+                analyze_single_timeframe_distribution,
+                analyze_distribution_timeframes,
+            )
+        ),
+        "no_registered_formula_required_for_architecture": True,
+    }
+
+    errors = [
+        key for key, value in checks.items()
+        if not value
+    ]
+
+    return {
+        "engine": DISTRIBUTION_ENGINE,
+        "part": 5,
+        "valid": not errors,
+        "status": "PASS" if not errors else "FAIL",
+        "checks": checks,
+        "errors": errors,
+        "registry_formula_count": len(registry),
+    }
+
+
+# ------------------------------------------------------------
+# FINAL MODULE MANIFEST
+# ------------------------------------------------------------
+
+DISTRIBUTION_ENGINE_MODULE_MANIFEST = {
+    "engine": DISTRIBUTION_ENGINE,
+    "version": DISTRIBUTION_ENGINE_VERSION,
+    "completed_parts": [
+        "PART_1_ARCHITECTURE_AND_CONTRACT",
+        "PART_2_NORMALIZATION_AND_FORMULA_REGISTRY",
+        "PART_3_ANALYSIS_AND_MTF_ORCHESTRATION",
+        "PART_4_SERIALIZATION_VALIDATION_HEALTH",
+        "PART_5_FINAL_ORCHESTRATION_AND_MANIFEST",
+    ],
+    "layer": "INTELLIGENCE_ENGINE",
+    "role": "DISTRIBUTION_INTELLIGENCE",
+    "importance": "CLASS_A_INTELLIGENCE_COMPONENT",
+    "formula_generation": False,
+    "formula_consumption": True,
+    "validated_research_required": True,
+    "formula_registry_required": True,
+    "formula_guessing": False,
+    "default_formula": False,
+    "silent_formula_substitution": False,
+    "signal_generation": False,
+    "opportunity_generation": False,
+    "decision_generation": False,
+    "d13_generation": False,
+    "risk_generation": False,
+    "cas_generation": False,
+    "execution_generation": False,
+    "upstream_mutation": False,
+    "truth_policy": {
+        "math_first": True,
+        "research_first": True,
+        "upstream_truth_preserved": True,
+        "distribution_is_not_breakout": True,
+        "distribution_is_not_signal": True,
+        "distribution_is_not_decision": True,
+        "pattern_cannot_override_math": True,
+    },
+    "research_hooks": [
+        "DISTRIBUTION_STRUCTURE_FORMULA",
+        "DISTRIBUTION_VOLUME_FORMULA",
+        "DISTRIBUTION_PRICE_BEHAVIOR_FORMULA",
+        "DISTRIBUTION_RANGE_BEHAVIOR_FORMULA",
+        "DISTRIBUTION_PARTICIPATION_FORMULA",
+        "DISTRIBUTION_QUALITY_FORMULA",
+        "DISTRIBUTION_INVALIDATION_FORMULA",
+        "MULTI_TIMEFRAME_DISTRIBUTION_FORMULA",
+    ],
+}
+
+
+# ------------------------------------------------------------
+# FINAL PART 5 ASSERTION
+# ------------------------------------------------------------
+
+if __name__ == "__main__":
+    _part5_check = distribution_part5_contract_check()
+
+    if not _part5_check["valid"]:
+        raise RuntimeError(
+            "Distribution Engine Part 5 contract check failed: "
+            + repr(_part5_check["errors"])
+        )
+
+    _self_check = distribution_engine_self_check()
+
+    if not _self_check["valid"]:
+        raise RuntimeError(
+            "Distribution Engine self-check failed: "
+            + repr(_self_check["errors"])
+        )

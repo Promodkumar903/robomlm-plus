@@ -1,0 +1,288 @@
+Folder PATH listing
+Volume serial number is 00000087 9889:F6A6
+C:\USERS\ADMINISTRATOR\ROBOMLM_PLUS\APP\INTELLIGENCE
+|   commitment_engine.py
+|   confidence_engine.py
+|   decision_orchestrator.py
+|   evidence_orchestrator.py
+|   intelligence_orchestrator.py
+|   magnitude_engine.py
+|   market_context.py
+|   opportunity_intelligence.py
+|   regime_intelligence.py
+|   relationship_intelligence.py
+|   strategy_intelligence.py
+|   timing_intelligence.py
+|   verdict_engine.py
+|   __init__.py
+|   
++---cas
+|   |   cas_audit.py
+|   |   cas_orchestrator.py
+|   |   compliance_gate.py
+|   |   execution_safety_gate.py
+|   |   exposure_gate.py
+|   |   position_gate.py
+|   |   restriction_engine.py
+|   |   risk_gate.py
+|   |   suitability_gate.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           cas_audit.cpython-314.pyc
+|           cas_orchestrator.cpython-314.pyc
+|           compliance_gate.cpython-314.pyc
+|           execution_safety_gate.cpython-314.pyc
+|           exposure_gate.cpython-314.pyc
+|           position_gate.cpython-314.pyc
+|           restriction_engine.cpython-314.pyc
+|           risk_gate.cpython-314.pyc
+|           suitability_gate.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---decision
+|   |   10_decision_market_state - Copy.py
+|   |   10_decision_market_state.py
+|   |   10_decision_market_state.py.bak
+|   |   11_decision_transition - Copy.py
+|   |   11_decision_transition.py
+|   |   12_decision_future_scenario - Copy.py
+|   |   12_decision_future_scenario.py
+|   |   13_decision_decision - Copy.py
+|   |   13_decision_decision.py
+|   |   14_decision_validation - Copy.py
+|   |   14_decision_validation.py
+|   |   15_decision_learning.py
+|   |   16_decision_intelligence - Copy.py
+|   |   16_decision_intelligence.py
+|   |   1_Decision_Readiness.py
+|   |   2_decision_condition.py
+|   |   3_decision_confidence.py
+|   |   4_decision_relationships.py
+|   |   5_decision_structure.py
+|   |   6_decision_flow.py
+|   |   7_decision_liquidity_volatility.py
+|   |   8_decision_instrument_mechanics.py
+|   |   9_decision_time_event.py
+|   |   decision_explainer.py
+|   |   decision_state.py
+|   |   htf_scalper_engine.py
+|   |   opportunity_ranker.py
+|   |   timing_engine.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           10_decision_market_state.cpython-314.pyc
+|           11_decision_transition - Copy.cpython-314.pyc
+|           11_decision_transition.cpython-314.pyc
+|           12_decision_future_scenario.cpython-314.pyc
+|           13_decision_decision - Copy.cpython-314.pyc
+|           13_decision_decision.cpython-314.pyc
+|           14_decision_validation - Copy.cpython-314.pyc
+|           14_decision_validation.cpython-314.pyc
+|           15_decision_learning.cpython-314.pyc
+|           16_decision_intelligence - Copy.cpython-314.pyc
+|           16_decision_intelligence.cpython-314.pyc
+|           1_Decision_Readiness.cpython-314.pyc
+|           2_decision_condition.cpython-314.pyc
+|           3_decision_confidence.cpython-314.pyc
+|           4_decision_relationships.cpython-314.pyc
+|           5_decision_structure.cpython-314.pyc
+|           6_decision_flow.cpython-314.pyc
+|           7_decision_liquidity_volatility.cpython-314.pyc
+|           8_decision_instrument_mechanics.cpython-314.pyc
+|           9_decision_time_event.cpython-314.pyc
+|           decision_explainer.cpython-314.pyc
+|           decision_state.cpython-314.pyc
+|           htf_scalper_engine.cpython-314.pyc
+|           opportunity_ranker.cpython-314.pyc
+|           timing_engine.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---evidence
+|   |   ace.py
+|   |   dar.py
+|   |   dcs.py
+|   |   evidence_confidence.py
+|   |   evidence_conflict.py
+|   |   evidence_engine_base.py
+|   |   evidence_normalizer.py
+|   |   evidence_orchestrator.py
+|   |   evidence_package.py
+|   |   mbc.py
+|   |   mdil.py
+|   |   mkn.py
+|   |   msdl.py
+|   |   ned.py
+|   |   oxe.py
+|   |   source_reliability.py
+|   |   tv.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           ace.cpython-314.pyc
+|           dar.cpython-314.pyc
+|           dcs.cpython-314.pyc
+|           evidence_confidence.cpython-314.pyc
+|           evidence_conflict.cpython-314.pyc
+|           evidence_engine_base.cpython-314.pyc
+|           evidence_normalizer.cpython-314.pyc
+|           evidence_orchestrator.cpython-314.pyc
+|           evidence_package.cpython-314.pyc
+|           mbc.cpython-314.pyc
+|           mdil.cpython-314.pyc
+|           mkn.cpython-314.pyc
+|           msdl.cpython-314.pyc
+|           ned.cpython-314.pyc
+|           oxe.cpython-314.pyc
+|           source_reliability.cpython-314.pyc
+|           tv.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---memory
+|   |   decision_memory.py
+|   |   evidence_memory.py
+|   |   market_memory.py
+|   |   memory_retrieval.py
+|   |   memory_service.py
+|   |   outcome_memory.py
+|   |   pattern_memory.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           decision_memory.cpython-314.pyc
+|           evidence_memory.cpython-314.pyc
+|           market_memory.cpython-314.pyc
+|           memory_retrieval.cpython-314.pyc
+|           memory_service.cpython-314.pyc
+|           outcome_memory.cpython-314.pyc
+|           pattern_memory.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---metrics
+|   |   eqe.py
+|   |   lqs.py
+|   |   mcs.py
+|   |   mct.py
+|   |   mct.py.bak
+|   |   mts.py
+|   |   pfs.py
+|   |   rds.py
+|   |   tps.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           eqe.cpython-314.pyc
+|           lqs.cpython-314.pyc
+|           mcs.cpython-314.pyc
+|           mct.cpython-314.pyc
+|           mts.cpython-314.pyc
+|           pfs.cpython-314.pyc
+|           rds.cpython-314.pyc
+|           tps.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---opportunity
+|   |   favorites_engine.py
+|   |   intraday_engine.py
+|   |   liquidity_filter.py
+|   |   opportunity_engine.py
+|   |   opportunity_explainer.py
+|   |   ranking_engine.py
+|   |   risk_filter.py
+|   |   scanner_engine.py
+|   |   timing_engine.py
+|   |   top10_engine.py
+|   |   universe_engine.py
+|   |   __init__.py
+|   |   
+|   +---backup
+|   |   |   intraday_engine.py
+|   |   |   liquidity_filter.py
+|   |   |   opportunity_explainer.py
+|   |   |   ranking_engine.py
+|   |   |   risk_filter.py
+|   |   |   timing_engine.py
+|   |   |   universe_engine.py
+|   |   |   
+|   |   \---__pycache__
+|   |           intraday_engine.cpython-314.pyc
+|   |           opportunity_explainer.cpython-314.pyc
+|   |           ranking_engine.cpython-314.pyc
+|   |           risk_filter.cpython-314.pyc
+|   |           timing_engine.cpython-314.pyc
+|   |           universe_engine.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           intraday_engine.cpython-314.pyc
+|           opportunity_engine.cpython-314.pyc
+|           ranking_engine.cpython-314.pyc
+|           risk_filter.cpython-314.pyc
+|           scanner_engine.cpython-314.pyc
+|           timing_engine.cpython-314.pyc
+|           top10_engine.cpython-314.pyc
+|           universe_engine.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---research
+|   |   candidate_manager.py
+|   |   dataset.py
+|   |   deployment_manager.py
+|   |   experiment.py
+|   |   hypothesis.py
+|   |   research_service.py
+|   |   stress_testing.py
+|   |   validation.py
+|   |   version_manager.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           candidate_manager.cpython-314.pyc
+|           dataset.cpython-314.pyc
+|           deployment_manager.cpython-314.pyc
+|           experiment.cpython-314.pyc
+|           hypothesis.cpython-314.pyc
+|           research_service.cpython-314.pyc
+|           stress_testing.cpython-314.pyc
+|           validation.cpython-314.pyc
+|           version_manager.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---robomlm_plus
+|   |   advanced_decision.py
+|   |   emergency_control.py
+|   |   execution_preparation.py
+|   |   halt_controller.py
+|   |   plus_orchestrator.py
+|   |   position_monitor.py
+|   |   protection.py
+|   |   reconciliation.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           advanced_decision.cpython-314.pyc
+|           emergency_control.cpython-314.pyc
+|           execution_preparation.cpython-314.pyc
+|           halt_controller.cpython-314.pyc
+|           plus_orchestrator.cpython-314.pyc
+|           position_monitor.cpython-314.pyc
+|           protection.cpython-314.pyc
+|           reconciliation.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
+\---__pycache__
+        commitment_engine.cpython-314.pyc
+        confidence_engine.cpython-314.pyc
+        decision_orchestrator.cpython-314.pyc
+        evidence_orchestrator.cpython-314.pyc
+        intelligence_orchestrator.cpython-314.pyc
+        magnitude_engine.cpython-314.pyc
+        market_context.cpython-314.pyc
+        opportunity_intelligence.cpython-314.pyc
+        regime_intelligence.cpython-314.pyc
+        relationship_intelligence.cpython-314.pyc
+        strategy_intelligence.cpython-314.pyc
+        timing_intelligence.cpython-314.pyc
+        verdict_engine.cpython-314.pyc
+        __init__.cpython-314.pyc
+        

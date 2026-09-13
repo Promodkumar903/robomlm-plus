@@ -1,0 +1,379 @@
+1:"""
+2:ROBOMLM PLUS
+3:Contract Service
+4:
+5:Application-level service for contract identity creation, registration,
+6:lookup, filtering, and lifecycle validation.
+7:
+8:This service does not perform broker/exchange calls or order execution.
+9:"""
+10:
+11:from __future__ import annotations
+12:
+13:from dataclasses import dataclass
+14:from datetime import date
+15:from typing import Any, Iterable, Mapping, Optional
+16:
+17:from .contract_identity import (
+18:    ContractIdentity,
+19:    ContractIdentityValidationError,
+20:    create_contract_identity,
+21:)
+22:from .contract_registry import (
+23:    ContractNotFoundError,
+24:    ContractRegistry,
+25:    contract_registry,
+26:)
+27:
+28:
+29:class ContractServiceError(Exception):
+30:    """Base exception for contract-service failures."""
+31:
+32:
+33:class ContractServiceValidationError(ContractServiceError):
+34:    """Raised when contract-service input is invalid."""
+35:
+36:
+37:@dataclass(frozen=True)
+38:class ContractQuery:
+39:    """Normalized contract lookup criteria."""
+40:
+41:    market: Optional[str] = None
+42:    instrument: Optional[str] = None
+43:    venue: Optional[str] = None
+44:    contract_type: Optional[str] = None
+45:    expiry: Optional[date] = None
+46:    option_type: Optional[str] = None
+47:
+48:    def normalized(self) -> "ContractQuery":
+49:        """Return a normalized copy of the query."""
+50:        return ContractQuery(
+51:            market=_normalize_optional(self.market),
+52:            instrument=_normalize_optional(self.instrument),
+53:            venue=_normalize_optional(self.venue),
+54:            contract_type=_normalize_optional(
+55:                self.contract_type
+56:            ),
+57:            expiry=self.expiry,
+58:            option_type=_normalize_optional(
+59:                self.option_type
+60:            ),
+61:        )
+62:
+63:
+64:class ContractService:
+65:    """
+66:    Application service around ContractIdentity and ContractRegistry.
+67:    """
+68:
+69:    def __init__(
+70:        self,
+71:        registry: Optional[ContractRegistry] = None,
+72:    ) -> None:
+73:        self.registry = registry or contract_registry
+74:
+75:    def create(
+76:        self,
+77:        *,
+78:        market: str,
+79:        instrument: str,
+80:        venue: str,
+81:        contract: str,
+82:        contract_type: Optional[str] = None,
+83:        expiry: Optional[date] = None,
+84:        strike: Optional[float] = None,
+85:        option_type: Optional[str] = None,
+86:        currency: Optional[str] = None,
+87:        multiplier: Optional[float] = None,
+88:        metadata: Optional[Mapping[str, Any]] = None,
+89:        replace: bool = False,
+90:    ) -> ContractIdentity:
+91:        """Create and register a contract identity."""
+92:        try:
+93:            identity = create_contract_identity(
+94:                market=market,
+95:                instrument=instrument,
+96:                venue=venue,
+97:                contract=contract,
+98:                contract_type=contract_type,
+99:                expiry=expiry,
+100:                strike=strike,
+101:                option_type=option_type,
+102:                currency=currency,
+103:                multiplier=multiplier,
+104:                metadata=metadata,
+105:            )
+106:        except ContractIdentityValidationError as exc:
+107:            raise ContractServiceValidationError(
+108:                str(exc)
+109:            ) from exc
+110:
+111:        return self.registry.register(
+112:            identity,
+113:            replace=replace,
+114:        )
+115:
+116:    def register(
+117:        self,
+118:        contract: ContractIdentity,
+119:        *,
+120:        replace: bool = False,
+121:    ) -> ContractIdentity:
+122:        """Register an existing contract identity."""
+123:        if not isinstance(contract, ContractIdentity):
+124:            raise ContractServiceValidationError(
+125:                "contract must be a ContractIdentity"
+126:            )
+127:
+128:        return self.registry.register(
+129:            contract,
+130:            replace=replace,
+131:        )
+132:
+133:    def register_many(
+134:        self,
+135:        contracts: Iterable[ContractIdentity],
+136:        *,
+137:        replace: bool = False,
+138:    ) -> list[ContractIdentity]:
+139:        """Register multiple contract identities."""
+140:        return self.registry.register_many(
+141:            contracts,
+142:            replace=replace,
+143:        )
+144:
+145:    def get(
+146:        self,
+147:        identity_key: str,
+148:    ) -> Optional[ContractIdentity]:
+149:        """Get a contract by canonical identity key."""
+150:        return self.registry.get(identity_key)
+151:
+152:    def require(
+153:        self,
+154:        identity_key: str,
+155:    ) -> ContractIdentity:
+156:        """Require a contract by canonical identity key."""
+157:        try:
+158:            return self.registry.require(identity_key)
+159:        except ContractNotFoundError as exc:
+160:            raise ContractServiceError(
+161:                str(exc)
+162:            ) from exc
+163:
+164:    def exists(
+165:        self,
+166:        identity_key: str,
+167:    ) -> bool:
+168:        """Return whether a contract exists."""
+169:        return self.registry.exists(identity_key)
+170:
+171:    def find(
+172:        self,
+173:        query: Optional[ContractQuery] = None,
+174:        **filters: Any,
+175:    ) -> list[ContractIdentity]:
+176:        """
+177:        Find contracts using a ContractQuery or explicit filters.
+178:
+179:        Explicit filters are merged with the query, with explicit
+180:        keyword filters taking precedence.
+181:        """
+182:        if query is not None and not isinstance(
+183:            query,
+184:            ContractQuery,
+185:        ):
+186:            raise ContractServiceValidationError(
+187:                "query must be a ContractQuery"
+188:            )
+189:
+190:        normalized_query = (
+191:            query.normalized()
+192:            if query is not None
+193:            else ContractQuery()
+194:        )
+195:
+196:        merged = {
+197:            "market": normalized_query.market,
+198:            "instrument": normalized_query.instrument,
+199:            "venue": normalized_query.venue,
+200:            "contract_type": normalized_query.contract_type,
+201:            "expiry": normalized_query.expiry,
+202:            "option_type": normalized_query.option_type,
+203:        }
+204:
+205:        for key, value in filters.items():
+206:            if key not in merged:
+207:                raise ContractServiceValidationError(
+208:                    f"Unknown contract filter: {key}"
+209:                )
+210:
+211:            merged[key] = value
+212:
+213:        return self.registry.find(**merged)
+214:
+215:    def find_by_market(
+216:        self,
+217:        market: str,
+218:    ) -> list[ContractIdentity]:
+219:        """Find contracts by market."""
+220:        return self.registry.list_by_market(market)
+221:
+222:    def find_by_instrument(
+223:        self,
+224:        instrument: str,
+225:    ) -> list[ContractIdentity]:
+226:        """Find contracts by instrument."""
+227:        return self.registry.list_by_instrument(
+228:            instrument
+229:        )
+230:
+231:    def find_by_venue(
+232:        self,
+233:        venue: str,
+234:    ) -> list[ContractIdentity]:
+235:        """Find contracts by venue."""
+236:        return self.registry.list_by_venue(venue)
+237:
+238:    def derivatives(self) -> list[ContractIdentity]:
+239:        """Return all derivative contracts."""
+240:        return self.registry.list_derivatives()
+241:
+242:    def options(self) -> list[ContractIdentity]:
+243:        """Return all option contracts."""
+244:        return self.registry.list_options()
+245:
+246:    def expired(self) -> list[ContractIdentity]:
+247:        """Return all expired contracts."""
+248:        return self.registry.list_expired()
+249:
+250:    def remove(
+251:        self,
+252:        identity_key: str,
+253:    ) -> bool:
+254:        """Remove a contract by identity key."""
+255:        return self.registry.remove(identity_key)
+256:
+257:    def validate_identity(
+258:        self,
+259:        contract: ContractIdentity,
+260:    ) -> dict[str, Any]:
+261:        """
+262:        Validate a contract identity and return validation facts.
+263:
+264:        This method does not alter the registry.
+265:        """
+266:        if not isinstance(contract, ContractIdentity):
+267:            raise ContractServiceValidationError(
+268:                "contract must be a ContractIdentity"
+269:            )
+270:
+271:        return {
+272:            "valid": True,
+273:            "identity_key": contract.identity_key,
+274:            "is_derivative": contract.is_derivative,
+275:            "is_option": contract.is_option,
+276:            "is_expired": contract.is_expired,
+277:            "registered": self.registry.contains(contract),
+278:        }
+279:
+280:    def compare(
+281:        self,
+282:        left: ContractIdentity,
+283:        right: ContractIdentity,
+284:    ) -> bool:
+285:        """Return whether two identities represent the same contract."""
+286:        if not isinstance(left, ContractIdentity):
+287:            raise ContractServiceValidationError(
+288:                "left must be a ContractIdentity"
+289:            )
+290:
+291:        if not isinstance(right, ContractIdentity):
+292:            raise ContractServiceValidationError(
+293:                "right must be a ContractIdentity"
+294:            )
+295:
+296:        return left.same_contract(right)
+297:
+298:    def summary(self) -> dict[str, Any]:
+299:        """Return service and registry summary."""
+300:        stats = self.registry.stats()
+301:
+302:        return {
+303:            "service": self.__class__.__name__,
+304:            "registry": self.registry.__class__.__name__,
+305:            **stats.to_dict(),
+306:        }
+307:
+308:
+309:def _normalize_optional(
+310:    value: Optional[str],
+311:) -> Optional[str]:
+312:    """Normalize an optional text filter."""
+313:    if value is None:
+314:        return None
+315:
+316:    text = str(value).strip()
+317:
+318:    return text or None
+319:
+320:
+321:contract_service = ContractService()
+322:
+323:
+324:def create_contract(
+325:    **kwargs: Any,
+326:) -> ContractIdentity:
+327:    """Create a contract using the global contract service."""
+328:    return contract_service.create(**kwargs)
+329:
+330:
+331:def register_contract(
+332:    contract: ContractIdentity,
+333:    *,
+334:    replace: bool = False,
+335:) -> ContractIdentity:
+336:    """Register a contract using the global contract service."""
+337:    return contract_service.register(
+338:        contract,
+339:        replace=replace,
+340:    )
+341:
+342:
+343:def get_contract(
+344:    identity_key: str,
+345:) -> Optional[ContractIdentity]:
+346:    """Get a contract using the global contract service."""
+347:    return contract_service.get(identity_key)
+348:
+349:
+350:def require_contract(
+351:    identity_key: str,
+352:) -> ContractIdentity:
+353:    """Require a contract using the global contract service."""
+354:    return contract_service.require(identity_key)
+355:
+356:
+357:def find_contracts(
+358:    query: Optional[ContractQuery] = None,
+359:    **filters: Any,
+360:) -> list[ContractIdentity]:
+361:    """Find contracts using the global contract service."""
+362:    return contract_service.find(
+363:        query,
+364:        **filters,
+365:    )
+366:
+367:
+368:__all__ = [
+369:    "ContractServiceError",
+370:    "ContractServiceValidationError",
+371:    "ContractQuery",
+372:    "ContractService",
+373:    "contract_service",
+374:    "create_contract",
+375:    "register_contract",
+376:    "get_contract",
+377:    "require_contract",
+378:    "find_contracts",
+379:]

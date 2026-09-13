@@ -1,0 +1,2200 @@
+===== PYTHON FILES ===== 
+C:\Users\Administrator\ROBOMLM_PLUS\main.py 
+C:\Users\Administrator\ROBOMLM_PLUS\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\adapter_base.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_client.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_orders.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_client.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_orders.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\commodity_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_client.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_orders.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_positions.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\fx_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_client.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_market_data.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\admin_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\deployment_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\experiment_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\research_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\rollback_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\stress_test_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\validation_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\version_admin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\admin\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\account_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\admin_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\auth_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\automation_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\buyer_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\discovery_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\memory_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\research_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\terminal_api.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\websocket\market_stream.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\api\websocket\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\auth_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\login_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\password_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\signup_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\token_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\auth\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\access_control.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\entitlement_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\permission_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\automation_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\mode_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\strategy_runner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\execution_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\order_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\kill_switch\kill_switch.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\kill_switch\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\positions\position_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\positions\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\reconciliation\reconciliation_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\reconciliation\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\risk\automation_risk.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\risk\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\config_loader.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\environment.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\settings.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\app_constants.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\market_constants.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\permission_constants.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\status_constants.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\application_logger.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\audit_logger.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\blackbox_logger.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\logger.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\system_logger.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\hashing.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\secrets.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\security_utils.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\dependency_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\folder_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\shutdown.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\startup_checks.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\0001_initial_schema.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\migration_base.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\migration_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\audit_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\decision_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\evidence_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\market_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\subscription_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\trade_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\user_model.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\decision_repository.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\evidence_repository.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\trade_repository.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\user_repository.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\completeness_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\consistency_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\data_quality_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\freshness_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\latency_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\source_health.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\commitment_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\confidence_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\intelligence_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\magnitude_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\market_context.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\regime_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\relationship_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\strategy_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\timing_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\verdict_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\cas_audit.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\cas_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\compliance_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\execution_safety_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\exposure_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\position_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\restriction_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\risk_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\suitability_gate.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\10_decision_market_state - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\10_decision_market_state.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\11_decision_transition - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\11_decision_transition.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\12_decision_future_scenario - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\12_decision_future_scenario.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\13_decision_decision - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\13_decision_decision.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\14_decision_validation - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\14_decision_validation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\15_decision_learning.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\16_decision_intelligence - Copy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\16_decision_intelligence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\1_Decision_Readiness.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\2_decision_condition.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\3_decision_confidence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\4_decision_relationships.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\5_decision_structure.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\6_decision_flow.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\7_decision_liquidity_volatility.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\8_decision_instrument_mechanics.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\9_decision_time_event.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\decision_explainer.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\decision_state.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\htf_scalper_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\opportunity_ranker.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\timing_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\ace.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\dar.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\dcs.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_confidence.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_conflict.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_engine_base.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_normalizer.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_package.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mbc.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mdil.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mkn.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\msdl.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\ned.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\oxe.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\source_reliability.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\tv.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\decision_memory.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\evidence_memory.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\market_memory.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\memory_retrieval.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\memory_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\outcome_memory.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\pattern_memory.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\eqe.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\lqs.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mcs.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mct.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mts.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\pfs.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\rds.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\tps.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\favorites_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\intraday_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\liquidity_filter.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\opportunity_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\opportunity_explainer.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\ranking_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\risk_filter.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\scanner_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\timing_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\top10_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\universe_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\intraday_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\liquidity_filter.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\opportunity_explainer.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\ranking_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\risk_filter.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\timing_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\universe_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\candidate_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\dataset.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\deployment_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\experiment.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\hypothesis.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\research_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\stress_testing.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\validation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\version_manager.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\advanced_decision.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\emergency_control.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\execution_preparation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\halt_controller.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\plus_orchestrator.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\position_monitor.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\protection.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\reconciliation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_session.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_state.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_identity.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_identity.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\market_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\registry_loader.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\venue_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\venues\venue_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\markets\venues\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\entitlement_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\plan_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\subscription_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\cas_status.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\decision_outlook.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\evidence_strip.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\intelligence_panel.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\market_context.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\risk_panel.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\terminal_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\app.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\router.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\account_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\billing_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\notification_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\settings_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation\automation_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\buyer_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\cas_view.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\contract_selector.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\decision_view.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\instrument_selector.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\intelligence_view.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\market_selector.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\plus_view.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\risk_view.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_preview.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_selector.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\discovery_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\favorites.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\universal_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\accumulation_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\boundary_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\breakout_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\confirmation_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\distribution_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\opportunity_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\regime_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\relationship_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\structure_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\future_rank_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\growth_projection_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\holdability_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\pullback_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\thesis_engine.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\future_models.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\opportunity_models.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\scanner_models.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\commodity_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\crypto_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\equity_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\fx_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\index_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\stock_scanner.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\memory_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\research_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\terminal_page.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\users\profile_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\users\user_service.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\users\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_blackbox_bridge.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_bridge.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_compatibility.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_loader.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_mapper.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_normalizer.py 
+C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\engine_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\feature_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\permission_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\plan_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\strategy_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\version_registry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\registries\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\cas_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\test\test_cas_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\identifiers.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\request_context.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\version.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\contract\contract_schema.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\contract\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\decision\decision_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\decision\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\evidence_item.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\evidence_package.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\authorized_action.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\execution_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\instrument\instrument_schema.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\instrument\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\intelligence\intelligence_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\intelligence\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\data_quality.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_account.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_account_balance.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_calendar.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_calendar_event.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_cashflow.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_cashflow_type.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_context.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_currency.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_acknowledgement.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_acknowledgement_stat.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_batch.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_event.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_acknowledgement.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_error.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_event.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_retry.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_retry_policy.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_status.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_type.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_status.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_type.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_envelope.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_error.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_feed.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_field.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_packet.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_point.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_quality.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_record.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_request.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_response.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_source.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_status.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_subscription.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_subscription_status.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_transport.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_value.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_derivative.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_drawdown.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_event.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_execution.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_exposure.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_fee.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_identity.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_interval.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_leverage.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_liquidity.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_margin.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_observation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_order.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_orderbook.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_participation.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_phase.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_portfolio.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_position.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_regime.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_relationship.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_risk.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_schedule.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_series.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_session.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_signal.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_snapshot.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_state.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_structure.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_timeframe.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_timing.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_transaction.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_volatility.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_window.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_constructors.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_constructor_coverage.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_imports.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_serialization.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_vocabularies.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\risk_result.py 
+C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\__init__.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\adapter_test.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\blackbox_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\deployment_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\health_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\integration_test.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\market_data_test.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\registry_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\startup_check.py 
+C:\Users\Administrator\ROBOMLM_PLUS\scripts\v6_bridge_test.py 
+===== EMPTY PYTHON FILES ===== 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\adapter_base.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_client.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_orders.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_client.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_orders.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\commodity_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_client.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_orders.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_positions.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\fx_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_client.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_market_data.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\admin\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\opportunity_explainer.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\markets\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\markets\venues\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\ui\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\pullback_engine.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\engine_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\feature_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\permission_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\plan_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\strategy_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\version_registry.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\registries\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\contract\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\decision\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\instrument\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\intelligence\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\risk_result.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\__init__.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\adapter_test.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\blackbox_check.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\deployment_check.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\health_check.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\integration_test.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\market_data_test.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\registry_check.py 
+EMPTY: C:\Users\Administrator\ROBOMLM_PLUS\scripts\startup_check.py 
+===== PYTHON FILE LINE COUNTS ===== 
+42 lines : C:\Users\Administrator\ROBOMLM_PLUS\main.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\adapter_base.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_client.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\binance_orders.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\binance\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_client.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\bybit_orders.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\bybit\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\commodity_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\commodity\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_client.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_orders.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\dhan_positions.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\dhan\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\fx_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\fx\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_client.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\kotak_market_data.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\adapters\kotak\__init__.py
+158 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\admin_service.py
+192 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\deployment_admin.py
+232 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\experiment_admin.py
+255 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\research_admin.py
+209 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\rollback_admin.py
+258 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\stress_test_admin.py
+292 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\validation_admin.py
+212 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\version_admin.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\admin\__init__.py
+132 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\account_api.py
+108 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\admin_api.py
+110 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\auth_api.py
+137 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\automation_api.py
+127 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\buyer_api.py
+145 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\discovery_api.py
+125 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\memory_api.py
+131 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\research_api.py
+202 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\terminal_api.py
+54 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\v1\__init__.py
+212 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\websocket\market_stream.py
+5 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\api\websocket\__init__.py
+127 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\auth_service.py
+109 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\login_service.py
+102 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\password_service.py
+115 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\signup_service.py
+323 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\token_service.py
+21 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\auth\__init__.py
+161 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\access_control.py
+295 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\entitlement_gate.py
+224 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\permission_service.py
+21 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\authorization\__init__.py
+239 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\automation_engine.py
+187 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\mode_manager.py
+274 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\strategy_runner.py
+72 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\__init__.py
+387 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\execution_manager.py
+433 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\order_manager.py
+18 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\execution\__init__.py
+174 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\kill_switch\kill_switch.py
+10 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\kill_switch\__init__.py
+357 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\positions\position_manager.py
+10 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\positions\__init__.py
+239 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\reconciliation\reconciliation_engine.py
+10 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\reconciliation\__init__.py
+275 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\risk\automation_risk.py
+10 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\autorobimlm\risk\__init__.py
+89 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\__init__.py
+236 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\config_loader.py
+172 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\environment.py
+88 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\settings.py
+50 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\config\__init__.py
+174 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\app_constants.py
+292 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\market_constants.py
+262 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\permission_constants.py
+431 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\status_constants.py
+17 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\constants\__init__.py
+107 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\application_logger.py
+251 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\audit_logger.py
+320 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\blackbox_logger.py
+183 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\logger.py
+271 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\system_logger.py
+12 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\logging\__init__.py
+152 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\hashing.py
+190 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\secrets.py
+360 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\security_utils.py
+20 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\security\__init__.py
+205 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\dependency_check.py
+196 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\folder_manager.py
+195 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\shutdown.py
+337 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\startup_checks.py
+10 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\core\startup\__init__.py
+16 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\__init__.py
+98 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\0001_initial_schema.py
+233 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\migration_base.py
+420 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\migration_manager.py
+15 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\migrations\__init__.py
+179 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\audit_model.py
+280 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\decision_model.py
+360 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\evidence_model.py
+416 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\market_model.py
+361 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\subscription_model.py
+499 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\trade_model.py
+403 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\user_model.py
+16 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\models\__init__.py
+602 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\decision_repository.py
+669 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\evidence_repository.py
+716 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\trade_repository.py
+576 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\user_repository.py
+60 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\database\repositories\__init__.py
+268 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\completeness_check.py
+503 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\consistency_check.py
+415 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\data_quality_engine.py
+423 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\freshness_check.py
+485 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\latency_check.py
+602 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\source_health.py
+92 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\data_quality\__init__.py
+572 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\commitment_engine.py
+418 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\confidence_engine.py
+468 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision_orchestrator.py
+542 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence_orchestrator.py
+605 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\intelligence_orchestrator.py
+1280 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\magnitude_engine.py
+849 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\market_context.py
+1181 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity_intelligence.py
+1153 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\regime_intelligence.py
+1215 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\relationship_intelligence.py
+798 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\strategy_intelligence.py
+1070 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\timing_intelligence.py
+669 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\verdict_engine.py
+135 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\__init__.py
+1753 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\cas_audit.py
+2739 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\cas_orchestrator.py
+2483 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\compliance_gate.py
+2357 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\execution_safety_gate.py
+2849 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\exposure_gate.py
+2204 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\position_gate.py
+2400 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\restriction_engine.py
+2553 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\risk_gate.py
+2059 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\suitability_gate.py
+85 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\cas\__init__.py
+2664 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\10_decision_market_state - Copy.py
+770 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\10_decision_market_state.py
+3254 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\11_decision_transition - Copy.py
+781 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\11_decision_transition.py
+3921 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\12_decision_future_scenario - Copy.py
+3922 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\12_decision_future_scenario.py
+1012 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\13_decision_decision - Copy.py
+4464 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\13_decision_decision.py
+1041 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\14_decision_validation - Copy.py
+2465 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\14_decision_validation.py
+873 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\15_decision_learning.py
+744 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\16_decision_intelligence - Copy.py
+3616 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\16_decision_intelligence.py
+619 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\1_Decision_Readiness.py
+551 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\2_decision_condition.py
+617 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\3_decision_confidence.py
+772 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\4_decision_relationships.py
+745 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\5_decision_structure.py
+871 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\6_decision_flow.py
+1394 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\7_decision_liquidity_volatility.py
+1177 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\8_decision_instrument_mechanics.py
+647 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\9_decision_time_event.py
+989 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\decision_explainer.py
+821 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\decision_state.py
+1242 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\htf_scalper_engine.py
+1210 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\opportunity_ranker.py
+1219 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\timing_engine.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\__init__.py
+835 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\ace.py
+663 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\dar.py
+980 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\dcs.py
+517 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_confidence.py
+883 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_conflict.py
+492 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_engine_base.py
+926 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_normalizer.py
+615 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_orchestrator.py
+419 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_package.py
+632 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mbc.py
+1134 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mdil.py
+873 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\mkn.py
+700 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\msdl.py
+626 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\ned.py
+684 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\oxe.py
+792 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\source_reliability.py
+439 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\tv.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\__init__.py
+2688 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\decision_memory.py
+2152 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\evidence_memory.py
+1874 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\market_memory.py
+2750 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\memory_retrieval.py
+2610 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\memory_service.py
+2130 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\outcome_memory.py
+2320 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\pattern_memory.py
+635 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\memory\__init__.py
+981 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\eqe.py
+1466 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\lqs.py
+881 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mcs.py
+789 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mct.py
+934 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mts.py
+1588 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\pfs.py
+1472 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\rds.py
+792 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\tps.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\__init__.py
+541 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\favorites_engine.py
+2130 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\intraday_engine.py
+992 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\liquidity_filter.py
+2324 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\opportunity_engine.py
+2301 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\opportunity_explainer.py
+2254 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\ranking_engine.py
+1320 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\risk_filter.py
+425 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\scanner_engine.py
+1699 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\timing_engine.py
+488 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\top10_engine.py
+1012 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\universe_engine.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\__init__.py
+2130 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\intraday_engine.py
+992 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\liquidity_filter.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\opportunity_explainer.py
+1732 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\ranking_engine.py
+1320 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\risk_filter.py
+1699 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\timing_engine.py
+1012 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\universe_engine.py
+1513 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\candidate_manager.py
+1755 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\dataset.py
+1490 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\deployment_manager.py
+1413 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\experiment.py
+1363 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\hypothesis.py
+1556 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\research_service.py
+1805 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\stress_testing.py
+1783 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\validation.py
+1971 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\version_manager.py
+725 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\research\__init__.py
+1884 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\advanced_decision.py
+1868 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\emergency_control.py
+2186 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\execution_preparation.py
+2300 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\halt_controller.py
+2022 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\plus_orchestrator.py
+1898 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\position_monitor.py
+2267 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\protection.py
+2011 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\reconciliation.py
+167 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\robomlm_plus\__init__.py
+328 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_service.py
+424 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_session.py
+509 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\market_state.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\__init__.py
+384 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_identity.py
+356 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_registry.py
+315 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\contract_service.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\contracts\__init__.py
+402 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_identity.py
+387 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_registry.py
+385 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\instrument_service.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\instruments\__init__.py
+628 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\market_registry.py
+368 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\registry_loader.py
+635 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\venue_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\registry\__init__.py
+406 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\venues\venue_service.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\markets\venues\__init__.py
+2796 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\entitlement_service.py
+2592 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\plan_service.py
+2760 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\subscription_service.py
+461 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\subscription\__init__.py
+2398 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\cas_status.py
+2204 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\decision_outlook.py
+1931 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\evidence_strip.py
+2317 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\intelligence_panel.py
+2239 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\market_context.py
+2507 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\risk_panel.py
+2689 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\terminal_service.py
+718 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\__init__.py
+2429 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\app.py
+2297 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\router.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\__init__.py
+2928 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\account_page.py
+2827 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\billing_page.py
+2931 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\notification_page.py
+2948 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\settings_page.py
+18 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\__init__.py
+1983 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation\automation_page.py
+8 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation\__init__.py
+786 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\buyer_page.py
+332 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\cas_view.py
+277 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\contract_selector.py
+232 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\decision_view.py
+216 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\instrument_selector.py
+286 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\intelligence_view.py
+244 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\market_selector.py
+325 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\plus_view.py
+251 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\risk_view.py
+281 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_preview.py
+327 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_selector.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\__init__.py
+2267 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\discovery_page.py
+2497 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\favorites.py
+1691 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\universal_scanner.py
+39 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\__init__.py
+3216 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\accumulation_engine.py
+4567 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\boundary_engine.py
+2223 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\breakout_engine.py
+3736 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\confirmation_engine.py
+3906 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\distribution_engine.py
+1787 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\opportunity_engine.py
+3751 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\regime_engine.py
+2514 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\relationship_engine.py
+3109 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\structure_engine.py
+3740 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\future_rank_engine.py
+4295 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\growth_projection_engine.py
+2389 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\holdability_engine.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\pullback_engine.py
+4888 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\thesis_engine.py
+3398 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\future_models.py
+3355 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\opportunity_models.py
+2770 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\scanner_models.py
+2805 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\commodity_scanner.py
+2882 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\crypto_scanner.py
+1999 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\equity_scanner.py
+3017 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\fx_scanner.py
+2796 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\index_scanner.py
+1998 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\stock_scanner.py
+3941 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\memory_page.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\__init__.py
+4068 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\research_page.py
+88 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\__init__.py
+1837 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\terminal_page.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\__init__.py
+2689 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\users\profile_service.py
+2308 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\users\user_service.py
+31 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\users\__init__.py
+231 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_blackbox_bridge.py
+582 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_bridge.py
+595 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_compatibility.py
+292 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_loader.py
+488 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_mapper.py
+612 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\v6_normalizer.py
+11 lines : C:\Users\Administrator\ROBOMLM_PLUS\app\v6_bridge\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\engine_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\feature_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\permission_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\plan_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\strategy_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\version_registry.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\registries\__init__.py
+42 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\cas_result.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\__init__.py
+63 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\cas\test\test_cas_result.py
+63 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\identifiers.py
+56 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\request_context.py
+47 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\version.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\common\__init__.py
+127 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\contract\contract_schema.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\contract\__init__.py
+67 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\decision\decision_result.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\decision\__init__.py
+43 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\evidence_item.py
+49 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\evidence_package.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\evidence\__init__.py
+41 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\authorized_action.py
+75 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\execution_result.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\execution\__init__.py
+53 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\instrument\instrument_schema.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\instrument\__init__.py
+53 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\intelligence\intelligence_result.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\intelligence\__init__.py
+184 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\data_quality.py
+462 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_account.py
+379 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_account_balance.py
+421 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_calendar.py
+433 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_calendar_event.py
+349 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_cashflow.py
+405 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_cashflow_type.py
+260 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_context.py
+354 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_currency.py
+116 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_acknowledgement.py
+117 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_acknowledgement_stat.py
+420 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_batch.py
+126 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel.py
+120 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_event.py
+110 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message.py
+128 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_acknowledgement.py
+114 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_error.py
+128 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_event.py
+128 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_retry.py
+134 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_retry_policy.py
+153 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_status.py
+162 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_message_type.py
+140 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_status.py
+136 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_channel_type.py
+157 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_envelope.py
+160 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_error.py
+371 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_feed.py
+135 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_field.py
+168 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_packet.py
+344 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_point.py
+319 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_quality.py
+150 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_record.py
+163 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_request.py
+183 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_response.py
+152 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_source.py
+145 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_status.py
+137 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_subscription.py
+123 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_subscription_status.py
+182 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_transport.py
+127 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_value.py
+520 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_derivative.py
+418 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_drawdown.py
+211 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_event.py
+516 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_execution.py
+521 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_exposure.py
+379 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_fee.py
+229 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_identity.py
+472 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_interval.py
+471 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_leverage.py
+373 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_liquidity.py
+406 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_margin.py
+249 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_observation.py
+418 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_order.py
+490 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_orderbook.py
+400 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_participation.py
+186 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_phase.py
+543 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_portfolio.py
+450 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_position.py
+274 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_regime.py
+232 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_relationship.py
+667 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_risk.py
+461 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_schedule.py
+411 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_series.py
+374 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_session.py
+291 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_signal.py
+568 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_snapshot.py
+131 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_state.py
+308 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_structure.py
+455 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_timeframe.py
+463 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_timing.py
+462 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_transaction.py
+405 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_volatility.py
+450 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_window.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\__init__.py
+117 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_constructors.py
+17 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_constructor_coverage.py
+17 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_imports.py
+57 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_serialization.py
+42 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\test\test_market_schema_vocabularies.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\risk_result.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\schemas\risk\__init__.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\adapter_test.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\blackbox_check.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\deployment_check.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\health_check.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\integration_test.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\market_data_test.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\registry_check.py
+0 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\startup_check.py
+62 lines : C:\Users\Administrator\ROBOMLM_PLUS\scripts\v6_bridge_test.py
+===== PLACEHOLDERS / PASS / TODO ===== 
+app\admin\admin_service.py:51:            "passed",
+app\admin\experiment_admin.py:59:            "PASSED",
+app\admin\experiment_admin.py:197:            "PASSED",
+app\admin\stress_test_admin.py:22:    passed: bool | None = None
+app\admin\stress_test_admin.py:38:            "passed": self.passed,
+app\admin\stress_test_admin.py:58:            "PASSED",
+app\admin\stress_test_admin.py:80:        if self.is_completed() and self.passed is None:
+app\admin\stress_test_admin.py:167:            passed=None,
+app\admin\stress_test_admin.py:204:            passed=test.passed,
+app\admin\stress_test_admin.py:219:        passed: bool,
+app\admin\stress_test_admin.py:223:        Complete a stress test with an explicit pass/fail result.
+app\admin\stress_test_admin.py:234:        final_status = "PASSED" if passed else "FAILED"
+app\admin\stress_test_admin.py:246:            passed=passed,
+app\admin\stress_test_admin.py:286:            passed=False,
+app\admin\validation_admin.py:21:    passed: bool | None = None
+app\admin\validation_admin.py:37:            "passed": self.passed,
+app\admin\validation_admin.py:58:            "PASSED",
+app\admin\validation_admin.py:80:        if self.is_completed() and self.passed is None:
+app\admin\validation_admin.py:166:            passed=None,
+app\admin\validation_admin.py:203:            passed=validation.passed,
+app\admin\validation_admin.py:240:            passed=validation.passed,
+app\admin\validation_admin.py:256:        passed: bool,
+app\admin\validation_admin.py:260:        Complete validation with an explicit pass/fail result.
+app\admin\validation_admin.py:275:        final_status = "PASSED" if passed else "FAILED"
+app\admin\validation_admin.py:286:            passed=passed,
+app\admin\validation_admin.py:326:            passed=False,
+app\api\v1\auth_api.py:11:    password: str
+app\api\v1\auth_api.py:52:        self._validate_password(request.password)
+app\api\v1\auth_api.py:64:        password: str,
+app\api\v1\auth_api.py:68:        self._validate_password(password)
+app\api\v1\auth_api.py:81:        password: str,
+app\api\v1\auth_api.py:85:        self._validate_password(password)
+app\api\v1\auth_api.py:109:    def forgot_password(
+app\api\v1\auth_api.py:118:            action="FORGOT_PASSWORD",
+app\api\v1\auth_api.py:119:            message="Password recovery request accepted.",
+app\api\v1\auth_api.py:131:    def _validate_password(password: str) -> None:
+app\api\v1\auth_api.py:132:        if not isinstance(password, str) or not password:
+app\api\v1\auth_api.py:133:            raise ValueError("password must not be empty")app\auth\auth_service.py:51:    identity/password providers. This service owns authentication-state
+app\auth\login_service.py:11:    password: str
+app\auth\login_service.py:54:        self._validate_password(request.password)
+app\auth\login_service.py:65:        password: str,
+app\auth\login_service.py:71:        self._validate_password(password)
+app\auth\login_service.py:128:    def _validate_password(password: str) -> None:
+app\auth\login_service.py:129:        if not isinstance(password, str) or not password:
+app\auth\login_service.py:130:            raise ValueError("password must not be empty")app\auth\password_service.py:10:class PasswordHash:
+app\auth\password_service.py:23:class PasswordService:
+app\auth\password_service.py:25:    Password hashing and verification boundary.
+app\auth\password_service.py:27:    Passwords are never stored directly. A random salt and PBKDF2-HMAC
+app\auth\password_service.py:34:    def hash_password(
+app\auth\password_service.py:36:        password: str,
+app\auth\password_service.py:37:    ) -> PasswordHash:
+app\auth\password_service.py:38:        self._validate_password(password)
+app\auth\password_service.py:44:            password.encode("utf-8"),
+app\auth\password_service.py:49:        return PasswordHash(
+app\auth\password_service.py:55:    def verify_password(
+app\auth\password_service.py:57:        password: str,
+app\auth\password_service.py:58:        password_hash: PasswordHash,
+app\auth\password_service.py:60:        self._validate_password(password)
+app\auth\password_service.py:62:        if not isinstance(password_hash, PasswordHash):
+app\auth\password_service.py:64:                "password_hash must be a PasswordHash"
+app\auth\password_service.py:68:            salt = bytes.fromhex(password_hash.salt)
+app\auth\password_service.py:70:                password_hash.digest
+app\auth\password_service.py:75:        if password_hash.iterations <= 0:
+app\auth\password_service.py:80:            password.encode("utf-8"),
+app\auth\password_service.py:82:            password_hash.iterations,
+app\auth\password_service.py:92:        password_hash: PasswordHash,
+app\auth\password_service.py:94:        if not isinstance(password_hash, PasswordHash):
+app\auth\password_service.py:96:                "password_hash must be a PasswordHash"
+app\auth\password_service.py:99:        if not password_hash.salt:
+app\auth\password_service.py:102:        if not password_hash.digest:
+app\auth\password_service.py:105:        if password_hash.iterations <= 0:
+app\auth\password_service.py:109:            bytes.fromhex(password_hash.salt)
+app\auth\password_service.py:110:            bytes.fromhex(password_hash.digest)
+app\auth\password_service.py:117:    def _validate_password(
+app\auth\password_service.py:118:        password: str,
+app\auth\password_service.py:120:        if not isinstance(password, str):
+app\auth\password_service.py:122:                "password must be a string"
+app\auth\password_service.py:125:        if not password:
+app\auth\password_service.py:127:                "password must not be empty"
+app\auth\signup_service.py:11:    password: str
+app\auth\signup_service.py:38:    Identity persistence, password hashing, email verification, and
+app\auth\signup_service.py:54:        self._validate_password(request.password)
+app\auth\signup_service.py:65:        password: str,
+app\auth\signup_service.py:71:        self._validate_password(password)
+app\auth\signup_service.py:127:    def _validate_password(
+app\auth\signup_service.py:128:        password: str,
+app\auth\signup_service.py:130:        if not isinstance(password, str):
+app\auth\signup_service.py:132:                "password must be a string"
+app\auth\signup_service.py:135:        if not password:
+app\auth\signup_service.py:137:                "password must not be empty"
+app\auth\__init__.py:3:from .password_service import PasswordService, PasswordHash
+app\auth\__init__.py:14:    "PasswordService",
+app\auth\__init__.py:15:    "PasswordHash",
+app\autorobimlm\execution\execution_manager.py:51:    external gates. This class must not bypass those controls.
+app\autorobimlm\execution\order_manager.py:54:    This class does not execute orders and does not bypass
+app\autorobimlm\positions\position_manager.py:48:    bypass execution, authorization, risk, or kill-switch controls.
+app\autorobimlm\risk\automation_risk.py:190:            reason = "Risk checks passed"
+app\autorobimlm\risk\automation_risk.py:194:                for name, passed in checks.items()
+app\autorobimlm\risk\automation_risk.py:195:                if not passed
+app\core\config\config_loader.py:204:        Sensitive values such as JWT_SECRET and DB_PASSWORD
+app\core\config\config_loader.py:210:        data["database"]["password"] = self._mask_secret(
+app\core\config\config_loader.py:211:            data["database"]["password"]
+app\core\config\settings.py:50:    password: str
+app\core\config\settings.py:102:        password=os.getenv("DB_PASSWORD", ""),
+app\core\constants\app_constants.py:206:MIN_PASSWORD_LENGTH = 8
+app\core\constants\app_constants.py:208:MAX_PASSWORD_LENGTH = 128
+app\core\constants\status_constants.py:268:CAS_PASSED = "CAS_PASSED"
+app\core\constants\status_constants.py:387:VALIDATION_PASSED = "VALIDATION_PASSED"
+app\core\constants\status_constants.py:508:    CAS_PASSED,
+app\core\constants\status_constants.py:513:    VALIDATION_PASSED,
+app\core\logging\audit_logger.py:65:            pass
+app\core\logging\blackbox_logger.py:66:            pass
+app\core\logging\system_logger.py:63:            pass
+app\core\security\hashing.py:7:    Secure password hashing and verification utilities.
+app\core\security\hashing.py:9:    Passwords must never be stored or compared as plaintext.
+app\core\security\hashing.py:33:def _validate_password(password: str) -> None:
+app\core\security\hashing.py:34:    """Validate password input before hashing or verification."""
+app\core\security\hashing.py:35:    if not isinstance(password, str):
+app\core\security\hashing.py:36:        raise HashingError("Password must be a string.")
+app\core\security\hashing.py:38:    if not password:
+app\core\security\hashing.py:39:        raise HashingError("Password cannot be empty.")
+app\core\security\hashing.py:51:def hash_password(
+app\core\security\hashing.py:52:    password: str,
+app\core\security\hashing.py:57:    Hash a password using PBKDF2-HMAC-SHA256.
+app\core\security\hashing.py:63:    _validate_password(password)
+app\core\security\hashing.py:70:        password.encode("utf-8"),
+app\core\security\hashing.py:84:def verify_password(
+app\core\security\hashing.py:85:    password: str,
+app\core\security\hashing.py:86:    password_hash: str,
+app\core\security\hashing.py:89:    Verify a plaintext password against a stored password hash.
+app\core\security\hashing.py:94:    if not isinstance(password, str):
+app\core\security\hashing.py:97:    if not isinstance(password_hash, str):
+app\core\security\hashing.py:102:            password_hash.split("$")
+app\core\security\hashing.py:118:            password.encode("utf-8"),
+app\core\security\hashing.py:138:    password_hash: str,
+app\core\security\hashing.py:143:    Determine whether a stored password hash should be regenerated.
+app\core\security\hashing.py:147:    if not isinstance(password_hash, str):
+app\core\security\hashing.py:152:            password_hash.split("$")
+app\core\security\hashing.py:182:    Password hashing generates its own salt automatically.
+app\core\security\security_utils.py:22:MIN_PASSWORD_LENGTH: Final[int] = 8
+app\core\security\security_utils.py:23:MAX_PASSWORD_LENGTH: Final[int] = 128
+app\core\security\security_utils.py:127:def validate_password(
+app\core\security\security_utils.py:128:    password: str,
+app\core\security\security_utils.py:131:    Validate password policy.
+app\core\security\security_utils.py:133:    The password must:
+app\core\security\security_utils.py:142:    if not isinstance(password, str):
+app\core\security\security_utils.py:146:        MIN_PASSWORD_LENGTH
+app\core\security\security_utils.py:147:        <= len(password)
+app\core\security\security_utils.py:148:        <= MAX_PASSWORD_LENGTH
+app\core\security\security_utils.py:152:    if password != password.strip():
+app\core\security\security_utils.py:155:    if not re.search(r"[A-Z]", password):
+app\core\security\security_utils.py:158:    if not re.search(r"[a-z]", password):
+app\core\security\security_utils.py:161:    if not re.search(r"\d", password):
+app\core\security\security_utils.py:166:        password,
+app\core\security\security_utils.py:173:def password_validation_errors(
+app\core\security\security_utils.py:174:    password: str,
+app\core\security\security_utils.py:177:    Return human-readable password policy failures.
+app\core\security\security_utils.py:179:    No password value is included in the returned messages.
+app\core\security\security_utils.py:183:    if not isinstance(password, str):
+app\core\security\security_utils.py:184:        return ["Password must be a string."]
+app\core\security\security_utils.py:186:    if len(password) < MIN_PASSWORD_LENGTH:
+app\core\security\security_utils.py:188:            f"Password must contain at least "
+app\core\security\security_utils.py:189:            f"{MIN_PASSWORD_LENGTH} characters."
+app\core\security\security_utils.py:192:    if len(password) > MAX_PASSWORD_LENGTH:
+app\core\security\security_utils.py:194:            f"Password must not exceed "
+app\core\security\security_utils.py:195:            f"{MAX_PASSWORD_LENGTH} characters."
+app\core\security\security_utils.py:198:    if password != password.strip():
+app\core\security\security_utils.py:200:            "Password must not start or end with whitespace."
+app\core\security\security_utils.py:203:    if not re.search(r"[A-Z]", password):
+app\core\security\security_utils.py:205:            "Password must contain an uppercase letter."
+app\core\security\security_utils.py:208:    if not re.search(r"[a-z]", password):
+app\core\security\security_utils.py:210:            "Password must contain a lowercase letter."
+app\core\security\security_utils.py:213:    if not re.search(r"\d", password):
+app\core\security\security_utils.py:215:            "Password must contain a digit."
+app\core\security\security_utils.py:220:        password,
+app\core\security\security_utils.py:223:            "Password must contain a special character."
+app\core\security\security_utils.py:450:    "MIN_PASSWORD_LENGTH",
+app\core\security\security_utils.py:451:    "MAX_PASSWORD_LENGTH",
+app\core\security\security_utils.py:459:    "validate_password",
+app\core\security\security_utils.py:460:    "password_validation_errors",
+app\core\security\__init__.py:2:    hash_password,
+app\core\security\__init__.py:3:    verify_password,
+app\core\security\__init__.py:15:    "hash_password",
+app\core\security\__init__.py:16:    "verify_password",
+app\core\startup\dependency_check.py:61:    def passed(self) -> bool:
+app\core\startup\dependency_check.py:66:            "passed": self.passed,
+app\core\startup\dependency_check.py:151:                pass
+app\core\startup\dependency_check.py:226:        if not report.passed:
+app\core\startup\startup_checks.py:56:    passed: bool
+app\core\startup\startup_checks.py:68:    def passed(self) -> bool:
+app\core\startup\startup_checks.py:69:        return all(check.passed for check in self.checks)
+app\core\startup\startup_checks.py:76:            if not check.passed
+app\core\startup\startup_checks.py:81:            "passed": self.passed,
+app\core\startup\startup_checks.py:83:            "passed_checks": sum(
+app\core\startup\startup_checks.py:86:                if check.passed
+app\core\startup\startup_checks.py:144:        passed = current_version >= minimum_version
+app\core\startup\startup_checks.py:148:            passed=passed,
+app\core\startup\startup_checks.py:152:                if passed
+app\core\startup\startup_checks.py:177:                passed=report.passed,
+app\core\startup\startup_checks.py:180:                    if report.passed
+app\core\startup\startup_checks.py:193:                passed=False,
+app\core\startup\startup_checks.py:208:                passed=True,
+app\core\startup\startup_checks.py:216:                passed=False,
+app\core\startup\startup_checks.py:226:                passed=False,
+app\core\startup\startup_checks.py:247:                passed=len(failures) == 0,
+app\core\startup\startup_checks.py:272:                passed=False,
+app\core\startup\startup_checks.py:292:            passed=len(missing) == 0,
+app\core\startup\startup_checks.py:328:                passed=True,
+app\core\startup\startup_checks.py:340:                passed=False,
+app\core\startup\startup_checks.py:376:        if not report.passed:
+app\database\migrations\migration_base.py:157:        raise NotImplementedError
+app\database\migrations\migration_base.py:171:        raise NotImplementedError
+app\database\migrations\migration_manager.py:167:                pass
+app\database\models\subscription_model.py:186:        """Return whether the subscription has passed its expiry."""
+app\database\models\user_model.py:11:    - Password hashing belongs to the security/authentication layer.
+app\database\repositories\decision_repository.py:699:                pass
+app\database\repositories\evidence_repository.py:196:                pass
+app\database\repositories\trade_repository.py:196:                pass
+app\database\repositories\user_repository.py:11:    - No password or secret storage.
+app\database\repositories\user_repository.py:192:                pass
+app\data_quality\consistency_check.py:58:    passed_rules: int
+app\data_quality\consistency_check.py:78:            "passed_rules": self.passed_rules,
+app\data_quality\consistency_check.py:541:        passed_rules = max(
+app\data_quality\consistency_check.py:548:                passed_rules
+app\data_quality\consistency_check.py:566:            passed_rules=passed_rules,
+app\data_quality\consistency_check.py:579:        """Return whether data passes consistency checks."""
+app\data_quality\data_quality_engine.py:49:    passed: bool
+app\data_quality\data_quality_engine.py:94:            "passed": self.passed,
+app\data_quality\data_quality_engine.py:116:    QUALITY_PASS_THRESHOLD = 80.0
+app\data_quality\data_quality_engine.py:133:        pass_threshold: float = QUALITY_PASS_THRESHOLD,
+app\data_quality\data_quality_engine.py:146:        self.pass_threshold = float(pass_threshold)
+app\data_quality\data_quality_engine.py:152:            <= self.pass_threshold
+app\data_quality\data_quality_engine.py:157:                "0 <= warning <= pass <= 100."
+app\data_quality\data_quality_engine.py:228:    def _extract_passed(
+app\data_quality\data_quality_engine.py:231:        """Extract pass/fail state from a result object."""
+app\data_quality\data_quality_engine.py:238:                "passed",
+app\data_quality\data_quality_engine.py:250:            "passed",
+app\data_quality\data_quality_engine.py:275:        if score >= self.pass_threshold:
+app\data_quality\data_quality_engine.py:370:                passed = self._extract_passed(result)
+app\data_quality\data_quality_engine.py:372:                if passed is False:
+app\data_quality\data_quality_engine.py:382:        passed = (
+app\data_quality\data_quality_engine.py:383:            quality_score >= self.pass_threshold
+app\data_quality\data_quality_engine.py:394:            passed=passed,
+app\data_quality\data_quality_engine.py:410:                "pass_threshold": self.pass_threshold,
+app\data_quality\data_quality_engine.py:439:    def passes(
+app\data_quality\data_quality_engine.py:444:        """Return whether the data passes the quality gate."""
+app\data_quality\data_quality_engine.py:449:        ).passed
+app\data_quality\data_quality_engine.py:466:            "passed": result.passed,
+app\data_quality\freshness_check.py:454:        """Return whether the observation passes freshness."""
+app\data_quality\latency_check.py:31:    passed: bool
+app\data_quality\latency_check.py:54:            "passed": self.passed,
+app\data_quality\latency_check.py:418:                passed=False,
+app\data_quality\latency_check.py:440:                passed=False,
+app\data_quality\latency_check.py:469:        passed = (
+app\data_quality\latency_check.py:474:        if passed:
+app\data_quality\latency_check.py:491:            passed=passed,
+app\data_quality\latency_check.py:545:        """Return whether latency passes the quality gate."""
+app\data_quality\latency_check.py:550:        ).passed
+app\data_quality\source_health.py:36:    checks_passed: int
+app\data_quality\source_health.py:60:            "checks_passed": self.checks_passed,
+app\data_quality\source_health.py:260:            [total, passed, failed]
+app\data_quality\source_health.py:645:            checks_passed=counters[1],
+app\data_quality\source_health.py:663:        """Return whether the source passes the health gate."""
+app\intelligence\cas\cas_audit.py:1687:        "audit_bypasses_gate":
+app\intelligence\cas\cas_audit.py:1734:        "audit_bypasses_gate"
+app\intelligence\cas\cas_orchestrator.py:225:    Normalized context passed to the individual CAS gates.
+app\intelligence\cas\cas_orchestrator.py:2152:            "passed without blocking or review state."
+app\intelligence\cas\cas_orchestrator.py:2430:    CAS gates pass.
+app\intelligence\cas\cas_orchestrator.py:2470:def cas_bypasses_gate() -> bool:
+app\intelligence\cas\cas_orchestrator.py:2489:        and not cas_bypasses_gate()
+app\intelligence\cas\cas_orchestrator.py:3423:            "bypasses_gate":
+app\intelligence\cas\cas_orchestrator.py:3424:                cas_bypasses_gate(),
+app\intelligence\cas\cas_orchestrator.py:3540:    "cas_bypasses_gate",
+app\intelligence\cas\restriction_engine.py:1048:            pass
+app\intelligence\cas\risk_gate.py:1844:        pass
+app\intelligence\decision\10_decision_market_state - Copy.py:848:            "passed": all(
+app\intelligence\decision\10_decision_market_state - Copy.py:1533:        "passed": (
+app\intelligence\decision\10_decision_market_state - Copy.py:1864:        pass
+app\intelligence\decision\10_decision_market_state - Copy.py:2495:        "passed": (
+app\intelligence\decision\10_decision_market_state - Copy.py:3253:                "passed": False,
+app\intelligence\decision\10_decision_market_state - Copy.py:3264:                "passed": False,
+app\intelligence\decision\10_decision_market_state - Copy.py:3275:                "passed": False,
+app\intelligence\decision\10_decision_market_state - Copy.py:3300:                "passed": validation["valid"],
+app\intelligence\decision\10_decision_market_state - Copy.py:3307:                "passed": False,
+app\intelligence\decision\10_decision_market_state - Copy.py:3313:            "passed": (
+app\intelligence\decision\10_decision_market_state - Copy.py:3326:        passed = True
+app\intelligence\decision\10_decision_market_state - Copy.py:3332:                if value.get("passed") is False:
+app\intelligence\decision\10_decision_market_state - Copy.py:3333:                    passed = False
+app\intelligence\decision\10_decision_market_state - Copy.py:3335:        checks["passed"] = passed
+app\intelligence\decision\10_decision_market_state - Copy.py:3398:        "passed": result["passed"],
+app\intelligence\decision\10_decision_market_state.py:958:    print("D10 SELF-TEST: PASS")
+app\intelligence\decision\11_decision_transition - Copy.py:1163:    passed = (
+app\intelligence\decision\11_decision_transition - Copy.py:1194:        "passed": passed,
+app\intelligence\decision\11_decision_transition - Copy.py:2298:    passed = (
+app\intelligence\decision\11_decision_transition - Copy.py:2341:        "passed": passed,
+app\intelligence\decision\11_decision_transition - Copy.py:3355:    checks["no_d13_bypass"] = True
+app\intelligence\decision\11_decision_transition - Copy.py:3362:        "passed": all(checks.values()),
+app\intelligence\decision\11_decision_transition - Copy.py:3388:    pass
+app\intelligence\decision\11_decision_transition - Copy.py:3997:        "part1": bool(part1.get("passed")),
+app\intelligence\decision\11_decision_transition - Copy.py:3998:        "part2": bool(part2.get("passed")),
+app\intelligence\decision\11_decision_transition - Copy.py:3999:        "part3": bool(part3.get("passed")),
+app\intelligence\decision\11_decision_transition - Copy.py:4167:        "passed": all(checks.values()),
+app\intelligence\decision\11_decision_transition - Copy.py:4208:    pass
+app\intelligence\decision\11_decision_transition.py:959:    print("D11 SELF-TEST: PASS")
+app\intelligence\decision\12_decision_future_scenario - Copy.py:1103:        pass
+app\intelligence\decision\12_decision_future_scenario - Copy.py:1133:    print("D12 SELF-TEST: PASS")
+app\intelligence\decision\12_decision_future_scenario - Copy.py:2197:        "passed": all(checks.values()),
+app\intelligence\decision\12_decision_future_scenario - Copy.py:2225:    pass
+app\intelligence\decision\12_decision_future_scenario - Copy.py:3587:    checks["all_pass"] = all(checks.values())
+app\intelligence\decision\12_decision_future_scenario - Copy.py:4718:    checks["all_pass"] = all(
+app\intelligence\decision\12_decision_future_scenario.py:1103:        pass
+app\intelligence\decision\12_decision_future_scenario.py:1133:    print("D12 SELF-TEST: PASS")
+app\intelligence\decision\12_decision_future_scenario.py:2197:        "passed": all(checks.values()),
+app\intelligence\decision\12_decision_future_scenario.py:2225:    pass
+app\intelligence\decision\12_decision_future_scenario.py:3587:    checks["all_pass"] = all(checks.values())
+app\intelligence\decision\12_decision_future_scenario.py:4718:    checks["all_pass"] = all(
+app\intelligence\decision\13_decision_decision - Copy.py:1209:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+app\intelligence\decision\13_decision_decision.py:1855:            pass
+app\intelligence\decision\13_decision_decision.py:1877:            pass
+app\intelligence\decision\13_decision_decision.py:2117:            "PASS"
+app\intelligence\decision\13_decision_decision.py:3234:                "VALIDATION_NOT_PASSED"
+app\intelligence\decision\13_decision_decision.py:3867:            "PASS"
+app\intelligence\decision\13_decision_decision.py:5429:    upstream implementation into a fake PASS.
+app\intelligence\decision\13_decision_decision.py:5455:                result["part1_all_pass"] = (
+app\intelligence\decision\13_decision_decision.py:5462:                result["part1_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5465:            result["part1_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5468:        result["part1_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5491:                result["part2_all_pass"] = (
+app\intelligence\decision\13_decision_decision.py:5498:                result["part2_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5501:            result["part2_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5504:        result["part2_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5527:                result["part3_all_pass"] = (
+app\intelligence\decision\13_decision_decision.py:5534:                result["part3_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5537:            result["part3_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5540:        result["part3_all_pass"] = False
+app\intelligence\decision\13_decision_decision.py:5555:    result["part4_all_pass"] = (
+app\intelligence\decision\13_decision_decision.py:5565:    result["all_pass"] = (
+app\intelligence\decision\13_decision_decision.py:5646:            "PASS"
+app\intelligence\decision\14_decision_validation - Copy.py:1386:    # PASS
+app\intelligence\decision\14_decision_validation - Copy.py:1389:    print("D14 SELF-TEST: PASS")
+app\intelligence\decision\14_decision_validation.py:689:    checks["all_pass"] = all(checks.values())
+app\intelligence\decision\14_decision_validation.py:1505:    checks["all_pass"] = all(checks.values())
+app\intelligence\decision\14_decision_validation.py:1520:    if result["all_pass"]:
+app\intelligence\decision\14_decision_validation.py:1521:        print("PASS")
+app\intelligence\decision\14_decision_validation.py:2408:    checks["all_pass"] = all(checks.values())
+app\intelligence\decision\14_decision_validation.py:2423:    if result["all_pass"]:
+app\intelligence\decision\14_decision_validation.py:2424:        print("PASS")
+app\intelligence\decision\14_decision_validation.py:3350:    checks["all_pass"] = all(
+app\intelligence\decision\14_decision_validation.py:3370:    if result["all_pass"]:
+app\intelligence\decision\14_decision_validation.py:3371:        print("PASS")
+app\intelligence\decision\14_decision_validation.py:3386:    if result["all_pass"]:
+app\intelligence\decision\14_decision_validation.py:3387:        print("PASS")
+app\intelligence\decision\15_decision_learning.py:1246:    # PASS
+app\intelligence\decision\15_decision_learning.py:1249:    print("D15 SELF-TEST: PASS")
+app\intelligence\decision\16_decision_intelligence - Copy.py:433:                pass
+app\intelligence\decision\16_decision_intelligence - Copy.py:1003:    print("D16 SELF-TEST: PASS")
+app\intelligence\decision\16_decision_intelligence.py:4523:        for name, passed in checks.items()
+app\intelligence\decision\16_decision_intelligence.py:4524:        if not passed
+app\intelligence\decision\16_decision_intelligence.py:4542:            "D16 PART-4 SELF-TEST: PASS"
+app\intelligence\decision\16_decision_intelligence.py:4545:        for name, passed in checks.items():
+app\intelligence\decision\16_decision_intelligence.py:4549:                f"{'PASS' if passed else 'FAIL'}"
+app\intelligence\decision\16_decision_intelligence.py:4573:                for name, passed in checks.items()
+app\intelligence\decision\16_decision_intelligence.py:4574:                if not passed
+app\intelligence\decision\16_decision_intelligence.py:4589:                print(f"{test_name}: PASS")
+app\intelligence\decision\16_decision_intelligence.py:4591:                for name, passed in checks.items():
+app\intelligence\decision\16_decision_intelligence.py:4594:                        f"{'PASS' if passed else 'FAIL'}"
+app\intelligence\decision\16_decision_intelligence.py:4620:        print("D16 COMPLETE SELF-TEST: PASS")app\intelligence\decision\1_Decision_Readiness.py:733:        "ROBOMLM D1 self-tests: PASS"
+app\intelligence\decision\2_decision_condition.py:341:        for name, passed in conditions.items()
+app\intelligence\decision\2_decision_condition.py:342:        if passed
+app\intelligence\decision\2_decision_condition.py:347:        for name, passed in conditions.items()
+app\intelligence\decision\2_decision_condition.py:348:        if not passed
+app\intelligence\decision\2_decision_condition.py:660:        "ROBOMLM D2 self-tests: PASS"
+app\intelligence\decision\3_decision_confidence.py:740:    print("D3 Decision Confidence self-tests: PASS")
+app\intelligence\decision\4_decision_relationships.py:978:    print("D4 SELF-TEST: PASS")
+app\intelligence\decision\5_decision_structure.py:929:    print("D5 SELF-TEST: PASS")
+app\intelligence\decision\6_decision_flow.py:1117:    print("D6 SELF-TEST: PASS")
+app\intelligence\decision\7_decision_liquidity_volatility.py:1705:        pass
+app\intelligence\decision\7_decision_liquidity_volatility.py:1722:        pass
+app\intelligence\decision\7_decision_liquidity_volatility.py:1751:    print("D7 SELF-TEST: PASS")
+app\intelligence\decision\8_decision_instrument_mechanics.py:1501:    print("D8 SELF-TEST: PASS")
+app\intelligence\decision\9_decision_time_event.py:821:        pass
+app\intelligence\decision\9_decision_time_event.py:823:    print("D9 SELF-TEST: PASS")
+app\intelligence\decision\decision_explainer.py:1300:    print("DECISION EXPLAINER SELF-TEST: PASS")
+app\intelligence\decision\decision_state.py:941:def _test_d13_blocked_passthrough() -> None:
+app\intelligence\decision\decision_state.py:1022:    _test_d13_blocked_passthrough()
+app\intelligence\decision\decision_state.py:1026:    print("DECISION STATE SELF-TEST: PASS")
+app\intelligence\decision\htf_scalper_engine.py:1559:    print("HTF / SCALPER SELF-TEST: PASS")
+app\intelligence\decision\opportunity_ranker.py:1576:    print("OPPORTUNITY RANKER SELF-TEST: PASS")
+app\intelligence\decision\timing_engine.py:1637:    print("DECISION TIMING SELF-TEST: PASS")
+app\intelligence\decision_orchestrator.py:72:        - bypass risk
+app\intelligence\decision_orchestrator.py:73:        - bypass authorization
+app\intelligence\decision_orchestrator.py:74:        - bypass kill switch
+app\intelligence\evidence\ace.py:253:    NED/DAR/TV/MBC/DCS so that orchestration can pass either:
+app\intelligence\evidence\dar.py:11:absorbed by available passive order-book depth.
+app\intelligence\evidence\dar.py:111:    Depth must represent actual observed passive depth from the
+app\intelligence\evidence\dar.py:254:                    "Aggregated observed passive bid depth.",
+app\intelligence\evidence\dar.py:281:                    "Aggregated observed passive ask depth.",
+app\intelligence\evidence\evidence_engine_base.py:205:        raise NotImplementedError
+app\intelligence\evidence\evidence_normalizer.py:1034:        pass
+app\intelligence\evidence\evidence_normalizer.py:1055:        pass
+app\intelligence\evidence\evidence_normalizer.py:1076:        pass
+app\intelligence\evidence\evidence_normalizer.py:1096:        pass
+app\intelligence\evidence\evidence_normalizer.py:1145:        "EvidenceNormalizer self-test: PASS"
+app\intelligence\evidence\mbc.py:11:available passive order-book depth.
+app\intelligence\evidence\mbc.py:23:2. Passive depth:
+app\intelligence\evidence\mbc.py:33:4. Passive-depth balance:
+app\intelligence\evidence\mbc.py:251:                        name="passive_depth_balance",
+app\intelligence\evidence\oxe.py:13:    DAR -> aggressive flow relative to passive depth
+app\intelligence\evidence\oxe.py:247:                    "Directional passive-depth absorption differential."
+app\intelligence\intelligence_orchestrator.py:85:    The orchestrator does not execute trades and does not bypass
+app\intelligence\magnitude_engine.py:128:    4. Does not bypass risk.
+app\intelligence\magnitude_engine.py:1568:            "risk_bypass": False,
+app\intelligence\memory\decision_memory.py:672:        "pass",
+app\intelligence\memory\decision_memory.py:673:        "passed",
+app\intelligence\memory\decision_memory.py:778:        "pass",
+app\intelligence\memory\decision_memory.py:779:        "passed",
+app\intelligence\memory\evidence_memory.py:591:        "pass",
+app\intelligence\memory\evidence_memory.py:592:        "passed",
+app\intelligence\memory\evidence_memory.py:683:        "pass",
+app\intelligence\memory\evidence_memory.py:684:        "passed",
+app\intelligence\memory\market_memory.py:660:            "PASS",
+app\intelligence\memory\market_memory.py:661:            "PASSED",
+app\intelligence\memory\memory_retrieval.py:356:                pass
+app\intelligence\memory\memory_service.py:1584:            reason="Memory record passed service validation.",
+app\intelligence\memory\memory_service.py:1614:            reason="Memory consolidation passed service assessment.",
+app\intelligence\memory\outcome_memory.py:312:                pass
+app\intelligence\memory\pattern_memory.py:331:                pass
+app\intelligence\memory\pattern_memory.py:2600:        "integrity_pass":
+app\intelligence\metrics\eqe.py:1288:        "EQE V6 calibrated intelligence self-tests: PASS"
+app\intelligence\metrics\lqs.py:1766:    print("LQS V6 EQ-0003 self-tests: PASS")
+app\intelligence\metrics\mcs.py:1175:        "MCS V6 D6-MCI canonical self-tests: PASS"
+app\intelligence\metrics\mct.py:959:    print("MCT V6 self-tests: PASS")app\intelligence\metrics\mts.py:1145:    print("MTS V6 self-tests: PASS")
+app\intelligence\metrics\pfs.py:153:        Passive liquidity is not interpreted as aggressive
+app\intelligence\metrics\pfs.py:2104:        "self-tests: PASS"
+app\intelligence\metrics\rds.py:1883:        "RDS V6 EQ-0008 + Risk Density self-tests: PASS"
+app\intelligence\metrics\tps.py:955:    print("TPS V6 self-tests: PASS")
+app\intelligence\opportunity\backup\intraday_engine.py:51:    PASS = "PASS"
+app\intelligence\opportunity\backup\intraday_engine.py:211:    passed: bool = False
+app\intelligence\opportunity\backup\intraday_engine.py:219:        self.passed = self.decision.status == IntradayStatus.PASS
+app\intelligence\opportunity\backup\intraday_engine.py:868:            status = IntradayStatus.PASS
+app\intelligence\opportunity\backup\intraday_engine.py:1400:                pass
+app\intelligence\opportunity\backup\intraday_engine.py:1709:            "passed": result.passed,
+app\intelligence\opportunity\backup\intraday_engine.py:1877:    assert decision.status == IntradayStatus.PASS
+app\intelligence\opportunity\backup\intraday_engine.py:2250:    assert results[0].passed is True
+app\intelligence\opportunity\backup\intraday_engine.py:2337:    print("intraday_engine.py self-test: PASS")
+app\intelligence\opportunity\backup\intraday_engine.py:2466:            pass
+app\intelligence\opportunity\backup\liquidity_filter.py:58:    PASS = "PASS"
+app\intelligence\opportunity\backup\liquidity_filter.py:146:    passed: List[LiquidityFilterDecision] = field(default_factory=list)
+app\intelligence\opportunity\backup\liquidity_filter.py:151:    total_passed: int = 0
+app\intelligence\opportunity\backup\liquidity_filter.py:401:            status = LiquidityStatus.PASS.value
+app\intelligence\opportunity\backup\liquidity_filter.py:449:        passed: List[LiquidityFilterDecision] = []
+app\intelligence\opportunity\backup\liquidity_filter.py:463:            if decision.status == LiquidityStatus.PASS.value:
+app\intelligence\opportunity\backup\liquidity_filter.py:464:                passed.append(decision)
+app\intelligence\opportunity\backup\liquidity_filter.py:472:        if passed:
+app\intelligence\opportunity\backup\liquidity_filter.py:482:            passed=passed,
+app\intelligence\opportunity\backup\liquidity_filter.py:486:            total_passed=len(passed),
+app\intelligence\opportunity\backup\liquidity_filter.py:509:        By default only PASS records are returned.
+app\intelligence\opportunity\backup\liquidity_filter.py:522:            return result.passed + result.review
+app\intelligence\opportunity\backup\liquidity_filter.py:524:        return result.passed
+app\intelligence\opportunity\backup\liquidity_filter.py:983:            "passed": [
+app\intelligence\opportunity\backup\liquidity_filter.py:985:                for item in result.passed
+app\intelligence\opportunity\backup\liquidity_filter.py:996:            "total_passed": result.total_passed,
+app\intelligence\opportunity\backup\liquidity_filter.py:1070:    assert healthy.status == "PASS"
+app\intelligence\opportunity\backup\liquidity_filter.py:1183:    assert imbalance.status == "PASS"
+app\intelligence\opportunity\backup\liquidity_filter.py:1220:    assert result.total_passed == 1
+app\intelligence\opportunity\backup\liquidity_filter.py:1224:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+app\intelligence\opportunity\backup\ranking_engine.py:70:    PASS = "PASS"
+app\intelligence\opportunity\backup\ranking_engine.py:493:        status = RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:513:        if warnings and status == RankingStatus.PASS:
+app\intelligence\opportunity\backup\ranking_engine.py:570:                RankingStatus.PASS,
+app\intelligence\opportunity\backup\ranking_engine.py:593:            if d.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:619:            collection_status = RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:1732:    assert decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:1757:    assert decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:1838:    assert evidence_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:1981:    assert mapping_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:2010:    assert naive_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:2072:    assert convenience_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\backup\ranking_engine.py:2092:    print("ranking_engine.py self-test: PASS")
+app\intelligence\opportunity\backup\risk_filter.py:53:    PASS = "PASS"
+app\intelligence\opportunity\backup\risk_filter.py:142:    passed: List[RiskFilterDecision] = field(default_factory=list)
+app\intelligence\opportunity\backup\risk_filter.py:154:                list(self.passed)
+app\intelligence\opportunity\backup\risk_filter.py:162:        if not self.passed:
+app\intelligence\opportunity\backup\risk_filter.py:163:            self.passed = [
+app\intelligence\opportunity\backup\risk_filter.py:165:                if d.status == RiskStatus.PASS
+app\intelligence\opportunity\backup\risk_filter.py:675:        # Review has priority over PASS.
+app\intelligence\opportunity\backup\risk_filter.py:706:            RiskStatus.PASS,
+app\intelligence\opportunity\backup\risk_filter.py:762:        By default only PASS decisions are returned.
+app\intelligence\opportunity\backup\risk_filter.py:773:            return result.passed + result.review
+app\intelligence\opportunity\backup\risk_filter.py:775:        return result.passed
+app\intelligence\opportunity\backup\risk_filter.py:984:        passed = [
+app\intelligence\opportunity\backup\risk_filter.py:986:            if d.status == RiskStatus.PASS
+app\intelligence\opportunity\backup\risk_filter.py:1006:            passed=passed,
+app\intelligence\opportunity\backup\risk_filter.py:1295:            "passed": [
+app\intelligence\opportunity\backup\risk_filter.py:1297:                for d in result.passed
+app\intelligence\opportunity\backup\risk_filter.py:1331:        PASS decisions by default.
+app\intelligence\opportunity\backup\risk_filter.py:1332:        PASS + REVIEW when include_review=True.
+app\intelligence\opportunity\backup\risk_filter.py:1371:    # Test 1: Observable risk + no restrictive policy => PASS
+app\intelligence\opportunity\backup\risk_filter.py:1400:    assert decision.status == RiskStatus.PASS
+app\intelligence\opportunity\backup\risk_filter.py:1591:    assert len(result.passed) == 1
+app\intelligence\opportunity\backup\risk_filter.py:1602:    assert isinstance(serialized["passed"], list)
+app\intelligence\opportunity\backup\risk_filter.py:1605:    print("risk_filter.py self-test: PASS")
+app\intelligence\opportunity\backup\timing_engine.py:50:    PASS = "PASS"
+app\intelligence\opportunity\backup\timing_engine.py:185:    passed: List[TimingDecision] = field(default_factory=list)
+app\intelligence\opportunity\backup\timing_engine.py:197:                list(self.passed)
+app\intelligence\opportunity\backup\timing_engine.py:205:        if not self.passed:
+app\intelligence\opportunity\backup\timing_engine.py:206:            self.passed = [
+app\intelligence\opportunity\backup\timing_engine.py:208:                if d.status == TimingStatus.PASS
+app\intelligence\opportunity\backup\timing_engine.py:667:            # the observation can pass.
+app\intelligence\opportunity\backup\timing_engine.py:672:                final_status = TimingStatus.PASS
+app\intelligence\opportunity\backup\timing_engine.py:780:            PASS only.
+app\intelligence\opportunity\backup\timing_engine.py:783:            PASS + REVIEW.
+app\intelligence\opportunity\backup\timing_engine.py:796:                list(result.passed)
+app\intelligence\opportunity\backup\timing_engine.py:800:        return list(result.passed)
+app\intelligence\opportunity\backup\timing_engine.py:1488:                pass
+app\intelligence\opportunity\backup\timing_engine.py:1630:            "passed": [
+app\intelligence\opportunity\backup\timing_engine.py:1632:                for d in result.passed
+app\intelligence\opportunity\backup\timing_engine.py:1694:    Returns PASS decisions by default.
+app\intelligence\opportunity\backup\timing_engine.py:1697:        PASS + REVIEW
+app\intelligence\opportunity\backup\timing_engine.py:1774:    assert decision.status == TimingStatus.PASS
+app\intelligence\opportunity\backup\timing_engine.py:2070:    assert len(result.passed) == 1
+app\intelligence\opportunity\backup\timing_engine.py:2082:        serialized["passed"],
+app\intelligence\opportunity\backup\timing_engine.py:2091:    print("timing_engine.py self-test: PASS")
+app\intelligence\opportunity\backup\universe_engine.py:1209:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+app\intelligence\opportunity\intraday_engine.py:51:    PASS = "PASS"
+app\intelligence\opportunity\intraday_engine.py:211:    passed: bool = False
+app\intelligence\opportunity\intraday_engine.py:219:        self.passed = self.decision.status == IntradayStatus.PASS
+app\intelligence\opportunity\intraday_engine.py:868:            status = IntradayStatus.PASS
+app\intelligence\opportunity\intraday_engine.py:1400:                pass
+app\intelligence\opportunity\intraday_engine.py:1709:            "passed": result.passed,
+app\intelligence\opportunity\intraday_engine.py:1877:    assert decision.status == IntradayStatus.PASS
+app\intelligence\opportunity\intraday_engine.py:2250:    assert results[0].passed is True
+app\intelligence\opportunity\intraday_engine.py:2337:    print("intraday_engine.py self-test: PASS")
+app\intelligence\opportunity\intraday_engine.py:2466:            pass
+app\intelligence\opportunity\liquidity_filter.py:58:    PASS = "PASS"
+app\intelligence\opportunity\liquidity_filter.py:146:    passed: List[LiquidityFilterDecision] = field(default_factory=list)
+app\intelligence\opportunity\liquidity_filter.py:151:    total_passed: int = 0
+app\intelligence\opportunity\liquidity_filter.py:401:            status = LiquidityStatus.PASS.value
+app\intelligence\opportunity\liquidity_filter.py:449:        passed: List[LiquidityFilterDecision] = []
+app\intelligence\opportunity\liquidity_filter.py:463:            if decision.status == LiquidityStatus.PASS.value:
+app\intelligence\opportunity\liquidity_filter.py:464:                passed.append(decision)
+app\intelligence\opportunity\liquidity_filter.py:472:        if passed:
+app\intelligence\opportunity\liquidity_filter.py:482:            passed=passed,
+app\intelligence\opportunity\liquidity_filter.py:486:            total_passed=len(passed),
+app\intelligence\opportunity\liquidity_filter.py:509:        By default only PASS records are returned.
+app\intelligence\opportunity\liquidity_filter.py:522:            return result.passed + result.review
+app\intelligence\opportunity\liquidity_filter.py:524:        return result.passed
+app\intelligence\opportunity\liquidity_filter.py:983:            "passed": [
+app\intelligence\opportunity\liquidity_filter.py:985:                for item in result.passed
+app\intelligence\opportunity\liquidity_filter.py:996:            "total_passed": result.total_passed,
+app\intelligence\opportunity\liquidity_filter.py:1070:    assert healthy.status == "PASS"
+app\intelligence\opportunity\liquidity_filter.py:1183:    assert imbalance.status == "PASS"
+app\intelligence\opportunity\liquidity_filter.py:1220:    assert result.total_passed == 1
+app\intelligence\opportunity\liquidity_filter.py:1224:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+app\intelligence\opportunity\opportunity_engine.py:110:    PASS = "PASS"
+app\intelligence\opportunity\opportunity_engine.py:153:    PASS = "PASS"
+app\intelligence\opportunity\opportunity_engine.py:288:    pass_count: int = 0
+app\intelligence\opportunity\opportunity_engine.py:688:        status = OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:783:            if status == OpportunityStatus.PASS:
+app\intelligence\opportunity\opportunity_engine.py:904:            "pass",
+app\intelligence\opportunity\opportunity_engine.py:905:            "passed",
+app\intelligence\opportunity\opportunity_engine.py:916:                status=GateStatus.PASS,
+app\intelligence\opportunity\opportunity_engine.py:918:                reason=f"{name.capitalize()} gate passed.",
+app\intelligence\opportunity\opportunity_engine.py:1274:        pass_items = tuple(
+app\intelligence\opportunity\opportunity_engine.py:1277:            if decision.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:1280:        if rejected and not pass_items and not review:
+app\intelligence\opportunity\opportunity_engine.py:1284:        elif pass_items:
+app\intelligence\opportunity\opportunity_engine.py:1285:            collection_status = OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:1303:            pass_count=len(pass_items),
+app\intelligence\opportunity\opportunity_engine.py:1324:            pass_count=len(pass_items),
+app\intelligence\opportunity\opportunity_engine.py:1358:        Only PASS opportunities are included in ranked output.
+app\intelligence\opportunity\opportunity_engine.py:1364:            if decision.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:1721:                "pass",
+app\intelligence\opportunity\opportunity_engine.py:2184:    assert strong.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2211:    assert pfs_result.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2233:    assert mci_result.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2284:    assert composite.status == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2380:        == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2508:        == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2590:    assert collection.pass_count == 4
+app\intelligence\opportunity\opportunity_engine.py:2623:        status=OpportunityStatus.PASS,
+app\intelligence\opportunity\opportunity_engine.py:2649:        == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2689:        == "PASS"
+app\intelligence\opportunity\opportunity_engine.py:2764:        == OpportunityStatus.PASS
+app\intelligence\opportunity\opportunity_engine.py:2792:        status=OpportunityStatus.PASS,
+app\intelligence\opportunity\opportunity_engine.py:2825:    # PASS
+app\intelligence\opportunity\opportunity_engine.py:2829:        "opportunity_engine.py self-test: PASS"
+app\intelligence\opportunity\opportunity_explainer.py:36:    - silently convert UNKNOWN into PASS
+app\intelligence\opportunity\opportunity_explainer.py:960:            return "PASS" if value else "BLOCK"
+app\intelligence\opportunity\opportunity_explainer.py:968:            "OK": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:969:            "PASSED": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:970:            "TRUE": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:971:            "YES": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:972:            "VALID": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:973:            "CLEAR": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1033:        if status == "PASS":
+app\intelligence\opportunity\opportunity_explainer.py:1034:            return f"{name} gate is reported as passing."
+app\intelligence\opportunity\opportunity_explainer.py:1138:            "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1409:                pass
+app\intelligence\opportunity\opportunity_explainer.py:1415:                pass
+app\intelligence\opportunity\opportunity_explainer.py:1421:                pass
+app\intelligence\opportunity\opportunity_explainer.py:1740:        "liquidity_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1741:        "risk_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1742:        "timing_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1743:        "intraday_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:1808:            "PASS"
+app\intelligence\opportunity\opportunity_explainer.py:2587:        PASS here means the explainer's own contract is internally valid.
+app\intelligence\opportunity\opportunity_explainer.py:2622:        "liquidity_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:2623:        "risk_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:2624:        "timing_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:2625:        "intraday_status": "PASS",
+app\intelligence\opportunity\opportunity_explainer.py:2692:        "validation_passed": validation.valid,
+app\intelligence\opportunity\opportunity_explainer.py:2727:            "PASS"
+app\intelligence\opportunity\ranking_engine.py:69:    PASS = "PASS"
+app\intelligence\opportunity\ranking_engine.py:618:        status = RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:646:            and status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:710:                    RankingStatus.PASS,
+app\intelligence\opportunity\ranking_engine.py:751:            == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:780:            collection_status = RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2037:        PASS candidates.
+app\intelligence\opportunity\ranking_engine.py:2221:        liquidity_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2222:        risk_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2223:        timing_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2224:        intraday_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2240:    assert strong_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2260:        liquidity_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2261:        risk_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2262:        timing_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2263:        intraday_status="PASS",
+app\intelligence\opportunity\ranking_engine.py:2286:    assert good_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2312:    assert sparse_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2460:    assert evidence_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2630:    assert mapping_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2713:    assert convenience_decision.status == RankingStatus.PASS
+app\intelligence\opportunity\ranking_engine.py:2721:    print("ranking_engine.py self-test: PASS")
+app\intelligence\opportunity\risk_filter.py:53:    PASS = "PASS"
+app\intelligence\opportunity\risk_filter.py:142:    passed: List[RiskFilterDecision] = field(default_factory=list)
+app\intelligence\opportunity\risk_filter.py:154:                list(self.passed)
+app\intelligence\opportunity\risk_filter.py:162:        if not self.passed:
+app\intelligence\opportunity\risk_filter.py:163:            self.passed = [
+app\intelligence\opportunity\risk_filter.py:165:                if d.status == RiskStatus.PASS
+app\intelligence\opportunity\risk_filter.py:675:        # Review has priority over PASS.
+app\intelligence\opportunity\risk_filter.py:706:            RiskStatus.PASS,
+app\intelligence\opportunity\risk_filter.py:762:        By default only PASS decisions are returned.
+app\intelligence\opportunity\risk_filter.py:773:            return result.passed + result.review
+app\intelligence\opportunity\risk_filter.py:775:        return result.passed
+app\intelligence\opportunity\risk_filter.py:984:        passed = [
+app\intelligence\opportunity\risk_filter.py:986:            if d.status == RiskStatus.PASS
+app\intelligence\opportunity\risk_filter.py:1006:            passed=passed,
+app\intelligence\opportunity\risk_filter.py:1295:            "passed": [
+app\intelligence\opportunity\risk_filter.py:1297:                for d in result.passed
+app\intelligence\opportunity\risk_filter.py:1331:        PASS decisions by default.
+app\intelligence\opportunity\risk_filter.py:1332:        PASS + REVIEW when include_review=True.
+app\intelligence\opportunity\risk_filter.py:1371:    # Test 1: Observable risk + no restrictive policy => PASS
+app\intelligence\opportunity\risk_filter.py:1400:    assert decision.status == RiskStatus.PASS
+app\intelligence\opportunity\risk_filter.py:1591:    assert len(result.passed) == 1
+app\intelligence\opportunity\risk_filter.py:1602:    assert isinstance(serialized["passed"], list)
+app\intelligence\opportunity\risk_filter.py:1605:    print("risk_filter.py self-test: PASS")
+app\intelligence\opportunity\scanner_engine.py:519:            "passed": all(checks.values()),
+app\intelligence\opportunity\timing_engine.py:50:    PASS = "PASS"
+app\intelligence\opportunity\timing_engine.py:185:    passed: List[TimingDecision] = field(default_factory=list)
+app\intelligence\opportunity\timing_engine.py:197:                list(self.passed)
+app\intelligence\opportunity\timing_engine.py:205:        if not self.passed:
+app\intelligence\opportunity\timing_engine.py:206:            self.passed = [
+app\intelligence\opportunity\timing_engine.py:208:                if d.status == TimingStatus.PASS
+app\intelligence\opportunity\timing_engine.py:667:            # the observation can pass.
+app\intelligence\opportunity\timing_engine.py:672:                final_status = TimingStatus.PASS
+app\intelligence\opportunity\timing_engine.py:780:            PASS only.
+app\intelligence\opportunity\timing_engine.py:783:            PASS + REVIEW.
+app\intelligence\opportunity\timing_engine.py:796:                list(result.passed)
+app\intelligence\opportunity\timing_engine.py:800:        return list(result.passed)
+app\intelligence\opportunity\timing_engine.py:1488:                pass
+app\intelligence\opportunity\timing_engine.py:1630:            "passed": [
+app\intelligence\opportunity\timing_engine.py:1632:                for d in result.passed
+app\intelligence\opportunity\timing_engine.py:1694:    Returns PASS decisions by default.
+app\intelligence\opportunity\timing_engine.py:1697:        PASS + REVIEW
+app\intelligence\opportunity\timing_engine.py:1774:    assert decision.status == TimingStatus.PASS
+app\intelligence\opportunity\timing_engine.py:2070:    assert len(result.passed) == 1
+app\intelligence\opportunity\timing_engine.py:2082:        serialized["passed"],
+app\intelligence\opportunity\timing_engine.py:2091:    print("timing_engine.py self-test: PASS")
+app\intelligence\opportunity\top10_engine.py:612:            "passed": all(checks.values()),
+app\intelligence\opportunity\universe_engine.py:1209:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+app\intelligence\opportunity_intelligence.py:119:        - bypass risk
+app\intelligence\opportunity_intelligence.py:120:        - bypass permissions
+app\intelligence\opportunity_intelligence.py:121:        - bypass kill switch
+app\intelligence\opportunity_intelligence.py:1122:                "All opportunity readiness gates passed and "
+app\intelligence\opportunity_intelligence.py:1382:            "risk_bypass": False,
+app\intelligence\opportunity_intelligence.py:1383:            "authorization_bypass": False,
+app\intelligence\regime_intelligence.py:294:                pass
+app\intelligence\relationship_intelligence.py:11:class RelationshipAssessment:
+app\intelligence\relationship_intelligence.py:68:        - bypass risk controls
+app\intelligence\relationship_intelligence.py:69:        - bypass kill-switch controls
+app\intelligence\relationship_intelligence.py:100:        self._history: list[RelationshipAssessment] = []
+app\intelligence\relationship_intelligence.py:824:        previous: Optional[RelationshipAssessment],
+app\intelligence\relationship_intelligence.py:851:                pass
+app\intelligence\relationship_intelligence.py:857:        record: RelationshipAssessment,
+app\intelligence\relationship_intelligence.py:990:    ) -> RelationshipAssessment:
+app\intelligence\relationship_intelligence.py:1230:        assessment = RelationshipAssessment(
+app\intelligence\relationship_intelligence.py:1307:    ) -> Optional[RelationshipAssessment]:
+app\intelligence\relationship_intelligence.py:1317:    ) -> tuple[RelationshipAssessment, ...]:
+app\intelligence\relationship_intelligence.py:1426:    "RelationshipAssessment",
+app\intelligence\research\candidate_manager.py:1812:        "integrity_pass": (
+app\intelligence\research\candidate_manager.py:1825:        )["integrity_pass"]
+app\intelligence\research\dataset.py:2099:        "integrity_pass": bool(
+app\intelligence\research\dataset.py:2112:        )["integrity_pass"]
+app\intelligence\research\deployment_manager.py:102:        - bypass validation
+app\intelligence\research\deployment_manager.py:554:    PASSED = "PASSED"
+app\intelligence\research\deployment_manager.py:697:        "PASSED",
+app\intelligence\research\deployment_manager.py:698:        "PASS",
+app\intelligence\research\deployment_manager.py:703:            DeploymentValidationState.PASSED
+app\intelligence\research\deployment_manager.py:784:        == DeploymentValidationState.PASSED
+app\intelligence\research\deployment_manager.py:1307:        != DeploymentValidationState.PASSED
+app\intelligence\research\deployment_manager.py:1763:        "integrity_pass": (
+app\intelligence\research\deployment_manager.py:1777:        )["integrity_pass"]
+app\intelligence\research\experiment.py:674:                "passed",
+app\intelligence\research\experiment.py:1732:        "integrity_pass":
+app\intelligence\research\experiment.py:1748:        report["integrity_pass"]
+app\intelligence\research\hypothesis.py:243:                pass
+app\intelligence\research\research_service.py:1840:    passed = all(checks.values())
+app\intelligence\research\research_service.py:1845:        "integrity": "PASS" if passed else "FAIL",
+app\intelligence\research\research_service.py:1846:        "passed": passed,
+app\intelligence\research\research_service.py:1860:    """Return True only when all structural integrity checks pass."""
+app\intelligence\research\research_service.py:1861:    return bool(research_service_integrity_check().get("passed", False))
+app\intelligence\research\stress_testing.py:62:    PASS = "PASS"
+app\intelligence\research\stress_testing.py:246:        pass
+app\intelligence\research\stress_testing.py:569:            "pass",
+app\intelligence\research\stress_testing.py:570:            "passed",
+app\intelligence\research\stress_testing.py:686:            "PASS",
+app\intelligence\research\stress_testing.py:975:        return StressTestDecision.PASS
+app\intelligence\research\stress_testing.py:1072:    PASS = "PASS"
+app\intelligence\research\stress_testing.py:1121:    def passed(self) -> bool:
+app\intelligence\research\stress_testing.py:1124:            and self.status == StressTestResultStatus.PASS
+app\intelligence\research\stress_testing.py:1125:            and self.assessment.decision == StressTestDecision.PASS
+app\intelligence\research\stress_testing.py:1186:    def passed(self) -> bool:
+app\intelligence\research\stress_testing.py:1187:        return self.is_valid and self.result.passed
+app\intelligence\research\stress_testing.py:1203:    if assessment.decision == StressTestDecision.PASS:
+app\intelligence\research\stress_testing.py:1204:        return StressTestResultStatus.PASS
+app\intelligence\research\stress_testing.py:1268:        StressTestResultStatus.PASS,
+app\intelligence\research\stress_testing.py:1536:    PASS means the stress-test contract is structurally complete
+app\intelligence\research\stress_testing.py:1537:    and has passed the assessment gate. It does not mean that a
+app\intelligence\research\stress_testing.py:1549:        result.passed
+app\intelligence\research\stress_testing.py:1563:        == StressTestDecision.PASS
+app\intelligence\research\stress_testing.py:1683:        "passed": result.passed,
+app\intelligence\research\stress_testing.py:1854:    passed = all(checks.values())
+app\intelligence\research\stress_testing.py:1859:        "health": "PASS" if passed else "FAIL",
+app\intelligence\research\stress_testing.py:1860:        "passed": passed,
+app\intelligence\research\stress_testing.py:2022:        "passed": result.passed,
+app\intelligence\research\stress_testing.py:2057:        "passed": contract.passed,
+app\intelligence\research\stress_testing.py:2143:    passed = all(checks.values())
+app\intelligence\research\stress_testing.py:2148:        "integrity": "PASS" if passed else "FAIL",
+app\intelligence\research\stress_testing.py:2149:        "passed": passed,
+app\intelligence\research\stress_testing.py:2167:    """Return True only when all integrity checks pass."""
+app\intelligence\research\stress_testing.py:2171:            "passed",
+app\intelligence\research\validation.py:34:    PASSED = "PASSED"
+app\intelligence\research\validation.py:65:    PASS = "PASS"
+app\intelligence\research\validation.py:267:        pass
+app\intelligence\research\validation.py:596:            "pass",
+app\intelligence\research\validation.py:597:            "passed",
+app\intelligence\research\validation.py:712:            "PASS",
+app\intelligence\research\validation.py:713:            "PASSED",
+app\intelligence\research\validation.py:960:        return ValidationDecision.PASS
+app\intelligence\research\validation.py:1026:    if decision == ValidationDecision.PASS:
+app\intelligence\research\validation.py:1029:            "structurally ready for a PASS assessment."
+app\intelligence\research\validation.py:1073:    PASS = "PASS"
+app\intelligence\research\validation.py:1113:    def passed(self) -> bool:
+app\intelligence\research\validation.py:1116:            and self.status == ValidationResultStatus.PASS
+app\intelligence\research\validation.py:1117:            and self.assessment.decision == ValidationDecision.PASS
+app\intelligence\research\validation.py:1175:    def passed(self) -> bool:
+app\intelligence\research\validation.py:1176:        return self.is_valid and self.result.passed
+app\intelligence\research\validation.py:1188:    if decision == ValidationDecision.PASS:
+app\intelligence\research\validation.py:1189:        return ValidationResultStatus.PASS
+app\intelligence\research\validation.py:1517:        result.passed
+app\intelligence\research\validation.py:1518:        and assessment.decision == ValidationDecision.PASS
+app\intelligence\research\validation.py:1550:    # research lifecycle stage; it is never treated as PASS.
+app\intelligence\research\validation.py:1676:        "passed": result.passed,
+app\intelligence\research\validation.py:1845:    passed = all(checks.values())
+app\intelligence\research\validation.py:1850:        "healthy": passed,
+app\intelligence\research\validation.py:1999:        "passed": result.passed,
+app\intelligence\research\validation.py:2025:        "passed": contract.passed,
+app\intelligence\research\validation.py:2054:            "passed": contract_or_result.passed,
+app\intelligence\research\validation.py:2074:            "passed": contract_or_result.passed,
+app\intelligence\research\validation.py:2091:        "passed": False,
+app\intelligence\research\version_manager.py:686:            "pass",
+app\intelligence\research\version_manager.py:687:            "passed",
+app\intelligence\research\version_manager.py:814:            "PASS",
+app\intelligence\research\version_manager.py:815:            "PASSED",
+app\intelligence\robomlm_plus\advanced_decision.py:26:    - No CAS bypass
+app\intelligence\robomlm_plus\advanced_decision.py:1590:    - PLUS does not bypass CAS.
+app\intelligence\robomlm_plus\advanced_decision.py:1939:        - bypass CAS
+app\intelligence\robomlm_plus\advanced_decision.py:2223:            "PASS"
+app\intelligence\robomlm_plus\emergency_control.py:1451:    Forwarding means passing control-state information to the
+app\intelligence\robomlm_plus\execution_preparation.py:25:    - bypass CAS
+app\intelligence\robomlm_plus\execution_preparation.py:2707:        "status": "PASS" if not missing else "FAIL",
+app\intelligence\robomlm_plus\protection.py:1726:    Determines whether a valid protection contract may be passed
+app\intelligence\robomlm_plus\protection.py:2379:            pass
+app\intelligence\timing_intelligence.py:99:    The engine does not execute trades and does not bypass risk,
+app\intelligence\timing_intelligence.py:307:                pass
+app\intelligence\verdict_engine.py:63:        - bypass risk
+app\intelligence\verdict_engine.py:64:        - bypass kill-switch
+app\intelligence\__init__.py:54:    RelationshipAssessment,
+app\intelligence\__init__.py:133:    "RelationshipAssessment",
+app\markets\contracts\contract_identity.py:225:        """Return whether the contract expiry date has passed."""
+app\markets\contracts\contract_registry.py:270:        """Return contracts whose expiry has passed."""
+app\markets\instruments\instrument_identity.py:309:        """Return whether the instrument expiry has passed."""
+app\subscription\entitlement_service.py:3006:            pass
+app\terminal\cas_status.py:97:    PASS = "PASS"
+app\terminal\cas_status.py:1443:        CASGateState.PASS: 1,
+app\terminal\decision_outlook.py:134:            pass
+app\terminal\decision_outlook.py:841:    passed = sum(
+app\terminal\decision_outlook.py:847:    return passed / len(checks)
+app\terminal\evidence_strip.py:106:            pass
+app\terminal\evidence_strip.py:486:class EvidenceStripAssessment:
+app\terminal\evidence_strip.py:815:) -> EvidenceStripAssessment:
+app\terminal\evidence_strip.py:884:    return EvidenceStripAssessment(
+app\terminal\evidence_strip.py:988:    assessment: Optional[EvidenceStripAssessment] = None
+app\terminal\evidence_strip.py:1048:    assessment: EvidenceStripAssessment,
+app\terminal\evidence_strip.py:1076:    assessment: EvidenceStripAssessment,
+app\terminal\evidence_strip.py:1098:    assessment: EvidenceStripAssessment,
+app\terminal\evidence_strip.py:1632:    assessment: Optional[EvidenceStripAssessment] = None
+app\terminal\evidence_strip.py:1724:    ) -> EvidenceStripAssessment:
+app\terminal\evidence_strip.py:1908:    assessment: EvidenceStripAssessment,
+app\terminal\evidence_strip.py:2013:    assessment: EvidenceStripAssessment,
+app\terminal\evidence_strip.py:2015:    if not isinstance(assessment, EvidenceStripAssessment):
+app\terminal\evidence_strip.py:2406:    "EvidenceStripAssessment",
+app\terminal\intelligence_panel.py:131:            pass
+app\terminal\intelligence_panel.py:840:    passed = sum(
+app\terminal\intelligence_panel.py:846:    return passed / len(checks)
+app\terminal\terminal_service.py:147:            pass
+app\terminal\__init__.py:215:    EvidenceStripAssessment,
+app\terminal\__init__.py:570:    "EvidenceStripAssessment",
+app\ui\account\account_page.py:21:    - password verification
+app\ui\account\account_page.py:32:    - CAS generation or bypass
+app\ui\account\account_page.py:2038:            "cas_bypass": False,
+app\ui\account\account_page.py:2662:        "cas_bypass"
+app\ui\account\account_page.py:2665:            "CAS_BYPASS_ENABLED"
+app\ui\account\account_page.py:3488:            "NO_CAS_BYPASS",
+app\ui\account\billing_page.py:33:- generate or bypass CAS
+app\ui\account\billing_page.py:3429:            "NO_CAS_BYPASS",
+app\ui\account\notification_page.py:30:- generate or bypass CAS
+app\ui\account\notification_page.py:2114:            "cas_bypass": False,
+app\ui\account\notification_page.py:3062:            "CAS_BYPASS",
+app\ui\account\notification_page.py:3122:        "cas_bypass": False,
+app\ui\account\notification_page.py:3531:            "NO_CAS_BYPASS",
+app\ui\account\settings_page.py:19:- Does NOT generate or bypass CAS.
+app\ui\account\settings_page.py:1161:            "cas_bypass": False,
+app\ui\account\settings_page.py:1658:    - bypass CAS
+app\ui\account\settings_page.py:2391:        "cas_bypass",
+app\ui\account\settings_page.py:2660:            "cas_bypass",
+app\ui\account\settings_page.py:2888:        "cas_bypass": False,
+app\ui\account\settings_page.py:2941:            "CAS_BYPASS",
+app\ui\account\settings_page.py:2959:            "NO_CAS_BYPASS",
+app\ui\account\settings_page.py:3323:            "cas_bypass": False,
+app\ui\account\settings_page.py:3442:            "NO_CAS_BYPASS",
+app\ui\account\settings_page.py:3535:        "NO_CAS_BYPASS",
+app\ui\account\settings_page.py:3590:        "cas_bypass": False,
+app\ui\app.py:29:- bypass upstream authority
+app\ui\automation\automation_page.py:56:    "cas_bypass": False,
+app\ui\automation\automation_page.py:864:            "Readiness checks passed."
+app\ui\automation\automation_page.py:1128:            "cas_bypass": False,
+app\ui\automation\automation_page.py:1861:            "cas_bypass"
+app\ui\automation\automation_page.py:1865:            "CAS_BYPASS_FORBIDDEN"
+app\ui\automation\automation_page.py:2074:        "cas_bypass": False,
+app\ui\automation\automation_page.py:2102:        "cas_bypass": False,
+app\ui\automation\automation_page.py:2271:            "NO_CAS_BYPASS",
+app\ui\automation\automation_page.py:2368:        "cas_bypass":
+app\ui\buyer\buyer_page.py:41:    - Buyer does NOT bypass D13.
+app\ui\buyer\buyer_page.py:42:    - Buyer does NOT bypass CAS.
+app\ui\buyer\cas_view.py:31:- bypass D13
+app\ui\buyer\cas_view.py:32:- bypass Risk
+app\ui\buyer\decision_view.py:17:- bypass Risk
+app\ui\buyer\decision_view.py:18:- bypass CAS
+app\ui\buyer\intelligence_view.py:28:- bypass CAS
+app\ui\buyer\risk_view.py:19:- bypass CAS
+app\ui\buyer\strategy_preview.py:22:- bypass CAS
+app\ui\buyer\strategy_selector.py:38:- bypass CAS
+app\ui\discovery\discovery_page.py:67:    "cas_bypass": False,
+app\ui\discovery\discovery_page.py:1175:            "cas_bypass": False,
+app\ui\discovery\discovery_page.py:1202:            "cas_bypass": False,
+app\ui\discovery\discovery_page.py:1594:            "cas_bypass": False,
+app\ui\discovery\discovery_page.py:2003:        "cas_bypass",
+app\ui\discovery\discovery_page.py:2118:        "cas_bypass",
+app\ui\discovery\discovery_page.py:2214:                "cas_bypass",
+app\ui\discovery\discovery_page.py:2325:            "cas_bypass": False,
+app\ui\discovery\discovery_page.py:2365:        "cas_bypass": False,
+app\ui\discovery\discovery_page.py:2431:        "cas_bypass": False,
+app\ui\discovery\discovery_page.py:2470:            "NO_CAS_BYPASS",
+app\ui\discovery\discovery_page.py:2548:            "CAS_BYPASS",
+app\ui\discovery\discovery_page.py:2693:        "passed": (
+app\ui\discovery\engines\accumulation_engine.py:67:    "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:540:        "CAS_BYPASS",
+app\ui\discovery\engines\accumulation_engine.py:575:        "cas_bypass",
+app\ui\discovery\engines\accumulation_engine.py:611:        "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:1174:        raise NotImplementedError
+app\ui\discovery\engines\accumulation_engine.py:1181:        raise NotImplementedError
+app\ui\discovery\engines\accumulation_engine.py:1375:    "cas_bypassed_here": False,
+app\ui\discovery\engines\accumulation_engine.py:1395:        "cas_bypassed_here",
+app\ui\discovery\engines\accumulation_engine.py:2112:            "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:2145:    "cas_bypassed": False,
+app\ui\discovery\engines\accumulation_engine.py:2162:        "cas_bypassed",
+app\ui\discovery\engines\accumulation_engine.py:2543:        "cas_bypass",
+app\ui\discovery\engines\accumulation_engine.py:2594:    cas_bypass_here: bool = False
+app\ui\discovery\engines\accumulation_engine.py:2667:        cas_bypass_here=False,
+app\ui\discovery\engines\accumulation_engine.py:2742:        "cas_bypass_here": False,
+app\ui\discovery\engines\accumulation_engine.py:2796:        "cas_bypass_allowed": False,
+app\ui\discovery\engines\accumulation_engine.py:2886:        "passed": all([
+app\ui\discovery\engines\accumulation_engine.py:3278:        "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:3476:            "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:3585:        "cas_bypass_here": False,
+app\ui\discovery\engines\accumulation_engine.py:3588:        "passed": (
+app\ui\discovery\engines\accumulation_engine.py:3674:    passed = all([
+app\ui\discovery\engines\accumulation_engine.py:3675:        part4.get("passed", False),
+app\ui\discovery\engines\accumulation_engine.py:3676:        module.get("passed", False),
+app\ui\discovery\engines\accumulation_engine.py:3685:        "part4_passed": part4.get(
+app\ui\discovery\engines\accumulation_engine.py:3686:            "passed",
+app\ui\discovery\engines\accumulation_engine.py:3690:        "module_passed": module.get(
+app\ui\discovery\engines\accumulation_engine.py:3691:            "passed",
+app\ui\discovery\engines\accumulation_engine.py:3722:        "cas_bypass": False,
+app\ui\discovery\engines\accumulation_engine.py:3726:        "passed": passed,
+app\ui\discovery\engines\accumulation_engine.py:3932:        "CAS_BYPASS",
+app\ui\discovery\engines\boundary_engine.py:670:        "status": "PASS" if not errors else "FAIL",
+app\ui\discovery\engines\boundary_engine.py:1325:        raise NotImplementedError
+app\ui\discovery\engines\boundary_engine.py:1338:        raise NotImplementedError
+app\ui\discovery\engines\boundary_engine.py:1688:            "PASS"
+app\ui\discovery\engines\boundary_engine.py:2864:            "PASS"
+app\ui\discovery\engines\boundary_engine.py:4209:    passed = all(checks.values())
+app\ui\discovery\engines\boundary_engine.py:4215:        "passed": passed,
+app\ui\discovery\engines\boundary_engine.py:4232:    passed = (
+app\ui\discovery\engines\boundary_engine.py:4233:        self_check["passed"]
+app\ui\discovery\engines\boundary_engine.py:4249:        "passed": passed,
+app\ui\discovery\engines\boundary_engine.py:4992:    if not part4_check["passed"]:
+app\ui\discovery\engines\boundary_engine.py:5153:        "part4_passed":
+app\ui\discovery\engines\boundary_engine.py:5154:            part4["passed"],
+app\ui\discovery\engines\boundary_engine.py:5268:    passed = all(checks.values())
+app\ui\discovery\engines\boundary_engine.py:5277:        "passed":
+app\ui\discovery\engines\boundary_engine.py:5278:            passed,
+app\ui\discovery\engines\boundary_engine.py:5500:        "passed":
+app\ui\discovery\engines\boundary_engine.py:5637:    if not final_check["passed"]:
+app\ui\discovery\engines\boundary_engine.py:5646:        f"FINAL SELF-CHECK: PASSED"
+app\ui\discovery\engines\breakout_engine.py:761:            pass
+app\ui\discovery\engines\breakout_engine.py:2807:            pass
+app\ui\discovery\engines\confirmation_engine.py:1516:            pass
+app\ui\discovery\engines\confirmation_engine.py:2810:            pass
+app\ui\discovery\engines\confirmation_engine.py:3467:                pass
+app\ui\discovery\engines\confirmation_engine.py:4702:            pass
+app\ui\discovery\engines\distribution_engine.py:1231:        raise NotImplementedError
+app\ui\discovery\engines\distribution_engine.py:1242:        raise NotImplementedError
+app\ui\discovery\engines\distribution_engine.py:4519:        key for key, passed in checks.items()
+app\ui\discovery\engines\distribution_engine.py:4520:        if not passed
+app\ui\discovery\engines\distribution_engine.py:4527:        "status": "PASS" if not errors else "FAIL",
+app\ui\discovery\engines\distribution_engine.py:4677:        "status": "PASS" if not errors else "FAIL",
+app\ui\discovery\engines\opportunity_engine.py:1805:            return "PASS"
+app\ui\discovery\engines\opportunity_engine.py:1836:            and evidence_gate == "PASS"
+app\ui\discovery\engines\opportunity_engine.py:1839:            return "PASS"
+app\ui\discovery\engines\opportunity_engine.py:1870:            and quality_gate == "PASS"
+app\ui\discovery\engines\opportunity_engine.py:1877:                "PASS",
+app\ui\discovery\engines\opportunity_engine.py:2173:            and evidence_gate == "PASS"
+app\ui\discovery\engines\opportunity_engine.py:2174:            and quality_gate == "PASS"
+app\ui\discovery\engines\opportunity_engine.py:2180:            and evidence_gate == "PASS"
+app\ui\discovery\engines\structure_engine.py:50:    "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:594:        "CAS_BYPASS",
+app\ui\discovery\engines\structure_engine.py:623:        "cas_bypass",
+app\ui\discovery\engines\structure_engine.py:654:        "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:1183:        raise NotImplementedError
+app\ui\discovery\engines\structure_engine.py:1189:        raise NotImplementedError
+app\ui\discovery\engines\structure_engine.py:1383:        "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:2144:            "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:2667:        "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:2709:    cas_bypassed: bool = False
+app\ui\discovery\engines\structure_engine.py:2773:            "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:2831:        "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:2871:        "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:2925:            "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:2998:        "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:3001:            "PASS"
+app\ui\discovery\engines\structure_engine.py:3351:        "cas_bypass": False,
+app\ui\discovery\engines\structure_engine.py:3432:        "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:3563:    passed = (
+app\ui\discovery\engines\structure_engine.py:3565:            part4["status"] == "PASS"
+app\ui\discovery\engines\structure_engine.py:3581:            "PASS"
+app\ui\discovery\engines\structure_engine.py:3582:            if passed
+app\ui\discovery\engines\structure_engine.py:3605:        "cas_bypassed": False,
+app\ui\discovery\engines\structure_engine.py:3769:        "cas_bypass": False,
+app\ui\discovery\favorites.py:45:    "cas_bypass": False,
+app\ui\discovery\favorites.py:1086:        pass
+app\ui\discovery\favorites.py:1420:            "cas_bypassed": False,
+app\ui\discovery\favorites.py:1691:                    "cas_bypassed": False,
+app\ui\discovery\favorites.py:1759:                "cas_bypassed": False,
+app\ui\discovery\favorites.py:1921:            "cas_bypass": False,
+app\ui\discovery\favorites.py:2309:        "cas_bypassed",
+app\ui\discovery\favorites.py:2394:        "cas_bypass",
+app\ui\discovery\favorites.py:2556:        "cas_bypass": False,
+app\ui\discovery\favorites.py:2592:        "cas_bypass": False,
+app\ui\discovery\favorites.py:2682:        "cas_bypassed": False,
+app\ui\discovery\favorites.py:2779:            "CAS_BYPASS",
+app\ui\discovery\favorites.py:2916:        "cas_bypass": False,
+app\ui\discovery\models\opportunity_models.py:2001:                pass
+app\ui\discovery\models\opportunity_models.py:2009:                pass
+app\ui\discovery\models\scanner_models.py:3215:    validation_passed: bool = True
+app\ui\discovery\models\scanner_models.py:3245:            "validation_passed": (
+app\ui\discovery\models\scanner_models.py:3246:                self.validation_passed
+app\ui\discovery\models\scanner_models.py:3372:        validation_passed=summary[
+app\ui\discovery\scanners\commodity_scanner.py:65:    "cas_bypass": False,
+app\ui\discovery\scanners\commodity_scanner.py:1136:            "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:1219:            "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:1387:                "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:1510:            "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:1688:                    "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:2253:        "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:2379:        "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:2527:        "cas_bypass",
+app\ui\discovery\scanners\commodity_scanner.py:2674:        "cas_bypass": False,
+app\ui\discovery\scanners\commodity_scanner.py:2843:        "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:2939:            "cas_bypassed": False,
+app\ui\discovery\scanners\commodity_scanner.py:3037:            "CAS_BYPASS",
+app\ui\discovery\scanners\commodity_scanner.py:3134:        "cas_bypassed",
+app\ui\discovery\scanners\commodity_scanner.py:3318:        "passed": (
+app\ui\discovery\scanners\crypto_scanner.py:71:    "cas_bypass": False,
+app\ui\discovery\scanners\crypto_scanner.py:1095:        "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:1182:        "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:1354:                "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:1689:                    "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:1822:                "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:2212:        "cas_bypassed",
+app\ui\discovery\scanners\crypto_scanner.py:2330:        "cas_bypassed",
+app\ui\discovery\scanners\crypto_scanner.py:2501:        "cas_bypass",
+app\ui\discovery\scanners\crypto_scanner.py:2713:        "cas_bypass": False,
+app\ui\discovery\scanners\crypto_scanner.py:2919:        "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:3096:            "CAS_BYPASS",
+app\ui\discovery\scanners\crypto_scanner.py:3231:        "CAS_BYPASS",
+app\ui\discovery\scanners\crypto_scanner.py:3347:        "cas_bypassed": False,
+app\ui\discovery\scanners\crypto_scanner.py:3465:        "passed": (
+app\ui\discovery\scanners\crypto_scanner.py:3494:        "cas_bypassed": False,
+app\ui\discovery\scanners\equity_scanner.py:50:    "cas_bypass": False,
+app\ui\discovery\scanners\equity_scanner.py:850:        "cas_bypassed": False,
+app\ui\discovery\scanners\equity_scanner.py:909:            "cas_bypassed": False,
+app\ui\discovery\scanners\equity_scanner.py:1041:                "cas_bypassed": False,
+app\ui\discovery\scanners\equity_scanner.py:1256:                    "cas_bypassed": False,
+app\ui\discovery\scanners\equity_scanner.py:1632:        "cas_bypassed",
+app\ui\discovery\scanners\equity_scanner.py:1787:        "cas_bypass",
+app\ui\discovery\scanners\equity_scanner.py:2171:            "CAS_BYPASS",
+app\ui\discovery\scanners\fx_scanner.py:72:    "cas_bypass": False,
+app\ui\discovery\scanners\fx_scanner.py:1298:            "cas_bypassed": False,
+app\ui\discovery\scanners\fx_scanner.py:2499:        "cas_bypassed",
+app\ui\discovery\scanners\fx_scanner.py:2503:            "FX scanner cannot bypass CAS."
+app\ui\discovery\scanners\fx_scanner.py:2740:        "cas_bypass",
+app\ui\discovery\scanners\fx_scanner.py:2960:        "cas_bypassed": False,
+app\ui\discovery\scanners\fx_scanner.py:3265:            "cas_bypassed": False,
+app\ui\discovery\scanners\fx_scanner.py:3365:            "CAS_BYPASS",
+app\ui\discovery\scanners\fx_scanner.py:3785:        "passed": (
+app\ui\discovery\scanners\index_scanner.py:91:    "cas_bypass": False,
+app\ui\discovery\scanners\index_scanner.py:1279:        "cas_bypassed": False,
+app\ui\discovery\scanners\index_scanner.py:1362:            "cas_bypassed": False,
+app\ui\discovery\scanners\index_scanner.py:2346:        "cas_bypassed",
+app\ui\discovery\scanners\index_scanner.py:2447:        "cas_bypassed",
+app\ui\discovery\scanners\index_scanner.py:2561:        "cas_bypass",
+app\ui\discovery\scanners\index_scanner.py:3085:            "cas_bypassed": False,
+app\ui\discovery\scanners\index_scanner.py:3147:            "CAS_BYPASS",
+app\ui\discovery\scanners\index_scanner.py:3265:        "cas_bypassed",
+app\ui\discovery\scanners\index_scanner.py:3331:        "passed": integrity[
+app\ui\discovery\scanners\index_scanner.py:3444:        "passed": (
+app\ui\discovery\scanners\stock_scanner.py:40:    "cas_bypass": False,
+app\ui\discovery\scanners\stock_scanner.py:836:        "cas_bypassed": False,
+app\ui\discovery\scanners\stock_scanner.py:902:            "cas_bypass": False,
+app\ui\discovery\scanners\stock_scanner.py:1357:                "cas_bypassed": False,
+app\ui\discovery\scanners\stock_scanner.py:1632:        "cas_bypassed",
+app\ui\discovery\scanners\stock_scanner.py:1848:        "cas_bypass",
+app\ui\discovery\scanners\stock_scanner.py:1926:    for name, passed in checks.items():
+app\ui\discovery\scanners\stock_scanner.py:1927:        if not passed:
+app\ui\discovery\scanners\stock_scanner.py:2161:            "CAS_BYPASS",
+app\ui\discovery\scanners\stock_scanner.py:2176:            "cas_bypassed": False,
+app\ui\discovery\scanners\stock_scanner.py:2230:        "cas_bypassed",
+app\ui\discovery\scanners\stock_scanner.py:2325:            and output.metadata.get("cas_bypassed") is False
+app\ui\discovery\scanners\stock_scanner.py:2332:    passed = (
+app\ui\discovery\scanners\stock_scanner.py:2343:        "passed": passed,
+app\ui\discovery\universal_scanner.py:48:    "cas_bypass": False,
+app\ui\discovery\universal_scanner.py:838:            "cas_bypass": False,
+app\ui\discovery\universal_scanner.py:1010:    - bypass CAS
+app\ui\discovery\universal_scanner.py:1478:        "cas_bypass",
+app\ui\discovery\universal_scanner.py:1526:    for name, passed in checks.items():
+app\ui\discovery\universal_scanner.py:1527:        if not passed:
+app\ui\discovery\universal_scanner.py:1655:        "cas_bypass": False,
+app\ui\discovery\universal_scanner.py:1726:            "bypass_cas": False,
+app\ui\discovery\universal_scanner.py:1744:            "CAS_BYPASS",
+app\ui\discovery\universal_scanner.py:1827:        "bypass_cas",
+app\ui\discovery\universal_scanner.py:1927:        "passed": (
+app\ui\memory\memory_page.py:31:    - bypass D13
+app\ui\research\research_page.py:1406:    PASS = "PASS"
+app\ui\research\research_page.py:1489:    validation layer. The UI does not manufacture pass/fail
+app\ui\research\research_page.py:1509:    passed_checks: List[str] = field(
+app\ui\research\research_page.py:1541:            "passed_checks": list(
+app\ui\research\research_page.py:1542:                self.passed_checks
+app\ui\research\research_page.py:1587:    passed_scenarios: List[str] = field(
+app\ui\research\research_page.py:1615:            "passed_scenarios": list(
+app\ui\research\research_page.py:1616:                self.passed_scenarios
+app\ui\research\research_page.py:2047:            "Passed",
+app\ui\research\research_page.py:2048:            len(result.passed_checks),
+app\ui\research\research_page.py:2069:    if result.passed_checks:
+app\ui\research\research_page.py:2072:            "Passed Checks",
+app\ui\research\research_page.py:2076:            for item in result.passed_checks:
+app\ui\research\research_page.py:2152:            "Passed Scenarios",
+app\ui\research\research_page.py:2153:            len(result.passed_scenarios),
+app\ui\research\research_page.py:2189:    if result.passed_scenarios:
+app\ui\research\research_page.py:2192:            "Passed Scenarios",
+app\ui\research\research_page.py:2196:            for scenario in result.passed_scenarios:
+app\ui\research\__init__.py:23:    - bypass D13 decision authority
+app\ui\router.py:25:    - CAS generation or bypass
+app\ui\router.py:1692:            "PLUS route cannot bypass login requirement."
+app\ui\router.py:2138:        "cas_bypass": False,
+app\ui\router.py:2891:        "cas_bypass": False,
+app\ui\terminal\terminal_page.py:46:    "cas_bypass": False,
+app\ui\terminal\terminal_page.py:1191:            "cas_bypass": False,
+app\ui\terminal\terminal_page.py:1830:            "cas_bypass"
+app\ui\terminal\terminal_page.py:1835:            "CAS_BYPASS_FORBIDDEN"
+app\ui\terminal\terminal_page.py:2030:        "cas_bypass":
+app\ui\terminal\terminal_page.py:2082:        "cas_bypass":
+app\ui\terminal\terminal_page.py:2249:            "CAS_BYPASS",
+app\users\profile_service.py:541:    ACCOUNT_PASSWORD = "ACCOUNT_PASSWORD"
+app\users\profile_service.py:542:    BALANCE_PASSWORD = "BALANCE_PASSWORD"
+app\users\profile_service.py:543:    WITHDRAWAL_PASSWORD = "WITHDRAWAL_PASSWORD"
+app\users\profile_service.py:544:    RECEIVE_PASSWORD = "RECEIVE_PASSWORD"
+app\users\profile_service.py:588:    # NEVER store plaintext passwords here.
+app\users\profile_service.py:640:    account_password: ProfileCredentialReference = field(
+app\users\profile_service.py:643:            credential_type=ProfileCredentialType.ACCOUNT_PASSWORD,
+app\users\profile_service.py:647:    balance_password: ProfileCredentialReference = field(
+app\users\profile_service.py:650:            credential_type=ProfileCredentialType.BALANCE_PASSWORD,
+app\users\profile_service.py:654:    withdrawal_password: ProfileCredentialReference = field(
+app\users\profile_service.py:657:            credential_type=ProfileCredentialType.WITHDRAWAL_PASSWORD,
+app\users\profile_service.py:661:    receive_password: ProfileCredentialReference = field(
+app\users\profile_service.py:664:            credential_type=ProfileCredentialType.RECEIVE_PASSWORD,
+app\users\profile_service.py:692:    require_account_password: bool = False
+app\users\profile_service.py:693:    require_balance_password: bool = False
+app\users\profile_service.py:694:    require_withdrawal_password: bool = False
+app\users\profile_service.py:695:    require_receive_password: bool = False
+app\users\profile_service.py:742:    require_account_password: bool = False,
+app\users\profile_service.py:743:    require_balance_password: bool = False,
+app\users\profile_service.py:744:    require_withdrawal_password: bool = False,
+app\users\profile_service.py:745:    require_receive_password: bool = False,
+app\users\profile_service.py:751:        require_account_password=require_account_password,
+app\users\profile_service.py:752:        require_balance_password=require_balance_password,
+app\users\profile_service.py:753:        require_withdrawal_password=require_withdrawal_password,
+app\users\profile_service.py:754:        require_receive_password=require_receive_password,
+app\users\profile_service.py:796:        ProfileCredentialType.ACCOUNT_PASSWORD.value:
+app\users\profile_service.py:798:                security.account_password
+app\users\profile_service.py:801:        ProfileCredentialType.BALANCE_PASSWORD.value:
+app\users\profile_service.py:803:                security.balance_password
+app\users\profile_service.py:806:        ProfileCredentialType.WITHDRAWAL_PASSWORD.value:
+app\users\profile_service.py:808:                security.withdrawal_password
+app\users\profile_service.py:811:        ProfileCredentialType.RECEIVE_PASSWORD.value:
+app\users\profile_service.py:813:                security.receive_password
+app\users\profile_service.py:839:            ProfileCredentialType.BALANCE_PASSWORD,
+app\users\profile_service.py:842:            ProfileCredentialType.WITHDRAWAL_PASSWORD,
+app\users\profile_service.py:845:            ProfileCredentialType.RECEIVE_PASSWORD,
+app\users\profile_service.py:848:            ProfileCredentialType.WITHDRAWAL_PASSWORD,
+app\users\profile_service.py:898:    if requirements.require_account_password:
+app\users\profile_service.py:901:            and security.account_password.status
+app\users\profile_service.py:905:    if requirements.require_balance_password:
+app\users\profile_service.py:908:            and security.balance_password.status
+app\users\profile_service.py:912:    if requirements.require_withdrawal_password:
+app\users\profile_service.py:915:            and security.withdrawal_password.status
+app\users\profile_service.py:919:    if requirements.require_receive_password:
+app\users\profile_service.py:922:            and security.receive_password.status
+app\users\profile_service.py:966:            security.account_password,
+app\users\profile_service.py:967:            security.balance_password,
+app\users\profile_service.py:968:            security.withdrawal_password,
+app\users\profile_service.py:969:            security.receive_password,
+app\users\profile_service.py:1149:            requirements.require_account_password,
+app\users\profile_service.py:1151:            and security.account_password.status
+app\users\profile_service.py:1155:            requirements.require_balance_password,
+app\users\profile_service.py:1157:            and security.balance_password.status
+app\users\profile_service.py:1161:            requirements.require_withdrawal_password,
+app\users\profile_service.py:1163:            and security.withdrawal_password.status
+app\users\profile_service.py:1167:            requirements.require_receive_password,
+app\users\profile_service.py:1169:            and security.receive_password.status
+app\users\profile_service.py:1226:            "password_plaintext_stored": False,
+app\users\profile_service.py:1379:            "ACCOUNT_PASSWORD": security.account_password,
+app\users\profile_service.py:1380:            "BALANCE_PASSWORD": security.balance_password,
+app\users\profile_service.py:1381:            "WITHDRAWAL_PASSWORD": security.withdrawal_password,
+app\users\profile_service.py:1382:            "RECEIVE_PASSWORD": security.receive_password,
+app\users\profile_service.py:1492:        ProfileCredentialType.ACCOUNT_PASSWORD
+app\users\profile_service.py:1494:        credential = security.account_password
+app\users\profile_service.py:1497:        ProfileCredentialType.BALANCE_PASSWORD
+app\users\profile_service.py:1499:        credential = security.balance_password
+app\users\profile_service.py:1502:        ProfileCredentialType.WITHDRAWAL_PASSWORD
+app\users\profile_service.py:1504:        credential = security.withdrawal_password
+app\users\profile_service.py:1507:        ProfileCredentialType.RECEIVE_PASSWORD
+app\users\profile_service.py:1509:        credential = security.receive_password
+app\users\profile_service.py:1526:    # Actual password verification belongs to security/auth service.
+app\users\profile_service.py:1605:            "password_verification": False,
+app\users\profile_service.py:1784:    if result.metadata.get("password_plaintext") is not None:
+app\users\profile_service.py:1785:        errors.append("plaintext password detected")
+app\users\profile_service.py:2222:            security.account_password,
+app\users\profile_service.py:2223:            security.balance_password,
+app\users\profile_service.py:2224:            security.withdrawal_password,
+app\users\profile_service.py:2225:            security.receive_password,
+app\users\profile_service.py:2661:        "password",
+app\users\profile_service.py:2662:        "plain_password",
+app\users\profile_service.py:2663:        "plaintext_password",
+app\users\profile_service.py:2664:        "raw_password",
+app\users\profile_service.py:2701:        security.account_password,
+app\users\profile_service.py:2702:        security.balance_password,
+app\users\profile_service.py:2703:        security.withdrawal_password,
+app\users\profile_service.py:2704:        security.receive_password,
+app\users\profile_service.py:3333:        "plaintext_password_storage": False,
+app\users\user_service.py:144:            pass
+app\v6_bridge\v6_bridge.py:503:        Translate a payload and pass the translated structure to the
+app\v6_bridge\v6_compatibility.py:170:            pass
+app\v6_bridge\v6_compatibility.py:363:                pass
+app\v6_bridge\v6_normalizer.py:274:                pass
+main.py:40:            if status in {"success", "succeeded", "passed", "ok"}:
+schemas\cas\cas_result.py:40:            if status in {"success", "succeeded", "passed", "ok"}:
+schemas\market\test\test_market_schema_constructors.py:23:        pass
+scripts\v6_bridge_test.py:40:            if status in {"success", "succeeded", "passed", "ok"}:

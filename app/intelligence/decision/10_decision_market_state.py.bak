@@ -1,0 +1,3444 @@
+"""
+ROBOMLM_PLUS
+D10 — Decision Market State
+Part 1/4
+
+ROLE
+----
+D10 identifies the current market state from already-observed
+and validated upstream intelligence.
+
+D10 is NOT:
+    - a trading decision engine
+    - an execution engine
+    - a risk-sizing engine
+    - a future prediction engine
+    - a replacement for D13
+
+ARCHITECTURE
+------------
+D1 Identity
+    ↓
+D2 Data Contract
+    ↓
+D3 Trust
+    ↓
+D4 Relationships
+    ↓
+D5 Structure
+    ↓
+D6 Flow
+    ↓
+D7 Liquidity / Volatility
+    ↓
+D8 Instrument Mechanics
+    ↓
+D9 Time / Event
+    ↓
+D10 MARKET STATE
+    ↓
+D11 Transition
+    ↓
+D12 Future / Scenario
+    ↓
+D13 Decision
+
+IMPORTANT
+---------
+D10 must describe the CURRENT observed state.
+
+It must not use future information.
+It must not invent unavailable evidence.
+It must preserve provenance.
+It must remain market/instrument/context aware.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, Iterable, Mapping, Optional, Tuple
+
+
+# ============================================================
+# ENGINE IDENTITY
+# ============================================================
+
+ENGINE_NAME = "D10_MarketState"
+ENGINE_VERSION = "V6-CAS-1.0"
+
+
+# ============================================================
+# ENUMS
+# ============================================================
+
+class MarketState(str, Enum):
+    """
+    Canonical current-state classifications.
+
+    These describe state, not future direction.
+    """
+
+    BULLISH_EXPANSION = "BULLISH_EXPANSION"
+    BEARISH_EXPANSION = "BEARISH_EXPANSION"
+
+    ACCUMULATION = "ACCUMULATION"
+    DISTRIBUTION = "DISTRIBUTION"
+
+    RANGE = "RANGE"
+    ROTATION = "ROTATION"
+
+    TRANSITION = "TRANSITION"
+    CHAOS = "CHAOS"
+
+    UNKNOWN = "UNKNOWN"
+
+
+class MarketStateStatus(str, Enum):
+    READY = "READY"
+    LIMITED = "LIMITED"
+    BLOCKED = "BLOCKED"
+    UNDETERMINED = "UNDETERMINED"
+
+
+class EvidenceQuality(str, Enum):
+    STRONG = "STRONG"
+    MODERATE = "MODERATE"
+    WEAK = "WEAK"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+# ============================================================
+# INPUT SNAPSHOT
+# ============================================================
+
+@dataclass(frozen=True)
+class MarketStateInput:
+    """
+    Canonical D10 input container.
+
+    Values are observations/results produced by upstream
+    ROBOMLM layers.
+
+    D10 does not create raw market data.
+    """
+
+    market_id: str
+    instrument_id: str
+
+    timestamp: Any
+
+    direction: Optional[str] = None
+    trend: Optional[str] = None
+
+    structure: Optional[str] = None
+    flow: Optional[str] = None
+
+    liquidity_state: Optional[str] = None
+    volatility_state: Optional[str] = None
+
+    participation_state: Optional[str] = None
+
+    relationship_state: Optional[str] = None
+    event_state: Optional[str] = None
+
+    evidence_quality: Optional[str] = None
+
+    source_ids: Tuple[str, ...] = field(
+        default_factory=tuple
+    )
+
+    evidence_ids: Tuple[str, ...] = field(
+        default_factory=tuple
+    )
+
+    provenance: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+    metadata: Mapping[str, Any] = field(
+        default_factory=dict
+    )
+
+
+# ============================================================
+# OUTPUT
+# ============================================================
+
+@dataclass(frozen=True)
+class MarketStateResult:
+    """
+    Normalized D10 output.
+
+    D10 reports the state observed from supplied evidence.
+    """
+
+    engine: str
+    version: str
+
+    market_id: str
+    instrument_id: str
+    timestamp: Any
+
+    state: MarketState
+    status: MarketStateStatus
+
+    evidence_quality: EvidenceQuality
+
+    direction: Optional[str] = None
+    structure: Optional[str] = None
+    flow: Optional[str] = None
+    liquidity_state: Optional[str] = None
+    volatility_state: Optional[str] = None
+
+    reasons: Tuple[str, ...] = field(
+        default_factory=tuple
+    )
+
+    evidence_ids: Tuple[str, ...] = field(
+        default_factory=tuple
+    )
+
+    source_ids: Tuple[str, ...] = field(
+        default_factory=tuple
+    )
+
+    provenance: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+# ============================================================
+# ENGINE
+# ============================================================
+
+class DecisionMarketStateEngine:
+    """
+    D10 Market State Engine.
+
+    Core principle:
+
+        OBSERVATION
+            +
+        VALIDATED EVIDENCE
+            +
+        CURRENT CONTEXT
+            =
+        CURRENT MARKET STATE
+
+    No future information is allowed.
+    """
+
+    ENGINE_NAME = ENGINE_NAME
+    ENGINE_VERSION = ENGINE_VERSION
+
+    def __init__(self) -> None:
+        self._state_history = []
+
+    # --------------------------------------------------------
+    # PUBLIC API
+    # --------------------------------------------------------
+
+    def evaluate(
+        self,
+        snapshot: MarketStateInput,
+    ) -> MarketStateResult:
+        """
+        Evaluate one current market-state snapshot.
+        """
+
+        if not snapshot.market_id:
+            return self._blocked(
+                snapshot,
+                "missing market identity",
+            )
+
+        if not snapshot.instrument_id:
+            return self._blocked(
+                snapshot,
+                "missing instrument identity",
+            )
+
+        quality = self._quality(
+            snapshot.evidence_quality
+        )
+
+        if quality == EvidenceQuality.INSUFFICIENT:
+            return self._undetermined(
+                snapshot,
+                "insufficient evidence quality",
+            )
+
+        state, reasons = self._classify(
+            snapshot
+        )
+
+        status = (
+            MarketStateStatus.READY
+            if state != MarketState.UNKNOWN
+            else MarketStateStatus.UNDETERMINED
+        )
+
+        result = MarketStateResult(
+            engine=self.ENGINE_NAME,
+            version=self.ENGINE_VERSION,
+
+            market_id=snapshot.market_id,
+            instrument_id=snapshot.instrument_id,
+            timestamp=snapshot.timestamp,
+
+            state=state,
+            status=status,
+
+            evidence_quality=quality,
+
+            direction=self._clean(
+                snapshot.direction
+            ),
+
+            structure=self._clean(
+                snapshot.structure
+            ),
+
+            flow=self._clean(
+                snapshot.flow
+            ),
+
+            liquidity_state=self._clean(
+                snapshot.liquidity_state
+            ),
+
+            volatility_state=self._clean(
+                snapshot.volatility_state
+            ),
+
+            reasons=tuple(reasons),
+
+            evidence_ids=tuple(
+                snapshot.evidence_ids
+            ),
+
+            source_ids=tuple(
+                snapshot.source_ids
+            ),
+
+            provenance={
+                **dict(snapshot.provenance),
+                "D10_applied": True,
+                "future_information_used": False,
+                "new_decision_created": False,
+                "decision_authority": "D13",
+            },
+        )
+
+        self._state_history.append(result)
+
+        return result
+
+    # --------------------------------------------------------
+    # CLASSIFICATION
+    # --------------------------------------------------------
+
+    def _classify(
+        self,
+        snapshot: MarketStateInput,
+    ) -> Tuple[MarketState, list[str]]:
+        """
+        State classification.
+
+        This first implementation deliberately uses explicit
+        qualitative upstream observations.
+
+        No arbitrary numerical weighting is introduced here.
+        """
+
+        direction = self._upper(
+            snapshot.direction
+        )
+
+        trend = self._upper(
+            snapshot.trend
+        )
+
+        structure = self._upper(
+            snapshot.structure
+        )
+
+        flow = self._upper(
+            snapshot.flow
+        )
+
+        liquidity = self._upper(
+            snapshot.liquidity_state
+        )
+
+        volatility = self._upper(
+            snapshot.volatility_state
+        )
+
+        reasons = []
+
+        # ----------------------------------------------------
+        # CHAOTIC / UNSTABLE STATE
+        # ----------------------------------------------------
+
+        if (
+            volatility in {
+                "CHAOTIC",
+                "EXTREME",
+                "DISORDERED",
+            }
+            and liquidity in {
+                "FRAGMENTED",
+                "STRESSED",
+                "THIN",
+            }
+        ):
+            reasons.extend([
+                "elevated volatility state",
+                "impaired liquidity state",
+            ])
+
+            return (
+                MarketState.CHAOS,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # BULLISH EXPANSION
+        # ----------------------------------------------------
+
+        if (
+            direction in {
+                "BULLISH",
+                "UP",
+            }
+            and trend in {
+                "BULLISH",
+                "UP",
+                "UPTREND",
+            }
+            and structure in {
+                "EXPANSION",
+                "BULLISH_EXPANSION",
+                "BREAKOUT",
+            }
+        ):
+            reasons.extend([
+                "bullish directional evidence",
+                "bullish trend evidence",
+                "expanding structure",
+            ])
+
+            return (
+                MarketState.BULLISH_EXPANSION,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # BEARISH EXPANSION
+        # ----------------------------------------------------
+
+        if (
+            direction in {
+                "BEARISH",
+                "DOWN",
+            }
+            and trend in {
+                "BEARISH",
+                "DOWN",
+                "DOWNTREND",
+            }
+            and structure in {
+                "EXPANSION",
+                "BEARISH_EXPANSION",
+                "BREAKDOWN",
+            }
+        ):
+            reasons.extend([
+                "bearish directional evidence",
+                "bearish trend evidence",
+                "expanding structure",
+            ])
+
+            return (
+                MarketState.BEARISH_EXPANSION,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # ACCUMULATION
+        # ----------------------------------------------------
+
+        if (
+            structure in {
+                "ACCUMULATION",
+                "BASE",
+            }
+            and flow in {
+                "BUYING",
+                "POSITIVE",
+                "ABSORPTION",
+            }
+        ):
+            reasons.extend([
+                "accumulation structure",
+                "supportive flow evidence",
+            ])
+
+            return (
+                MarketState.ACCUMULATION,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # DISTRIBUTION
+        # ----------------------------------------------------
+
+        if (
+            structure in {
+                "DISTRIBUTION",
+                "TOPPING",
+            }
+            and flow in {
+                "SELLING",
+                "NEGATIVE",
+                "DISTRIBUTION",
+            }
+        ):
+            reasons.extend([
+                "distribution structure",
+                "negative flow evidence",
+            ])
+
+            return (
+                MarketState.DISTRIBUTION,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # RANGE
+        # ----------------------------------------------------
+
+        if (
+            structure in {
+                "RANGE",
+                "BALANCED",
+                "CONSOLIDATION",
+            }
+            and direction in {
+                "NEUTRAL",
+                "SIDEWAYS",
+                "FLAT",
+                "",
+            }
+        ):
+            reasons.extend([
+                "bounded market structure",
+                "no dominant directional evidence",
+            ])
+
+            return (
+                MarketState.RANGE,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # ROTATION
+        # ----------------------------------------------------
+
+        if (
+            structure in {
+                "ROTATION",
+                "BALANCED_ROTATION",
+            }
+            or flow in {
+                "ROTATIONAL",
+                "TWO_SIDED",
+            }
+        ):
+            reasons.append(
+                "two-sided rotational behaviour"
+            )
+
+            return (
+                MarketState.ROTATION,
+                reasons,
+            )
+
+        # ----------------------------------------------------
+        # TRANSITION
+        # ----------------------------------------------------
+
+        if (
+            trend in {
+                "CHANGING",
+                "TRANSITION",
+            }
+            or structure in {
+                "TRANSITION",
+                "BREAKOUT_TEST",
+                "STRUCTURAL_CHANGE",
+            }
+        ):
+            reasons.append(
+                "market structure or trend transition"
+            )
+
+            return (
+                MarketState.TRANSITION,
+                reasons,
+            )
+
+        return (
+            MarketState.UNKNOWN,
+            [
+                "supplied evidence does not support "
+                "a canonical state"
+            ],
+        )
+
+    # --------------------------------------------------------
+    # QUALITY
+    # --------------------------------------------------------
+
+    @staticmethod
+    def _quality(
+        value: Optional[str],
+    ) -> EvidenceQuality:
+
+        normalized = (
+            str(value).strip().upper()
+            if value is not None
+            else ""
+        )
+
+        if normalized == "STRONG":
+            return EvidenceQuality.STRONG
+
+        if normalized == "MODERATE":
+            return EvidenceQuality.MODERATE
+
+        if normalized == "WEAK":
+            return EvidenceQuality.WEAK
+
+        return EvidenceQuality.INSUFFICIENT
+
+    # --------------------------------------------------------
+    # BLOCK / UNKNOWN
+    # --------------------------------------------------------
+
+    def _blocked(
+        self,
+        snapshot: MarketStateInput,
+        reason: str,
+    ) -> MarketStateResult:
+
+        return MarketStateResult(
+            engine=self.ENGINE_NAME,
+            version=self.ENGINE_VERSION,
+
+            market_id=snapshot.market_id,
+            instrument_id=snapshot.instrument_id,
+            timestamp=snapshot.timestamp,
+
+            state=MarketState.UNKNOWN,
+            status=MarketStateStatus.BLOCKED,
+
+            evidence_quality=EvidenceQuality.INSUFFICIENT,
+
+            reasons=(reason,),
+
+            evidence_ids=tuple(
+                snapshot.evidence_ids
+            ),
+
+            source_ids=tuple(
+                snapshot.source_ids
+            ),
+
+            provenance={
+                **dict(snapshot.provenance),
+                "D10_applied": False,
+                "future_information_used": False,
+                "new_decision_created": False,
+                "decision_authority": "D13",
+            },
+        )
+
+    def _undetermined(
+        self,
+        snapshot: MarketStateInput,
+        reason: str,
+    ) -> MarketStateResult:
+
+        return MarketStateResult(
+            engine=self.ENGINE_NAME,
+            version=self.ENGINE_VERSION,
+
+            market_id=snapshot.market_id,
+            instrument_id=snapshot.instrument_id,
+            timestamp=snapshot.timestamp,
+
+            state=MarketState.UNKNOWN,
+            status=MarketStateStatus.UNDETERMINED,
+
+            evidence_quality=EvidenceQuality.INSUFFICIENT,
+
+            reasons=(reason,),
+
+            evidence_ids=tuple(
+                snapshot.evidence_ids
+            ),
+
+            source_ids=tuple(
+                snapshot.source_ids
+            ),
+
+            provenance={
+                **dict(snapshot.provenance),
+                "D10_applied": True,
+                "future_information_used": False,
+                "new_decision_created": False,
+                "decision_authority": "D13",
+            },
+        )
+
+    # --------------------------------------------------------
+    # HELPERS
+    # --------------------------------------------------------
+
+    @staticmethod
+    def _clean(
+        value: Any,
+    ) -> Optional[str]:
+
+        if value is None:
+            return None
+
+        text = str(value).strip()
+
+        return text if text else None
+
+    @staticmethod
+    def _upper(
+        value: Any,
+    ) -> str:
+
+        if value is None:
+            return ""
+
+        return str(value).strip().upper()
+
+    # --------------------------------------------------------
+    # HISTORY
+    # --------------------------------------------------------
+
+    def history(
+        self,
+    ) -> Tuple[MarketStateResult, ...]:
+
+        return tuple(
+            self._state_history
+        )
+
+    def latest(
+        self,
+    ) -> Optional[MarketStateResult]:
+
+        if not self._state_history:
+            return None
+
+        return self._state_history[-1]
+
+    # --------------------------------------------------------
+    # CONTRACT
+    # --------------------------------------------------------
+
+    def result_contract(
+        self,
+        result: MarketStateResult,
+    ) -> Dict[str, Any]:
+
+        return {
+            "engine": result.engine,
+            "version": result.version,
+
+            "market_id": result.market_id,
+            "instrument_id": result.instrument_id,
+            "timestamp": result.timestamp,
+
+            "state": result.state.value,
+            "status": result.status.value,
+
+            "evidence_quality":
+                result.evidence_quality.value,
+
+            "direction": result.direction,
+            "structure": result.structure,
+            "flow": result.flow,
+
+            "liquidity_state":
+                result.liquidity_state,
+
+            "volatility_state":
+                result.volatility_state,
+
+            "reasons": list(
+                result.reasons
+            ),
+
+            "evidence_ids": list(
+                result.evidence_ids
+            ),
+
+            "source_ids": list(
+                result.source_ids
+            ),
+
+            "provenance": dict(
+                result.provenance
+            ),
+        }
+
+    # --------------------------------------------------------
+    # ENGINE INFO
+    # --------------------------------------------------------
+
+    def engine_info(
+        self,
+    ) -> Dict[str, Any]:
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "role": "Current Market State",
+            "layer": "D10",
+            "decision_authority": "D13",
+
+            "creates_decision": False,
+            "creates_signal": False,
+            "creates_execution": False,
+            "uses_future_information": False,
+
+            "preserves_provenance": True,
+            "supports_unknown_state": True,
+        }
+
+    # --------------------------------------------------------
+    # SELF CHECK
+    # --------------------------------------------------------
+
+    def self_check(
+        self,
+    ) -> Dict[str, Any]:
+
+        checks = {
+            "engine_initialized": True,
+            "decision_authority_D13": True,
+            "no_new_decision": True,
+            "no_future_information": True,
+            "provenance_preserved": True,
+            "unknown_state_supported": True,
+        }
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "passed": all(
+                checks.values()
+            ),
+            "checks": checks,
+        }
+
+
+# ============================================================
+# FACTORY
+# ============================================================
+
+def create_decision_market_state_engine(
+) -> DecisionMarketStateEngine:
+
+    return DecisionMarketStateEngine()
+
+
+# ============================================================
+# EXPORTS
+# ============================================================
+
+__all__ = [
+    "ENGINE_NAME",
+    "ENGINE_VERSION",
+
+    "MarketState",
+    "MarketStateStatus",
+    "EvidenceQuality",
+
+    "MarketStateInput",
+    "MarketStateResult",
+
+    "DecisionMarketStateEngine",
+    "create_decision_market_state_engine",
+]
+# ============================================================
+# ROBOMLM_PLUS D10 — Decision Market State
+# PART 2/4
+# CAS Evidence Reconciliation + Contradiction Handling
+# ============================================================
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
+
+
+# ============================================================
+# CAS RECONCILIATION MODELS
+# ============================================================
+
+@dataclass
+class EvidenceItem:
+    """
+    Normalized evidence item consumed by D10.
+
+    Evidence must remain traceable to its upstream source.
+    D10 does not invent missing evidence.
+    """
+
+    evidence_id: str
+    source_id: Optional[str] = None
+
+    dimension: str = ""
+    value: Any = None
+
+    direction: Optional[str] = None
+    structure: Optional[str] = None
+    flow: Optional[str] = None
+    liquidity: Optional[str] = None
+    volatility: Optional[str] = None
+    participation: Optional[str] = None
+    relationship: Optional[str] = None
+
+    timestamp: Optional[str] = None
+
+    quality: str = "INSUFFICIENT"
+
+    observed: bool = True
+    derived: bool = False
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class EvidenceReconciliation:
+    """
+    Result of D10 evidence reconciliation.
+
+    This layer identifies agreement, contradiction and missing
+    dimensions. It does NOT create a trading signal.
+    """
+
+    status: str = "UNDETERMINED"
+
+    total_evidence: int = 0
+    valid_evidence: int = 0
+
+    agreements: List[str] = field(default_factory=list)
+    contradictions: List[str] = field(default_factory=list)
+    missing_dimensions: List[str] = field(default_factory=list)
+
+    supporting_evidence_ids: List[str] = field(default_factory=list)
+    conflicting_evidence_ids: List[str] = field(default_factory=list)
+
+    provenance_valid: bool = False
+    reasons: List[str] = field(default_factory=list)
+
+
+# ============================================================
+# DIMENSION DEFINITIONS
+# ============================================================
+
+D10_REQUIRED_DIMENSIONS = (
+    "direction",
+    "structure",
+    "flow",
+    "liquidity",
+    "volatility",
+    "participation",
+    "relationship",
+)
+
+
+# ============================================================
+# NORMALIZATION HELPERS
+# ============================================================
+
+def _d10_text(value: Any) -> str:
+    if value is None:
+        return ""
+
+    try:
+        return str(value).strip().lower()
+    except Exception:
+        return ""
+
+
+def _d10_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+
+    if isinstance(value, (list, tuple, set)):
+        return [
+            str(item)
+            for item in value
+            if item is not None and str(item).strip()
+        ]
+
+    return [str(value)]
+
+
+def _d10_unique(values: List[str]) -> List[str]:
+    result = []
+
+    for value in values:
+        if value and value not in result:
+            result.append(value)
+
+    return result
+
+
+# ============================================================
+# EVIDENCE QUALITY
+# ============================================================
+
+D10_QUALITY_ORDER = {
+    "INSUFFICIENT": 0,
+    "WEAK": 1,
+    "MODERATE": 2,
+    "STRONG": 3,
+}
+
+
+def _d10_quality_value(value: Any) -> int:
+    key = _d10_text(value).upper()
+    return D10_QUALITY_ORDER.get(key, 0)
+
+
+def _d10_quality_name(value: Any) -> str:
+    key = _d10_text(value).upper()
+
+    if key in D10_QUALITY_ORDER:
+        return key
+
+    return "INSUFFICIENT"
+
+
+# ============================================================
+# PROVENANCE VALIDATION
+# ============================================================
+
+def validate_evidence_provenance(
+    evidence: EvidenceItem,
+) -> Tuple[bool, List[str]]:
+    """
+    Validate minimum provenance requirements.
+
+    No provenance = evidence cannot be treated as fully trusted.
+    """
+
+    reasons: List[str] = []
+
+    if not evidence.evidence_id:
+        reasons.append("MISSING_EVIDENCE_ID")
+
+    if not evidence.source_id:
+        reasons.append("MISSING_SOURCE_ID")
+
+    if not evidence.timestamp:
+        reasons.append("MISSING_TIMESTAMP")
+
+    if not evidence.provenance:
+        reasons.append("MISSING_PROVENANCE")
+
+    # Evidence cannot simultaneously claim observed and derived
+    # without explicit lineage metadata.
+    if evidence.observed and evidence.derived:
+        lineage = evidence.metadata.get("lineage")
+
+        if not lineage:
+            reasons.append("OBSERVED_DERIVED_CONFLICT")
+
+    return len(reasons) == 0, reasons
+
+
+# ============================================================
+# EVIDENCE RECONCILIATION ENGINE
+# ============================================================
+
+class D10EvidenceReconciler:
+    """
+    CAS evidence reconciliation layer.
+
+    Responsibilities:
+        1. Validate evidence identity/provenance.
+        2. Detect dimension agreement.
+        3. Detect dimension contradiction.
+        4. Identify missing dimensions.
+        5. Preserve evidence IDs.
+        6. Never manufacture evidence.
+    """
+
+    def __init__(self) -> None:
+        self.last_reconciliation: Optional[
+            EvidenceReconciliation
+        ] = None
+
+    def reconcile(
+        self,
+        evidence: List[EvidenceItem],
+    ) -> EvidenceReconciliation:
+
+        result = EvidenceReconciliation(
+            total_evidence=len(evidence)
+        )
+
+        if not evidence:
+            result.status = "BLOCKED"
+            result.reasons.append("NO_EVIDENCE")
+            self.last_reconciliation = result
+            return result
+
+        dimension_values: Dict[str, List[Tuple[str, str]]] = {
+            dimension: []
+            for dimension in D10_REQUIRED_DIMENSIONS
+        }
+
+        provenance_ok = True
+
+        for item in evidence:
+
+            valid, provenance_reasons = validate_evidence_provenance(
+                item
+            )
+
+            if not valid:
+                provenance_ok = False
+                result.reasons.extend(provenance_reasons)
+                continue
+
+            result.valid_evidence += 1
+
+            result.supporting_evidence_ids.append(
+                item.evidence_id
+            )
+
+            for dimension in D10_REQUIRED_DIMENSIONS:
+
+                value = _d10_text(
+                    getattr(item, dimension, None)
+                )
+
+                if value:
+                    dimension_values[dimension].append(
+                        (
+                            item.evidence_id,
+                            value,
+                        )
+                    )
+
+        result.supporting_evidence_ids = _d10_unique(
+            result.supporting_evidence_ids
+        )
+
+        result.provenance_valid = provenance_ok
+
+        # --------------------------------------------------------
+        # Dimension-level reconciliation
+        # --------------------------------------------------------
+
+        for dimension, values in dimension_values.items():
+
+            if not values:
+                result.missing_dimensions.append(
+                    dimension
+                )
+                continue
+
+            unique_values = _d10_unique(
+                [value for _, value in values]
+            )
+
+            if len(unique_values) == 1:
+
+                result.agreements.append(
+                    f"{dimension}:{unique_values[0]}"
+                )
+
+            else:
+
+                result.contradictions.append(
+                    f"{dimension}:{'|'.join(unique_values)}"
+                )
+
+                for evidence_id, _ in values:
+                    result.conflicting_evidence_ids.append(
+                        evidence_id
+                    )
+
+        result.conflicting_evidence_ids = _d10_unique(
+            result.conflicting_evidence_ids
+        )
+
+        # --------------------------------------------------------
+        # Overall reconciliation state
+        # --------------------------------------------------------
+
+        if result.valid_evidence == 0:
+
+            result.status = "BLOCKED"
+
+            if "NO_EVIDENCE" not in result.reasons:
+                result.reasons.append(
+                    "NO_VALID_EVIDENCE"
+                )
+
+        elif not provenance_ok:
+
+            result.status = "LIMITED"
+            result.reasons.append(
+                "PROVENANCE_INCOMPLETE"
+            )
+
+        elif result.contradictions:
+
+            result.status = "MIXED"
+            result.reasons.append(
+                "EVIDENCE_CONTRADICTION"
+            )
+
+        elif result.missing_dimensions:
+
+            result.status = "LIMITED"
+            result.reasons.append(
+                "INCOMPLETE_DIMENSION_COVERAGE"
+            )
+
+        else:
+
+            result.status = "READY"
+            result.reasons.append(
+                "EVIDENCE_RECONCILED"
+            )
+
+        result.agreements = _d10_unique(
+            result.agreements
+        )
+
+        result.missing_dimensions = _d10_unique(
+            result.missing_dimensions
+        )
+
+        result.contradictions = _d10_unique(
+            result.contradictions
+        )
+
+        result.reasons = _d10_unique(
+            result.reasons
+        )
+
+        self.last_reconciliation = result
+
+        return result
+
+
+# ============================================================
+# MARKET STATE CONTRADICTION RULES
+# ============================================================
+
+D10_STATE_CONFLICTS = {
+    "BULLISH_EXPANSION": {
+        "BEARISH_EXPANSION",
+        "DISTRIBUTION",
+    },
+
+    "BEARISH_EXPANSION": {
+        "BULLISH_EXPANSION",
+        "ACCUMULATION",
+    },
+
+    "ACCUMULATION": {
+        "DISTRIBUTION",
+        "BEARISH_EXPANSION",
+    },
+
+    "DISTRIBUTION": {
+        "ACCUMULATION",
+        "BULLISH_EXPANSION",
+    },
+}
+
+
+def detect_state_conflict(
+    states: List[str],
+) -> Tuple[bool, List[str]]:
+
+    normalized = [
+        _d10_text(state).upper()
+        for state in states
+        if _d10_text(state)
+    ]
+
+    normalized = _d10_unique(normalized)
+
+    conflicts: List[str] = []
+
+    for state in normalized:
+
+        conflicting_states = D10_STATE_CONFLICTS.get(
+            state,
+            set()
+        )
+
+        for other in normalized:
+
+            if other in conflicting_states:
+
+                pair = f"{state}<->{other}"
+
+                if pair not in conflicts and (
+                    f"{other}<->{state}"
+                    not in conflicts
+                ):
+                    conflicts.append(pair)
+
+    return bool(conflicts), conflicts
+
+
+# ============================================================
+# D10 CAS EVIDENCE GATE
+# ============================================================
+
+def d10_evidence_gate(
+    reconciliation: EvidenceReconciliation,
+) -> str:
+    """
+    Converts reconciliation condition into a D10 processing gate.
+
+    This is NOT a BUY/SELL gate.
+    """
+
+    if reconciliation.status == "BLOCKED":
+        return "BLOCKED"
+
+    if reconciliation.status == "MIXED":
+        return "CONFLICT"
+
+    if reconciliation.status == "LIMITED":
+        return "LIMITED"
+
+    if reconciliation.status == "READY":
+        return "READY"
+
+    return "UNDETERMINED"
+
+
+# ============================================================
+# ENGINE EXTENSION
+# ============================================================
+
+def attach_cas_reconciliation(
+    engine: DecisionMarketStateEngine,
+) -> DecisionMarketStateEngine:
+    """
+    Attach CAS reconciliation capability to the existing D10 engine.
+
+    Existing D10 classification logic remains authoritative.
+    """
+
+    engine.evidence_reconciler = D10EvidenceReconciler()
+
+    def reconcile_evidence(
+        evidence: List[EvidenceItem],
+    ) -> EvidenceReconciliation:
+
+        return engine.evidence_reconciler.reconcile(
+            evidence
+        )
+
+    engine.reconcile_evidence = reconcile_evidence
+
+    return engine
+
+
+# ============================================================
+# SNAPSHOT → EVIDENCE CONVERSION
+# ============================================================
+
+def snapshot_to_evidence(
+    snapshot: Any,
+) -> List[EvidenceItem]:
+
+    evidence: List[EvidenceItem] = []
+
+    if snapshot is None:
+        return evidence
+
+    market_id = getattr(
+        snapshot,
+        "market_id",
+        None,
+    )
+
+    instrument_id = getattr(
+        snapshot,
+        "instrument_id",
+        None,
+    )
+
+    timestamp = getattr(
+        snapshot,
+        "timestamp",
+        None,
+    )
+
+    source_ids = _d10_list(
+        getattr(
+            snapshot,
+            "source_ids",
+            [],
+        )
+    )
+
+    evidence_ids = _d10_list(
+        getattr(
+            snapshot,
+            "evidence_ids",
+            [],
+        )
+    )
+
+    provenance = getattr(
+        snapshot,
+        "provenance",
+        {},
+    )
+
+    dimensions = (
+        "direction",
+        "structure",
+        "flow",
+        "liquidity",
+        "volatility",
+        "participation",
+        "relationship",
+    )
+
+    for index, evidence_id in enumerate(
+        evidence_ids
+    ):
+
+        source_id = (
+            source_ids[index]
+            if index < len(source_ids)
+            else None
+        )
+
+        item = EvidenceItem(
+            evidence_id=str(evidence_id),
+            source_id=source_id,
+            timestamp=(
+                str(timestamp)
+                if timestamp is not None
+                else None
+            ),
+            provenance=(
+                provenance
+                if isinstance(provenance, dict)
+                else {}
+            ),
+        )
+
+        for dimension in dimensions:
+
+            setattr(
+                item,
+                dimension,
+                getattr(
+                    snapshot,
+                    dimension,
+                    None,
+                ),
+            )
+
+        item.metadata.update(
+            {
+                "market_id": market_id,
+                "instrument_id": instrument_id,
+            }
+        )
+
+        evidence.append(item)
+
+    return evidence
+
+
+# ============================================================
+# SELF-CHECK EXTENSION
+# ============================================================
+
+def d10_cas_self_check() -> Dict[str, Any]:
+
+    reconciler = D10EvidenceReconciler()
+
+    empty_result = reconciler.reconcile([])
+
+    conflict_items = [
+        EvidenceItem(
+            evidence_id="E1",
+            source_id="S1",
+            dimension="direction",
+            direction="bullish",
+            timestamp="TEST",
+            provenance={"source": "TEST"},
+        ),
+        EvidenceItem(
+            evidence_id="E2",
+            source_id="S2",
+            dimension="direction",
+            direction="bearish",
+            timestamp="TEST",
+            provenance={"source": "TEST"},
+        ),
+    ]
+
+    conflict_result = reconciler.reconcile(
+        conflict_items
+    )
+
+    conflict_detected, conflict_pairs = detect_state_conflict(
+        [
+            "BULLISH_EXPANSION",
+            "BEARISH_EXPANSION",
+        ]
+    )
+
+    return {
+        "empty_evidence_blocked": (
+            empty_result.status == "BLOCKED"
+        ),
+        "dimension_conflict_detected": bool(
+            conflict_result.contradictions
+        ),
+        "state_conflict_detected": conflict_detected,
+        "state_conflict_pairs": conflict_pairs,
+        "passed": (
+            empty_result.status == "BLOCKED"
+            and bool(conflict_result.contradictions)
+            and conflict_detected
+        ),
+    }
+
+
+# ============================================================
+# FACTORY EXTENSION
+# ============================================================
+
+def create_cas_decision_market_state_engine():
+    """
+    Factory returning D10 with CAS reconciliation attached.
+    """
+
+    engine = DecisionMarketStateEngine()
+
+    return attach_cas_reconciliation(
+        engine
+    )
+
+
+# ============================================================
+# EXPORTS
+# ============================================================
+
+__all__ = [
+    "EvidenceItem",
+    "EvidenceReconciliation",
+    "D10EvidenceReconciler",
+    "validate_evidence_provenance",
+    "detect_state_conflict",
+    "d10_evidence_gate",
+    "snapshot_to_evidence",
+    "attach_cas_reconciliation",
+    "create_cas_decision_market_state_engine",
+    "d10_cas_self_check",
+]
+# ============================================================
+# ROBOMLM_PLUS D10 — Decision Market State
+# PART 3/4
+# MTF + TEMPORAL CONSISTENCY + TRANSITION VALIDATION
+# ============================================================
+
+from datetime import datetime
+from collections import Counter
+
+
+# ============================================================
+# MTF STATE RECORD
+# ============================================================
+
+@dataclass
+class MTFStateRecord:
+    """
+    State observation for one timeframe.
+
+    Example:
+        1m / 5m / 15m / 1h / 4h
+
+    D10 does not assume any fixed timeframe set.
+    """
+
+    timeframe: str
+    state: str
+
+    timestamp: Optional[str] = None
+
+    direction: Optional[str] = None
+    structure: Optional[str] = None
+    flow: Optional[str] = None
+    liquidity: Optional[str] = None
+    volatility: Optional[str] = None
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+    valid: bool = True
+    reasons: List[str] = field(default_factory=list)
+
+
+@dataclass
+class MTFReconciliation:
+    """
+    Cross-timeframe state reconciliation.
+
+    This describes agreement/disagreement only.
+    It does not create a trading signal.
+    """
+
+    status: str = "UNDETERMINED"
+
+    timeframes_checked: List[str] = field(default_factory=list)
+
+    states_observed: Dict[str, str] = field(default_factory=dict)
+
+    agreement_timeframes: List[str] = field(default_factory=list)
+    conflicting_timeframes: List[str] = field(default_factory=list)
+
+    dominant_state: Optional[str] = None
+
+    higher_timeframe_state: Optional[str] = None
+    lower_timeframe_states: Dict[str, str] = field(default_factory=dict)
+
+    transition_detected: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+
+
+# ============================================================
+# TEMPORAL STATE RECORD
+# ============================================================
+
+@dataclass
+class TemporalStateRecord:
+    """
+    Sequential market-state observation.
+
+    Previous state and current state are kept explicit so
+    transition logic cannot accidentally use future information.
+    """
+
+    previous_state: Optional[str] = None
+    current_state: Optional[str] = None
+
+    previous_timestamp: Optional[str] = None
+    current_timestamp: Optional[str] = None
+
+    transition: Optional[str] = None
+
+    chronological: bool = False
+    valid: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+
+# ============================================================
+# STATE TRANSITION MAP
+# ============================================================
+
+D10_VALID_STATE_TRANSITIONS = {
+    "UNKNOWN": {
+        "UNKNOWN",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "RANGE",
+        "ROTATION",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "RANGE": {
+        "RANGE",
+        "ROTATION",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "ROTATION": {
+        "ROTATION",
+        "RANGE",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "ACCUMULATION": {
+        "ACCUMULATION",
+        "RANGE",
+        "ROTATION",
+        "BULLISH_EXPANSION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "DISTRIBUTION": {
+        "DISTRIBUTION",
+        "RANGE",
+        "ROTATION",
+        "BEARISH_EXPANSION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "BULLISH_EXPANSION": {
+        "BULLISH_EXPANSION",
+        "ACCUMULATION",
+        "RANGE",
+        "ROTATION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "BEARISH_EXPANSION": {
+        "BEARISH_EXPANSION",
+        "DISTRIBUTION",
+        "RANGE",
+        "ROTATION",
+        "TRANSITION",
+        "CHAOS",
+    },
+
+    "TRANSITION": {
+        "TRANSITION",
+        "RANGE",
+        "ROTATION",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "CHAOS",
+    },
+
+    "CHAOS": {
+        "CHAOS",
+        "TRANSITION",
+        "RANGE",
+        "ROTATION",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+    },
+}
+
+
+# ============================================================
+# TIMEFRAME ORDER
+# ============================================================
+
+D10_TIMEFRAME_RANK = {
+    "tick": 0,
+    "1s": 1,
+    "5s": 2,
+    "10s": 3,
+    "15s": 4,
+    "30s": 5,
+    "1m": 10,
+    "2m": 11,
+    "3m": 12,
+    "5m": 20,
+    "10m": 21,
+    "15m": 30,
+    "30m": 40,
+    "45m": 45,
+    "1h": 50,
+    "2h": 55,
+    "4h": 60,
+    "6h": 65,
+    "8h": 70,
+    "12h": 75,
+    "1d": 100,
+    "1w": 200,
+    "1mo": 300,
+}
+
+
+def _d10_timeframe_rank(timeframe: str) -> int:
+    key = _d10_text(timeframe)
+
+    if key in D10_TIMEFRAME_RANK:
+        return D10_TIMEFRAME_RANK[key]
+
+    return -1
+
+
+# ============================================================
+# STATE NORMALIZATION
+# ============================================================
+
+def normalize_d10_state(state: Any) -> str:
+    value = _d10_text(state).upper()
+
+    valid_states = {
+        "UNKNOWN",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "RANGE",
+        "ROTATION",
+        "TRANSITION",
+        "CHAOS",
+    }
+
+    if value in valid_states:
+        return value
+
+    return "UNKNOWN"
+
+
+# ============================================================
+# TIMESTAMP PARSING
+# ============================================================
+
+def _d10_parse_timestamp(
+    value: Any,
+) -> Optional[datetime]:
+
+    if value is None:
+        return None
+
+    if isinstance(value, datetime):
+        return value
+
+    text = str(value).strip()
+
+    if not text:
+        return None
+
+    # ISO-8601 handling
+    try:
+        return datetime.fromisoformat(
+            text.replace("Z", "+00:00")
+        )
+    except Exception:
+        pass
+
+    # Common fallback formats
+    formats = (
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S.%f",
+        "%Y/%m/%d %H:%M:%S",
+        "%d-%m-%Y %H:%M:%S",
+    )
+
+    for fmt in formats:
+        try:
+            return datetime.strptime(
+                text,
+                fmt,
+            )
+        except Exception:
+            continue
+
+    return None
+
+
+# ============================================================
+# TEMPORAL CONSISTENCY
+# ============================================================
+
+def validate_temporal_sequence(
+    previous_state: Optional[str],
+    current_state: Optional[str],
+    previous_timestamp: Optional[str],
+    current_timestamp: Optional[str],
+) -> TemporalStateRecord:
+
+    result = TemporalStateRecord(
+        previous_state=normalize_d10_state(
+            previous_state
+        ),
+        current_state=normalize_d10_state(
+            current_state
+        ),
+        previous_timestamp=previous_timestamp,
+        current_timestamp=current_timestamp,
+    )
+
+    if not previous_state or not current_state:
+        result.reasons.append(
+            "MISSING_STATE"
+        )
+        return result
+
+    previous_dt = _d10_parse_timestamp(
+        previous_timestamp
+    )
+
+    current_dt = _d10_parse_timestamp(
+        current_timestamp
+    )
+
+    if previous_dt is None or current_dt is None:
+        result.reasons.append(
+            "TIMESTAMP_UNPARSEABLE"
+        )
+        return result
+
+    if current_dt < previous_dt:
+        result.reasons.append(
+            "NON_CHRONOLOGICAL_SEQUENCE"
+        )
+        return result
+
+    result.chronological = True
+
+    previous = result.previous_state
+    current = result.current_state
+
+    allowed = D10_VALID_STATE_TRANSITIONS.get(
+        previous,
+        set(),
+    )
+
+    if current not in allowed:
+        result.reasons.append(
+            f"INVALID_STATE_TRANSITION:{previous}->{current}"
+        )
+        return result
+
+    result.valid = True
+
+    if previous == current:
+        result.transition = "STATE_PERSISTENCE"
+
+    else:
+        result.transition = (
+            f"{previous}->{current}"
+        )
+
+    return result
+
+
+# ============================================================
+# MTF RECONCILIATION ENGINE
+# ============================================================
+
+class D10MTFReconciler:
+    """
+    Cross-timeframe reconciliation.
+
+    Important:
+        No fixed timeframe receives an artificial priority.
+        The engine only identifies the highest timeframe actually
+        supplied by the caller.
+    """
+
+    def __init__(self) -> None:
+        self.last_result: Optional[
+            MTFReconciliation
+        ] = None
+
+    def reconcile(
+        self,
+        records: List[MTFStateRecord],
+    ) -> MTFReconciliation:
+
+        result = MTFReconciliation()
+
+        if not records:
+            result.status = "BLOCKED"
+            result.reasons.append(
+                "NO_MTF_STATE"
+            )
+
+            self.last_result = result
+            return result
+
+        valid_records: List[MTFStateRecord] = []
+
+        for record in records:
+
+            timeframe = _d10_text(
+                record.timeframe
+            )
+
+            state = normalize_d10_state(
+                record.state
+            )
+
+            if not timeframe:
+                result.reasons.append(
+                    "MISSING_TIMEFRAME"
+                )
+                continue
+
+            if state == "UNKNOWN":
+                result.reasons.append(
+                    f"UNKNOWN_STATE:{timeframe}"
+                )
+                continue
+
+            if not record.valid:
+                result.reasons.append(
+                    f"INVALID_RECORD:{timeframe}"
+                )
+                continue
+
+            valid_records.append(
+                record
+            )
+
+            result.timeframes_checked.append(
+                timeframe
+            )
+
+            result.states_observed[
+                timeframe
+            ] = state
+
+            result.evidence_ids.extend(
+                record.evidence_ids
+            )
+
+        result.timeframes_checked = _d10_unique(
+            result.timeframes_checked
+        )
+
+        result.evidence_ids = _d10_unique(
+            result.evidence_ids
+        )
+
+        if not valid_records:
+            result.status = "BLOCKED"
+            result.reasons.append(
+                "NO_VALID_MTF_STATE"
+            )
+
+            self.last_result = result
+            return result
+
+        # --------------------------------------------------------
+        # State frequency
+        # --------------------------------------------------------
+
+        state_counter = Counter(
+            record.state.upper()
+            for record in valid_records
+        )
+
+        if state_counter:
+            result.dominant_state = (
+                state_counter.most_common(1)[0][0]
+            )
+
+        # --------------------------------------------------------
+        # Agreement / conflict
+        # --------------------------------------------------------
+
+        dominant = result.dominant_state
+
+        for record in valid_records:
+
+            timeframe = _d10_text(
+                record.timeframe
+            )
+
+            state = normalize_d10_state(
+                record.state
+            )
+
+            if state == dominant:
+                result.agreement_timeframes.append(
+                    timeframe
+                )
+            else:
+                result.conflicting_timeframes.append(
+                    timeframe
+                )
+
+        # --------------------------------------------------------
+        # Higher timeframe identification
+        # --------------------------------------------------------
+
+        ranked_records = sorted(
+            valid_records,
+            key=lambda item: _d10_timeframe_rank(
+                item.timeframe
+            ),
+        )
+
+        higher = ranked_records[-1]
+
+        result.higher_timeframe_state = (
+            normalize_d10_state(
+                higher.state
+            )
+        )
+
+        for record in ranked_records[:-1]:
+
+            timeframe = _d10_text(
+                record.timeframe
+            )
+
+            result.lower_timeframe_states[
+                timeframe
+            ] = normalize_d10_state(
+                record.state
+            )
+
+        # --------------------------------------------------------
+        # Transition indication
+        # --------------------------------------------------------
+
+        if (
+            result.higher_timeframe_state
+            == "TRANSITION"
+        ):
+            result.transition_detected = True
+
+        if any(
+            normalize_d10_state(record.state)
+            == "TRANSITION"
+            for record in valid_records
+        ):
+            result.transition_detected = True
+
+        # --------------------------------------------------------
+        # Final reconciliation state
+        # --------------------------------------------------------
+
+        if len(valid_records) == 1:
+
+            result.status = "LIMITED"
+            result.reasons.append(
+                "SINGLE_TIMEFRAME_ONLY"
+            )
+
+        elif result.conflicting_timeframes:
+
+            result.status = "MIXED"
+            result.reasons.append(
+                "MTF_STATE_CONFLICT"
+            )
+
+        elif result.transition_detected:
+
+            result.status = "LIMITED"
+            result.reasons.append(
+                "MTF_TRANSITION_PRESENT"
+            )
+
+        else:
+
+            result.status = "READY"
+            result.reasons.append(
+                "MTF_STATE_AGREEMENT"
+            )
+
+        result.agreement_timeframes = _d10_unique(
+            result.agreement_timeframes
+        )
+
+        result.conflicting_timeframes = _d10_unique(
+            result.conflicting_timeframes
+        )
+
+        result.reasons = _d10_unique(
+            result.reasons
+        )
+
+        self.last_result = result
+
+        return result
+
+
+# ============================================================
+# HIGHER / LOWER TIMEFRAME CONFLICT
+# ============================================================
+
+def detect_higher_lower_conflict(
+    mtf_result: MTFReconciliation,
+) -> Tuple[bool, List[str]]:
+
+    conflicts: List[str] = []
+
+    higher = normalize_d10_state(
+        mtf_result.higher_timeframe_state
+    )
+
+    if not higher or higher == "UNKNOWN":
+        return False, conflicts
+
+    for timeframe, state in (
+        mtf_result.lower_timeframe_states.items()
+    ):
+
+        normalized = normalize_d10_state(
+            state
+        )
+
+        if normalized == "UNKNOWN":
+            continue
+
+        if normalized == higher:
+            continue
+
+        conflict_pair = (
+            f"{timeframe}:{normalized}"
+            f"<->HIGHER:{higher}"
+        )
+
+        conflicts.append(
+            conflict_pair
+        )
+
+    return bool(conflicts), conflicts
+
+
+# ============================================================
+# TRANSITION-AWARE VALIDATION
+# ============================================================
+
+def validate_transition_awareness(
+    temporal_result: TemporalStateRecord,
+    mtf_result: Optional[MTFReconciliation] = None,
+) -> Dict[str, Any]:
+
+    result = {
+        "status": "UNDETERMINED",
+        "transition": temporal_result.transition,
+        "chronological": temporal_result.chronological,
+        "temporal_valid": temporal_result.valid,
+        "mtf_transition": False,
+        "reasons": [],
+    }
+
+    result["reasons"].extend(
+        temporal_result.reasons
+    )
+
+    if mtf_result is not None:
+
+        result["mtf_transition"] = (
+            mtf_result.transition_detected
+        )
+
+        result["reasons"].extend(
+            mtf_result.reasons
+        )
+
+    result["reasons"] = _d10_unique(
+        result["reasons"]
+    )
+
+    if not temporal_result.chronological:
+
+        result["status"] = "BLOCKED"
+        result["reasons"].append(
+            "TEMPORAL_ORDER_INVALID"
+        )
+
+        return result
+
+    if not temporal_result.valid:
+
+        result["status"] = "LIMITED"
+        result["reasons"].append(
+            "TEMPORAL_TRANSITION_NOT_VALIDATED"
+        )
+
+        return result
+
+    if result["mtf_transition"]:
+
+        result["status"] = "LIMITED"
+        result["reasons"].append(
+            "MTF_TRANSITION_REQUIRES_ATTENTION"
+        )
+
+        return result
+
+    result["status"] = "READY"
+
+    return result
+
+
+# ============================================================
+# ENGINE ATTACHMENT
+# ============================================================
+
+def attach_mtf_temporal_intelligence(
+    engine: DecisionMarketStateEngine,
+) -> DecisionMarketStateEngine:
+
+    engine.mtf_reconciler = D10MTFReconciler()
+
+    def reconcile_mtf(
+        records: List[MTFStateRecord],
+    ) -> MTFReconciliation:
+
+        return engine.mtf_reconciler.reconcile(
+            records
+        )
+
+    def validate_temporal(
+        previous_state: Optional[str],
+        current_state: Optional[str],
+        previous_timestamp: Optional[str],
+        current_timestamp: Optional[str],
+    ) -> TemporalStateRecord:
+
+        return validate_temporal_sequence(
+            previous_state=previous_state,
+            current_state=current_state,
+            previous_timestamp=previous_timestamp,
+            current_timestamp=current_timestamp,
+        )
+
+    def validate_transition(
+        temporal_result: TemporalStateRecord,
+        mtf_result: Optional[MTFReconciliation] = None,
+    ) -> Dict[str, Any]:
+
+        return validate_transition_awareness(
+            temporal_result,
+            mtf_result,
+        )
+
+    engine.reconcile_mtf = reconcile_mtf
+    engine.validate_temporal = validate_temporal
+    engine.validate_transition = validate_transition
+
+    return engine
+
+
+# ============================================================
+# MTF RECORD FACTORY
+# ============================================================
+
+def make_mtf_state_record(
+    timeframe: str,
+    state: str,
+    timestamp: Optional[str] = None,
+    direction: Optional[str] = None,
+    structure: Optional[str] = None,
+    flow: Optional[str] = None,
+    liquidity: Optional[str] = None,
+    volatility: Optional[str] = None,
+    evidence_ids: Optional[List[str]] = None,
+    source_ids: Optional[List[str]] = None,
+    provenance: Optional[Dict[str, Any]] = None,
+) -> MTFStateRecord:
+
+    reasons: List[str] = []
+
+    normalized_state = normalize_d10_state(
+        state
+    )
+
+    if not timeframe:
+        reasons.append(
+            "MISSING_TIMEFRAME"
+        )
+
+    if normalized_state == "UNKNOWN":
+        reasons.append(
+            "UNKNOWN_STATE"
+        )
+
+    if not timestamp:
+        reasons.append(
+            "MISSING_TIMESTAMP"
+        )
+
+    return MTFStateRecord(
+        timeframe=str(timeframe or ""),
+        state=normalized_state,
+        timestamp=timestamp,
+        direction=direction,
+        structure=structure,
+        flow=flow,
+        liquidity=liquidity,
+        volatility=volatility,
+        evidence_ids=list(
+            evidence_ids or []
+        ),
+        source_ids=list(
+            source_ids or []
+        ),
+        provenance=dict(
+            provenance or {}
+        ),
+        valid=not reasons,
+        reasons=reasons,
+    )
+
+
+# ============================================================
+# PART 3 SELF-CHECK
+# ============================================================
+
+def d10_mtf_temporal_self_check() -> Dict[str, Any]:
+
+    records = [
+        make_mtf_state_record(
+            timeframe="5m",
+            state="BULLISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+            evidence_ids=["E5"],
+            source_ids=["S5"],
+            provenance={"source": "TEST"},
+        ),
+        make_mtf_state_record(
+            timeframe="15m",
+            state="BULLISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+            evidence_ids=["E15"],
+            source_ids=["S15"],
+            provenance={"source": "TEST"},
+        ),
+        make_mtf_state_record(
+            timeframe="1h",
+            state="BULLISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+            evidence_ids=["E1H"],
+            source_ids=["S1H"],
+            provenance={"source": "TEST"},
+        ),
+    ]
+
+    reconciler = D10MTFReconciler()
+
+    mtf_result = reconciler.reconcile(
+        records
+    )
+
+    temporal_result = validate_temporal_sequence(
+        previous_state="RANGE",
+        current_state="BULLISH_EXPANSION",
+        previous_timestamp="2026-01-01T09:00:00",
+        current_timestamp="2026-01-01T10:00:00",
+    )
+
+    conflict_records = [
+        make_mtf_state_record(
+            timeframe="5m",
+            state="BULLISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+        ),
+        make_mtf_state_record(
+            timeframe="1h",
+            state="BEARISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+        ),
+    ]
+
+    conflict_result = reconciler.reconcile(
+        conflict_records
+    )
+
+    return {
+        "mtf_agreement_detected": (
+            mtf_result.status == "READY"
+            and mtf_result.dominant_state
+            == "BULLISH_EXPANSION"
+        ),
+        "temporal_sequence_valid": (
+            temporal_result.valid
+            and temporal_result.chronological
+        ),
+        "mtf_conflict_detected": (
+            conflict_result.status == "MIXED"
+        ),
+        "passed": (
+            mtf_result.status == "READY"
+            and temporal_result.valid
+            and conflict_result.status == "MIXED"
+        ),
+    }
+
+
+# ============================================================
+# FACTORY EXTENSION
+# ============================================================
+
+def create_full_d10_market_state_engine():
+    """
+    Full D10 factory:
+        Part 1 = State Classification
+        Part 2 = CAS Evidence Reconciliation
+        Part 3 = MTF + Temporal Intelligence
+    """
+
+    engine = create_cas_decision_market_state_engine()
+
+    return attach_mtf_temporal_intelligence(
+        engine
+    )
+
+
+# ============================================================
+# PART 3 EXPORTS
+# ============================================================
+
+__all__.extend(
+    [
+        "MTFStateRecord",
+        "MTFReconciliation",
+        "TemporalStateRecord",
+        "D10MTFReconciler",
+        "normalize_d10_state",
+        "validate_temporal_sequence",
+        "detect_higher_lower_conflict",
+        "validate_transition_awareness",
+        "attach_mtf_temporal_intelligence",
+        "make_mtf_state_record",
+        "d10_mtf_temporal_self_check",
+        "create_full_d10_market_state_engine",
+    ]
+)
+# ============================================================
+# ROBOMLM_PLUS D10 — Decision Market State
+# PART 4/4
+# FINAL CONTRACT + VALIDATION + INTEGRATION
+# ============================================================
+
+
+# ============================================================
+# FINAL D10 CONTRACT
+# ============================================================
+
+@dataclass
+class D10FinalContract:
+    """
+    Canonical normalized D10 output.
+
+    D10 describes validated market state.
+    It does not authorize execution.
+    """
+
+    engine: str = ENGINE_NAME
+    engine_version: str = ENGINE_VERSION
+
+    market_id: Optional[str] = None
+    instrument_id: Optional[str] = None
+    timestamp: Optional[str] = None
+
+    state: str = "UNKNOWN"
+    status: str = "UNDETERMINED"
+
+    evidence_quality: str = "INSUFFICIENT"
+
+    direction: Optional[str] = None
+    structure: Optional[str] = None
+    flow: Optional[str] = None
+    liquidity: Optional[str] = None
+    volatility: Optional[str] = None
+    participation: Optional[str] = None
+    relationship: Optional[str] = None
+
+    mtf_status: str = "UNDETERMINED"
+    temporal_status: str = "UNDETERMINED"
+
+    transition_detected: bool = False
+    evidence_conflict: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+    # Explicit authority boundary
+    decision_authority: str = "D13"
+    execution_authority: bool = False
+
+
+# ============================================================
+# CONTRACT SERIALIZATION
+# ============================================================
+
+def d10_contract_to_dict(
+    contract: D10FinalContract,
+) -> Dict[str, Any]:
+
+    return {
+        "engine": contract.engine,
+        "engine_version": contract.engine_version,
+
+        "market_id": contract.market_id,
+        "instrument_id": contract.instrument_id,
+        "timestamp": contract.timestamp,
+
+        "state": contract.state,
+        "status": contract.status,
+
+        "evidence_quality": contract.evidence_quality,
+
+        "direction": contract.direction,
+        "structure": contract.structure,
+        "flow": contract.flow,
+        "liquidity": contract.liquidity,
+        "volatility": contract.volatility,
+        "participation": contract.participation,
+        "relationship": contract.relationship,
+
+        "mtf_status": contract.mtf_status,
+        "temporal_status": contract.temporal_status,
+
+        "transition_detected": contract.transition_detected,
+        "evidence_conflict": contract.evidence_conflict,
+
+        "reasons": list(contract.reasons),
+
+        "evidence_ids": list(contract.evidence_ids),
+        "source_ids": list(contract.source_ids),
+
+        "provenance": dict(contract.provenance),
+
+        "decision_authority": contract.decision_authority,
+        "execution_authority": contract.execution_authority,
+    }
+
+
+# ============================================================
+# CONTRACT VALIDATION
+# ============================================================
+
+def validate_d10_contract(
+    contract: D10FinalContract,
+) -> Dict[str, Any]:
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    valid_states = {
+        "UNKNOWN",
+        "BULLISH_EXPANSION",
+        "BEARISH_EXPANSION",
+        "ACCUMULATION",
+        "DISTRIBUTION",
+        "RANGE",
+        "ROTATION",
+        "TRANSITION",
+        "CHAOS",
+    }
+
+    valid_statuses = {
+        "READY",
+        "LIMITED",
+        "BLOCKED",
+        "UNDETERMINED",
+    }
+
+    if contract.engine != ENGINE_NAME:
+        errors.append(
+            "ENGINE_IDENTITY_MISMATCH"
+        )
+
+    if not contract.engine_version:
+        errors.append(
+            "MISSING_ENGINE_VERSION"
+        )
+
+    if contract.state not in valid_states:
+        errors.append(
+            "INVALID_STATE"
+        )
+
+    if contract.status not in valid_statuses:
+        errors.append(
+            "INVALID_STATUS"
+        )
+
+    if not contract.evidence_quality:
+        errors.append(
+            "MISSING_EVIDENCE_QUALITY"
+        )
+
+    if contract.status == "READY":
+
+        if contract.state == "UNKNOWN":
+            errors.append(
+                "READY_WITH_UNKNOWN_STATE"
+            )
+
+        if not contract.evidence_ids:
+            errors.append(
+                "READY_WITHOUT_EVIDENCE"
+            )
+
+        if not contract.provenance:
+            errors.append(
+                "READY_WITHOUT_PROVENANCE"
+            )
+
+    if contract.execution_authority:
+        errors.append(
+            "D10_EXECUTION_AUTHORITY_VIOLATION"
+        )
+
+    if contract.decision_authority != "D13":
+        errors.append(
+            "D13_AUTHORITY_BOUNDARY_VIOLATION"
+        )
+
+    if contract.transition_detected:
+        warnings.append(
+            "TRANSITION_PRESENT"
+        )
+
+    if contract.evidence_conflict:
+        warnings.append(
+            "EVIDENCE_CONFLICT_PRESENT"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": _d10_unique(errors),
+        "warnings": _d10_unique(warnings),
+    }
+
+
+# ============================================================
+# RESULT → FINAL CONTRACT
+# ============================================================
+
+def build_d10_contract(
+    result: MarketStateResult,
+    reconciliation: Optional[EvidenceReconciliation] = None,
+    mtf_result: Optional[MTFReconciliation] = None,
+    temporal_result: Optional[TemporalStateRecord] = None,
+) -> D10FinalContract:
+
+    contract = D10FinalContract(
+        engine=result.engine,
+        engine_version=result.engine_version,
+
+        market_id=result.market_id,
+        instrument_id=result.instrument_id,
+        timestamp=result.timestamp,
+
+        state=normalize_d10_state(
+            result.state
+        ),
+
+        status=(
+            result.status.value
+            if hasattr(result.status, "value")
+            else str(result.status)
+        ),
+
+        evidence_quality=(
+            result.evidence_quality.value
+            if hasattr(result.evidence_quality, "value")
+            else str(result.evidence_quality)
+        ),
+
+        direction=result.direction,
+        structure=result.structure,
+        flow=result.flow,
+        liquidity=result.liquidity,
+        volatility=result.volatility,
+
+        evidence_ids=list(
+            result.evidence_ids or []
+        ),
+
+        source_ids=list(
+            result.source_ids or []
+        ),
+
+        provenance=dict(
+            result.provenance or {}
+        ),
+
+        decision_authority="D13",
+        execution_authority=False,
+    )
+
+    contract.reasons.extend(
+        list(result.reasons or [])
+    )
+
+    # --------------------------------------------------------
+    # CAS reconciliation
+    # --------------------------------------------------------
+
+    if reconciliation is not None:
+
+        contract.evidence_conflict = bool(
+            reconciliation.contradictions
+        )
+
+        contract.reasons.extend(
+            reconciliation.reasons
+        )
+
+        contract.evidence_ids.extend(
+            reconciliation.supporting_evidence_ids
+        )
+
+        contract.evidence_ids.extend(
+            reconciliation.conflicting_evidence_ids
+        )
+
+    # --------------------------------------------------------
+    # MTF
+    # --------------------------------------------------------
+
+    if mtf_result is not None:
+
+        contract.mtf_status = (
+            mtf_result.status
+        )
+
+        contract.transition_detected = (
+            contract.transition_detected
+            or mtf_result.transition_detected
+        )
+
+        contract.reasons.extend(
+            mtf_result.reasons
+        )
+
+        contract.evidence_ids.extend(
+            mtf_result.evidence_ids
+        )
+
+    # --------------------------------------------------------
+    # Temporal
+    # --------------------------------------------------------
+
+    if temporal_result is not None:
+
+        if temporal_result.valid:
+            contract.temporal_status = "READY"
+
+        elif temporal_result.chronological:
+            contract.temporal_status = "LIMITED"
+
+        else:
+            contract.temporal_status = "BLOCKED"
+
+        if (
+            temporal_result.transition
+            and temporal_result.transition
+            != "STATE_PERSISTENCE"
+        ):
+            contract.transition_detected = True
+
+        contract.reasons.extend(
+            temporal_result.reasons
+        )
+
+    contract.reasons = _d10_unique(
+        contract.reasons
+    )
+
+    contract.evidence_ids = _d10_unique(
+        contract.evidence_ids
+    )
+
+    contract.source_ids = _d10_unique(
+        contract.source_ids
+    )
+
+    return contract
+
+
+# ============================================================
+# FINAL STATUS RESOLUTION
+# ============================================================
+
+def resolve_d10_final_status(
+    base_status: str,
+    reconciliation: Optional[EvidenceReconciliation] = None,
+    mtf_result: Optional[MTFReconciliation] = None,
+    temporal_result: Optional[TemporalStateRecord] = None,
+) -> str:
+
+    status = str(
+        base_status or "UNDETERMINED"
+    ).upper()
+
+    # Hard failures always dominate.
+    if reconciliation is not None:
+
+        if reconciliation.status == "BLOCKED":
+            return "BLOCKED"
+
+        if not reconciliation.provenance_valid:
+            return "LIMITED"
+
+    if temporal_result is not None:
+
+        if not temporal_result.chronological:
+            return "BLOCKED"
+
+    # Contradictory evidence cannot be reported as READY.
+    if reconciliation is not None:
+
+        if reconciliation.contradictions:
+            return "LIMITED"
+
+    if mtf_result is not None:
+
+        if mtf_result.status == "MIXED":
+            return "LIMITED"
+
+        if mtf_result.transition_detected:
+            return "LIMITED"
+
+    if temporal_result is not None:
+
+        if not temporal_result.valid:
+            return "LIMITED"
+
+    if status == "READY":
+        return "READY"
+
+    if status == "BLOCKED":
+        return "BLOCKED"
+
+    if status == "LIMITED":
+        return "LIMITED"
+
+    return "UNDETERMINED"
+
+
+# ============================================================
+# COMPLETE D10 PIPELINE
+# ============================================================
+
+class D10FinalPipeline:
+    """
+    Complete D10 pipeline.
+
+    Flow:
+
+        Snapshot
+          ↓
+        D10 State Classification
+          ↓
+        CAS Evidence Reconciliation
+          ↓
+        MTF Reconciliation
+          ↓
+        Temporal Validation
+          ↓
+        Transition Awareness
+          ↓
+        Final Contract
+
+    D13 remains the decision authority.
+    """
+
+    def __init__(
+        self,
+        engine: Optional[DecisionMarketStateEngine] = None,
+    ) -> None:
+
+        if engine is None:
+            engine = create_full_d10_market_state_engine()
+
+        self.engine = engine
+
+        if not hasattr(
+            self.engine,
+            "evidence_reconciler",
+        ):
+            attach_cas_reconciliation(
+                self.engine
+            )
+
+        if not hasattr(
+            self.engine,
+            "mtf_reconciler",
+        ):
+            attach_mtf_temporal_intelligence(
+                self.engine
+            )
+
+        self.last_contract: Optional[
+            D10FinalContract
+        ] = None
+
+    # --------------------------------------------------------
+    # MAIN EVALUATION
+    # --------------------------------------------------------
+
+    def evaluate(
+        self,
+        snapshot: Any,
+        evidence: Optional[List[EvidenceItem]] = None,
+        mtf_records: Optional[List[MTFStateRecord]] = None,
+        previous_state: Optional[str] = None,
+        previous_timestamp: Optional[str] = None,
+    ) -> D10FinalContract:
+
+        # ----------------------------------------------------
+        # 1. Base D10 classification
+        # ----------------------------------------------------
+
+        base_result = self.engine.evaluate(
+            snapshot
+        )
+
+        # ----------------------------------------------------
+        # 2. Evidence extraction / reconciliation
+        # ----------------------------------------------------
+
+        if evidence is None:
+            evidence = snapshot_to_evidence(
+                snapshot
+            )
+
+        reconciliation = (
+            self.engine.reconcile_evidence(
+                evidence
+            )
+        )
+
+        # ----------------------------------------------------
+        # 3. MTF reconciliation
+        # ----------------------------------------------------
+
+        mtf_result = None
+
+        if mtf_records:
+            mtf_result = self.engine.reconcile_mtf(
+                mtf_records
+            )
+
+        # ----------------------------------------------------
+        # 4. Temporal validation
+        # ----------------------------------------------------
+
+        temporal_result = None
+
+        current_state = normalize_d10_state(
+            base_result.state
+        )
+
+        current_timestamp = getattr(
+            snapshot,
+            "timestamp",
+            None,
+        )
+
+        if (
+            previous_state is not None
+            or previous_timestamp is not None
+        ):
+
+            temporal_result = (
+                self.engine.validate_temporal(
+                    previous_state=previous_state,
+                    current_state=current_state,
+                    previous_timestamp=previous_timestamp,
+                    current_timestamp=(
+                        str(current_timestamp)
+                        if current_timestamp is not None
+                        else None
+                    ),
+                )
+            )
+
+        # ----------------------------------------------------
+        # 5. Build canonical contract
+        # ----------------------------------------------------
+
+        contract = build_d10_contract(
+            result=base_result,
+            reconciliation=reconciliation,
+            mtf_result=mtf_result,
+            temporal_result=temporal_result,
+        )
+
+        # ----------------------------------------------------
+        # 6. Resolve final status
+        # ----------------------------------------------------
+
+        contract.status = resolve_d10_final_status(
+            base_status=contract.status,
+            reconciliation=reconciliation,
+            mtf_result=mtf_result,
+            temporal_result=temporal_result,
+        )
+
+        # ----------------------------------------------------
+        # 7. Final contract validation
+        # ----------------------------------------------------
+
+        validation = validate_d10_contract(
+            contract
+        )
+
+        if not validation["valid"]:
+
+            contract.status = "BLOCKED"
+
+            contract.reasons.extend(
+                validation["errors"]
+            )
+
+        contract.reasons.extend(
+            validation["warnings"]
+        )
+
+        contract.reasons = _d10_unique(
+            contract.reasons
+        )
+
+        self.last_contract = contract
+
+        return contract
+
+    # --------------------------------------------------------
+    # DICT OUTPUT
+    # --------------------------------------------------------
+
+    def evaluate_dict(
+        self,
+        snapshot: Any,
+        evidence: Optional[List[EvidenceItem]] = None,
+        mtf_records: Optional[List[MTFStateRecord]] = None,
+        previous_state: Optional[str] = None,
+        previous_timestamp: Optional[str] = None,
+    ) -> Dict[str, Any]:
+
+        contract = self.evaluate(
+            snapshot=snapshot,
+            evidence=evidence,
+            mtf_records=mtf_records,
+            previous_state=previous_state,
+            previous_timestamp=previous_timestamp,
+        )
+
+        return d10_contract_to_dict(
+            contract
+        )
+
+    # --------------------------------------------------------
+    # CONTRACT
+    # --------------------------------------------------------
+
+    def result_contract(self) -> Dict[str, Any]:
+
+        return {
+            "engine": ENGINE_NAME,
+            "engine_version": ENGINE_VERSION,
+
+            "authority": {
+                "market_state": "D10",
+                "decision": "D13",
+                "execution": False,
+            },
+
+            "output_fields": [
+                "market_id",
+                "instrument_id",
+                "timestamp",
+                "state",
+                "status",
+                "evidence_quality",
+                "direction",
+                "structure",
+                "flow",
+                "liquidity",
+                "volatility",
+                "participation",
+                "relationship",
+                "mtf_status",
+                "temporal_status",
+                "transition_detected",
+                "evidence_conflict",
+                "reasons",
+                "evidence_ids",
+                "source_ids",
+                "provenance",
+            ],
+
+            "forbidden_outputs": [
+                "BUY",
+                "SELL",
+                "ENTRY",
+                "EXIT",
+                "EXECUTE",
+                "POSITION_SIZE",
+                "PROFIT_TARGET",
+                "STOP_LOSS_AUTHORITY",
+                "UNIVERSAL_PROBABILITY",
+            ],
+        }
+
+    # --------------------------------------------------------
+    # ENGINE INFO
+    # --------------------------------------------------------
+
+    def engine_info(self) -> Dict[str, Any]:
+
+        return {
+            "engine": ENGINE_NAME,
+            "version": ENGINE_VERSION,
+            "layer": "DECISION",
+            "module": "D10",
+            "role": "MARKET_STATE",
+            "cas_enabled": True,
+            "mtf_enabled": True,
+            "temporal_validation": True,
+            "transition_awareness": True,
+            "decision_authority": "D13",
+            "execution_authority": False,
+        }
+
+    # --------------------------------------------------------
+    # SELF CHECK
+    # --------------------------------------------------------
+
+    def self_check(self) -> Dict[str, Any]:
+
+        checks: Dict[str, Any] = {}
+
+        # Part 1
+        try:
+            base_check = self.engine.self_check()
+            checks["part1_base"] = base_check
+        except Exception as exc:
+            checks["part1_base"] = {
+                "passed": False,
+                "error": repr(exc),
+            }
+
+        # Part 2
+        try:
+            checks["part2_cas"] = (
+                d10_cas_self_check()
+            )
+        except Exception as exc:
+            checks["part2_cas"] = {
+                "passed": False,
+                "error": repr(exc),
+            }
+
+        # Part 3
+        try:
+            checks["part3_mtf_temporal"] = (
+                d10_mtf_temporal_self_check()
+            )
+        except Exception as exc:
+            checks["part3_mtf_temporal"] = {
+                "passed": False,
+                "error": repr(exc),
+            }
+
+        # Contract validation
+        try:
+
+            contract = D10FinalContract(
+                state="RANGE",
+                status="LIMITED",
+                evidence_quality="MODERATE",
+                evidence_ids=["TEST_E1"],
+                source_ids=["TEST_S1"],
+                provenance={
+                    "source": "TEST"
+                },
+                decision_authority="D13",
+                execution_authority=False,
+            )
+
+            validation = validate_d10_contract(
+                contract
+            )
+
+            checks["contract_validation"] = {
+                "passed": validation["valid"],
+                "details": validation,
+            }
+
+        except Exception as exc:
+
+            checks["contract_validation"] = {
+                "passed": False,
+                "error": repr(exc),
+            }
+
+        # Authority boundary
+        checks["authority_boundary"] = {
+            "passed": (
+                self.result_contract()
+                ["authority"]
+                ["decision"]
+                == "D13"
+                and self.result_contract()
+                ["authority"]
+                ["execution"]
+                is False
+            )
+        }
+
+        # Final result
+        passed = True
+
+        for value in checks.values():
+
+            if isinstance(value, dict):
+
+                if value.get("passed") is False:
+                    passed = False
+
+        checks["passed"] = passed
+
+        return checks
+
+
+# ============================================================
+# TOP-LEVEL D10 API
+# ============================================================
+
+def evaluate_market_state(
+    snapshot: Any,
+    evidence: Optional[List[EvidenceItem]] = None,
+    mtf_records: Optional[List[MTFStateRecord]] = None,
+    previous_state: Optional[str] = None,
+    previous_timestamp: Optional[str] = None,
+) -> D10FinalContract:
+
+    pipeline = D10FinalPipeline()
+
+    return pipeline.evaluate(
+        snapshot=snapshot,
+        evidence=evidence,
+        mtf_records=mtf_records,
+        previous_state=previous_state,
+        previous_timestamp=previous_timestamp,
+    )
+
+
+def evaluate_market_state_dict(
+    snapshot: Any,
+    evidence: Optional[List[EvidenceItem]] = None,
+    mtf_records: Optional[List[MTFStateRecord]] = None,
+    previous_state: Optional[str] = None,
+    previous_timestamp: Optional[str] = None,
+) -> Dict[str, Any]:
+
+    contract = evaluate_market_state(
+        snapshot=snapshot,
+        evidence=evidence,
+        mtf_records=mtf_records,
+        previous_state=previous_state,
+        previous_timestamp=previous_timestamp,
+    )
+
+    return d10_contract_to_dict(
+        contract
+    )
+
+
+# ============================================================
+# COMPLETE D10 SELF-CHECK
+# ============================================================
+
+def d10_complete_self_check() -> Dict[str, Any]:
+
+    pipeline = D10FinalPipeline()
+
+    result = pipeline.self_check()
+
+    return {
+        "engine": ENGINE_NAME,
+        "version": ENGINE_VERSION,
+        "module": "D10",
+        "passed": result["passed"],
+        "checks": result,
+    }
+
+
+# ============================================================
+# FINAL EXPORTS
+# ============================================================
+
+__all__.extend(
+    [
+        "D10FinalContract",
+        "d10_contract_to_dict",
+        "validate_d10_contract",
+        "build_d10_contract",
+        "resolve_d10_final_status",
+        "D10FinalPipeline",
+        "evaluate_market_state",
+        "evaluate_market_state_dict",
+        "d10_complete_self_check",
+    ]
+)
+D10
+│
+├── Part 1
+│   └── Market State Classification
+│
+├── Part 2
+│   ├── CAS Evidence Reconciliation
+│   ├── Provenance Validation
+│   └── Contradiction Detection
+│
+├── Part 3
+│   ├── MTF State Reconciliation
+│   ├── Higher/Lower TF Conflict
+│   ├── Temporal Validation
+│   └── Transition Awareness
+│
+└── Part 4
+    ├── Canonical D10 Contract
+    ├── Final Status Resolution
+    ├── Contract Validation
+    ├── Authority Boundary
+    └── Complete Self-Check
+             │
+             ▼
+            D13

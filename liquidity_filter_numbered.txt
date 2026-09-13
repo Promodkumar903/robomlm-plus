@@ -1,0 +1,1230 @@
+1:"""
+2:ROBOMLM_PLUS
+3:Opportunity Intelligence
+4:Liquidity Filter
+5:
+6:Purpose
+7:-------
+8:Filter the opportunity universe using observable liquidity conditions.
+9:
+10:Pipeline
+11:--------
+12:Universe
+13:   Ã¢â€ â€œ
+14:Liquidity Filter
+15:   Ã¢â€ â€œ
+16:Risk Filter
+17:   Ã¢â€ â€œ
+18:Timing Filter
+19:   Ã¢â€ â€œ
+20:Ranking / Scanner
+21:   Ã¢â€ â€œ
+22:Opportunity Engine
+23:
+24:IMPORTANT
+25:---------
+26:This module does NOT:
+27:    - generate BUY/SELL decisions
+28:    - predict future liquidity
+29:    - create arbitrary opportunity scores
+30:    - replace the dedicated LQS / liquidity intelligence engine
+31:    - use future outcomes
+32:
+33:It is an eligibility/filtering layer.
+34:
+35:Version
+36:-------
+37:OPPORTUNITY-LIQUIDITY-1.0
+38:"""
+39:
+40:from __future__ import annotations
+41:
+42:from dataclasses import asdict, dataclass, field
+43:from enum import Enum
+44:from math import isfinite
+45:from typing import Any, Dict, Iterable, List, Mapping, Optional
+46:
+47:
+48:ENGINE_NAME = "LiquidityFilter"
+49:ENGINE_VERSION = "OPPORTUNITY-LIQUIDITY-1.0"
+50:
+51:
+52:# ============================================================================
+53:# ENUMS
+54:# ============================================================================
+55:
+56:class LiquidityStatus(str, Enum):
+57:    PASS = "PASS"
+58:    REVIEW = "REVIEW"
+59:    REJECT = "REJECT"
+60:    UNKNOWN = "UNKNOWN"
+61:
+62:
+63:class LiquidityCondition(str, Enum):
+64:    HEALTHY = "HEALTHY"
+65:    ADEQUATE = "ADEQUATE"
+66:    THIN = "THIN"
+67:    POOR = "POOR"
+68:    UNKNOWN = "UNKNOWN"
+69:
+70:
+71:# ============================================================================
+72:# DATA CONTRACTS
+73:# ============================================================================
+74:
+75:@dataclass(frozen=True)
+76:class LiquiditySnapshot:
+77:    """
+78:    Point-in-time liquidity observations.
+79:
+80:    All values are observations, not predictions.
+81:    """
+82:
+83:    instrument_id: str
+84:    symbol: str
+85:
+86:    timestamp: Optional[str] = None
+87:
+88:    # Market observations
+89:    price: Optional[float] = None
+90:
+91:    bid: Optional[float] = None
+92:    ask: Optional[float] = None
+93:
+94:    bid_size: Optional[float] = None
+95:    ask_size: Optional[float] = None
+96:
+97:    volume: Optional[float] = None
+98:    average_volume: Optional[float] = None
+99:
+100:    turnover: Optional[float] = None
+101:    average_turnover: Optional[float] = None
+102:
+103:    # Optional externally calculated liquidity intelligence.
+104:    # This is consumed, not reinvented.
+105:    lqs: Optional[float] = None
+106:
+107:    # Additional observable fields.
+108:    order_book_depth: Optional[float] = None
+109:    spread_bps: Optional[float] = None
+110:
+111:    market_id: Optional[str] = None
+112:
+113:    metadata: Dict[str, Any] = field(default_factory=dict)
+114:
+115:
+116:@dataclass(frozen=True)
+117:class LiquidityFilterDecision:
+118:    instrument_id: str
+119:    symbol: str
+120:
+121:    status: str
+122:    condition: str
+123:
+124:    reasons: List[str] = field(default_factory=list)
+125:    warnings: List[str] = field(default_factory=list)
+126:
+127:    spread_bps: Optional[float] = None
+128:    volume_ratio: Optional[float] = None
+129:    turnover_ratio: Optional[float] = None
+130:    book_imbalance: Optional[float] = None
+131:
+132:    lqs: Optional[float] = None
+133:
+134:    market_id: Optional[str] = None
+135:    timestamp: Optional[str] = None
+136:
+137:    provenance: Dict[str, Any] = field(default_factory=dict)
+138:
+139:
+140:@dataclass
+141:class LiquidityFilterResult:
+142:    status: str
+143:    as_of: Optional[str]
+144:
+145:    passed: List[LiquidityFilterDecision] = field(default_factory=list)
+146:    review: List[LiquidityFilterDecision] = field(default_factory=list)
+147:    rejected: List[LiquidityFilterDecision] = field(default_factory=list)
+148:
+149:    total_input: int = 0
+150:    total_passed: int = 0
+151:    total_review: int = 0
+152:    total_rejected: int = 0
+153:
+154:    provenance: Dict[str, Any] = field(default_factory=dict)
+155:
+156:
+157:@dataclass(frozen=True)
+158:class LiquidityPolicy:
+159:    """
+160:    Filtering policy.
+161:
+162:    Thresholds are deliberately conservative and observable.
+163:
+164:    LQS, when supplied by the dedicated metrics layer, is preferred
+165:    over reconstructing a proprietary liquidity score here.
+166:    """
+167:
+168:    # If an authoritative LQS is available.
+169:    minimum_lqs: Optional[float] = None
+170:    review_lqs: Optional[float] = None
+171:
+172:    # Spread controls.
+173:    max_spread_bps: Optional[float] = None
+174:    review_spread_bps: Optional[float] = None
+175:
+176:    # Relative activity controls.
+177:    minimum_volume_ratio: Optional[float] = None
+178:    review_volume_ratio: Optional[float] = None
+179:
+180:    minimum_turnover_ratio: Optional[float] = None
+181:    review_turnover_ratio: Optional[float] = None
+182:
+183:    # Order-book controls.
+184:    minimum_book_depth: Optional[float] = None
+185:
+186:    # Missing-data behavior.
+187:    reject_missing_spread: bool = False
+188:    reject_missing_volume: bool = False
+189:    reject_missing_lqs: bool = False
+190:
+191:    # Identity protection.
+192:    require_market_match: bool = True
+193:
+194:    # Point-in-time protection.
+195:    reject_future_data: bool = True
+196:
+197:
+198:# ============================================================================
+199:# ENGINE
+200:# ============================================================================
+201:
+202:class LiquidityFilter:
+203:    """
+204:    Liquidity eligibility filter.
+205:
+206:    The filter uses observable liquidity fields and/or an externally
+207:    calculated LQS.
+208:
+209:    It does not fabricate missing observations.
+210:    """
+211:
+212:    name = ENGINE_NAME
+213:    version = ENGINE_VERSION
+214:
+215:    def __init__(
+216:        self,
+217:        policy: Optional[LiquidityPolicy] = None,
+218:    ) -> None:
+219:        self.policy = policy or LiquidityPolicy()
+220:
+221:    # ------------------------------------------------------------------------
+222:    # PUBLIC API
+223:    # ------------------------------------------------------------------------
+224:
+225:    def evaluate(
+226:        self,
+227:        snapshot: Any,
+228:        *,
+229:        market_id: Optional[str] = None,
+230:        as_of: Optional[str] = None,
+231:    ) -> LiquidityFilterDecision:
+232:        """
+233:        Evaluate one instrument.
+234:        """
+235:
+236:        data = self.normalize(snapshot)
+237:
+238:        reasons: List[str] = []
+239:        warnings: List[str] = []
+240:
+241:        spread_bps = self._calculate_spread_bps(data)
+242:
+243:        volume_ratio = self._ratio(
+244:            data.volume,
+245:            data.average_volume,
+246:        )
+247:
+248:        turnover_ratio = self._ratio(
+249:            data.turnover,
+250:            data.average_turnover,
+251:        )
+252:
+253:        book_imbalance = self._book_imbalance(data)
+254:
+255:        # ------------------------------------------------------------
+256:        # Identity gate
+257:        # ------------------------------------------------------------
+258:
+259:        if not data.instrument_id:
+260:            reasons.append("MISSING_INSTRUMENT_ID")
+261:
+262:        if not data.symbol:
+263:            reasons.append("MISSING_SYMBOL")
+264:
+265:        if (
+266:            self.policy.require_market_match
+267:            and market_id is not None
+268:        ):
+269:            if data.market_id is None:
+270:                reasons.append("MISSING_MARKET_ID")
+271:            elif str(data.market_id) != str(market_id):
+272:                reasons.append("MARKET_ID_MISMATCH")
+273:
+274:        # ------------------------------------------------------------
+275:        # Future-data gate
+276:        # ------------------------------------------------------------
+277:
+278:        if (
+279:            self.policy.reject_future_data
+280:            and data.timestamp
+281:            and as_of
+282:        ):
+283:            if self._is_future(data.timestamp, as_of):
+284:                reasons.append("FUTURE_DATA")
+285:
+286:        # ------------------------------------------------------------
+287:        # LQS
+288:        # ------------------------------------------------------------
+289:
+290:        if data.lqs is None:
+291:            if self.policy.reject_missing_lqs:
+292:                reasons.append("LQS_MISSING")
+293:            else:
+294:                warnings.append("LQS_NOT_AVAILABLE")
+295:
+296:        else:
+297:            if not self._valid_number(data.lqs):
+298:                reasons.append("INVALID_LQS")
+299:
+300:            elif self.policy.minimum_lqs is not None:
+301:                if data.lqs < self.policy.minimum_lqs:
+302:                    reasons.append("LQS_BELOW_MINIMUM")
+303:
+304:            if (
+305:                self.policy.review_lqs is not None
+306:                and data.lqs < self.policy.review_lqs
+307:            ):
+308:                warnings.append("LQS_REQUIRES_REVIEW")
+309:
+310:        # ------------------------------------------------------------
+311:        # Spread
+312:        # ------------------------------------------------------------
+313:
+314:        if spread_bps is None:
+315:            if self.policy.reject_missing_spread:
+316:                reasons.append("SPREAD_MISSING")
+317:            else:
+318:                warnings.append("SPREAD_NOT_AVAILABLE")
+319:
+320:        else:
+321:            if (
+322:                self.policy.max_spread_bps is not None
+323:                and spread_bps > self.policy.max_spread_bps
+324:            ):
+325:                reasons.append("SPREAD_TOO_WIDE")
+326:
+327:            if (
+328:                self.policy.review_spread_bps is not None
+329:                and spread_bps > self.policy.review_spread_bps
+330:            ):
+331:                warnings.append("WIDE_SPREAD_REVIEW")
+332:
+333:        # ------------------------------------------------------------
+334:        # Volume
+335:        # ------------------------------------------------------------
+336:
+337:        if volume_ratio is None:
+338:            if self.policy.reject_missing_volume:
+339:                reasons.append("VOLUME_RATIO_MISSING")
+340:            else:
+341:                warnings.append("VOLUME_RATIO_NOT_AVAILABLE")
+342:
+343:        else:
+344:            if (
+345:                self.policy.minimum_volume_ratio is not None
+346:                and volume_ratio < self.policy.minimum_volume_ratio
+347:            ):
+348:                reasons.append("LOW_RELATIVE_VOLUME")
+349:
+350:            if (
+351:                self.policy.review_volume_ratio is not None
+352:                and volume_ratio < self.policy.review_volume_ratio
+353:            ):
+354:                warnings.append("LOW_VOLUME_REVIEW")
+355:
+356:        # ------------------------------------------------------------
+357:        # Turnover
+358:        # ------------------------------------------------------------
+359:
+360:        if turnover_ratio is not None:
+361:
+362:            if (
+363:                self.policy.minimum_turnover_ratio is not None
+364:                and turnover_ratio < self.policy.minimum_turnover_ratio
+365:            ):
+366:                reasons.append("LOW_RELATIVE_TURNOVER")
+367:
+368:            if (
+369:                self.policy.review_turnover_ratio is not None
+370:                and turnover_ratio < self.policy.review_turnover_ratio
+371:            ):
+372:                warnings.append("LOW_TURNOVER_REVIEW")
+373:
+374:        # ------------------------------------------------------------
+375:        # Order-book depth
+376:        # ------------------------------------------------------------
+377:
+378:        if self.policy.minimum_book_depth is not None:
+379:
+380:            if data.order_book_depth is None:
+381:                warnings.append("ORDER_BOOK_DEPTH_NOT_AVAILABLE")
+382:
+383:            elif (
+384:                data.order_book_depth
+385:                < self.policy.minimum_book_depth
+386:            ):
+387:                reasons.append("INSUFFICIENT_BOOK_DEPTH")
+388:
+389:        # ------------------------------------------------------------
+390:        # Final classification
+391:        # ------------------------------------------------------------
+392:
+393:        if reasons:
+394:            status = LiquidityStatus.REJECT.value
+395:
+396:        elif warnings:
+397:            status = LiquidityStatus.REVIEW.value
+398:
+399:        else:
+400:            status = LiquidityStatus.PASS.value
+401:
+402:        condition = self._condition(
+403:            status=status,
+404:            lqs=data.lqs,
+405:            spread_bps=spread_bps,
+406:            volume_ratio=volume_ratio,
+407:        )
+408:
+409:        return LiquidityFilterDecision(
+410:            instrument_id=data.instrument_id,
+411:            symbol=data.symbol,
+412:            status=status,
+413:            condition=condition,
+414:            reasons=reasons,
+415:            warnings=warnings,
+416:            spread_bps=spread_bps,
+417:            volume_ratio=volume_ratio,
+418:            turnover_ratio=turnover_ratio,
+419:            book_imbalance=book_imbalance,
+420:            lqs=data.lqs,
+421:            market_id=data.market_id,
+422:            timestamp=data.timestamp,
+423:            provenance={
+424:                "engine": self.name,
+425:                "engine_version": self.version,
+426:                "market_id": market_id,
+427:                "as_of": as_of,
+428:                "future_data_used": False,
+429:                "lqs_source": (
+430:                    "EXTERNAL_LQS"
+431:                    if data.lqs is not None
+432:                    else "NOT_AVAILABLE"
+433:                ),
+434:            },
+435:        )
+436:
+437:    def filter(
+438:        self,
+439:        snapshots: Iterable[Any],
+440:        *,
+441:        market_id: Optional[str] = None,
+442:        as_of: Optional[str] = None,
+443:    ) -> LiquidityFilterResult:
+444:        """
+445:        Evaluate a collection of instruments.
+446:        """
+447:
+448:        passed: List[LiquidityFilterDecision] = []
+449:        review: List[LiquidityFilterDecision] = []
+450:        rejected: List[LiquidityFilterDecision] = []
+451:
+452:        snapshots_list = list(snapshots or [])
+453:
+454:        for snapshot in snapshots_list:
+455:
+456:            decision = self.evaluate(
+457:                snapshot,
+458:                market_id=market_id,
+459:                as_of=as_of,
+460:            )
+461:
+462:            if decision.status == LiquidityStatus.PASS.value:
+463:                passed.append(decision)
+464:
+465:            elif decision.status == LiquidityStatus.REVIEW.value:
+466:                review.append(decision)
+467:
+468:            else:
+469:                rejected.append(decision)
+470:
+471:        if passed:
+472:            overall_status = "READY"
+473:        elif review:
+474:            overall_status = "REVIEW_ONLY"
+475:        else:
+476:            overall_status = "EMPTY"
+477:
+478:        return LiquidityFilterResult(
+479:            status=overall_status,
+480:            as_of=as_of,
+481:            passed=passed,
+482:            review=review,
+483:            rejected=rejected,
+484:            total_input=len(snapshots_list),
+485:            total_passed=len(passed),
+486:            total_review=len(review),
+487:            total_rejected=len(rejected),
+488:            provenance={
+489:                "engine": self.name,
+490:                "engine_version": self.version,
+491:                "market_id": market_id,
+492:                "as_of": as_of,
+493:                "future_data_used": False,
+494:            },
+495:        )
+496:
+497:    def apply(
+498:        self,
+499:        snapshots: Iterable[Any],
+500:        *,
+501:        market_id: Optional[str] = None,
+502:        as_of: Optional[str] = None,
+503:        include_review: bool = False,
+504:    ) -> List[LiquidityFilterDecision]:
+505:        """
+506:        Convenience API.
+507:
+508:        By default only PASS records are returned.
+509:
+510:        include_review=True additionally returns REVIEW records.
+511:        REJECT records are never returned by this method.
+512:        """
+513:
+514:        result = self.filter(
+515:            snapshots,
+516:            market_id=market_id,
+517:            as_of=as_of,
+518:        )
+519:
+520:        if include_review:
+521:            return result.passed + result.review
+522:
+523:        return result.passed
+524:
+525:    # ------------------------------------------------------------------------
+526:    # NORMALIZATION
+527:    # ------------------------------------------------------------------------
+528:
+529:    def normalize(self, snapshot: Any) -> LiquiditySnapshot:
+530:        """
+531:        Normalize dictionary/object input into LiquiditySnapshot.
+532:        """
+533:
+534:        if isinstance(snapshot, LiquiditySnapshot):
+535:            return snapshot
+536:
+537:        raw = self._to_mapping(snapshot)
+538:
+539:        instrument_id = self._first(
+540:            raw,
+541:            "instrument_id",
+542:            "instrumentId",
+543:            "security_id",
+544:            "securityId",
+545:            "id",
+546:            "token",
+547:        )
+548:
+549:        symbol = self._first(
+550:            raw,
+551:            "symbol",
+552:            "ticker",
+553:            "trading_symbol",
+554:            "tradingSymbol",
+555:        )
+556:
+557:        timestamp = self._first(
+558:            raw,
+559:            "timestamp",
+560:            "time",
+561:            "as_of",
+562:            "source_timestamp",
+563:        )
+564:
+565:        metadata = dict(raw)
+566:
+567:        known = {
+568:            "instrument_id",
+569:            "instrumentId",
+570:            "security_id",
+571:            "securityId",
+572:            "id",
+573:            "token",
+574:            "symbol",
+575:            "ticker",
+576:            "trading_symbol",
+577:            "tradingSymbol",
+578:            "timestamp",
+579:            "time",
+580:            "as_of",
+581:            "source_timestamp",
+582:        }
+583:
+584:        for key in known:
+585:            metadata.pop(key, None)
+586:
+587:        return LiquiditySnapshot(
+588:            instrument_id=str(instrument_id or ""),
+589:            symbol=str(symbol or ""),
+590:            timestamp=(
+591:                str(timestamp)
+592:                if timestamp is not None
+593:                else None
+594:            ),
+595:            price=self._float(
+596:                self._first(raw, "price", "last_price", "lastPrice")
+597:            ),
+598:            bid=self._float(
+599:                self._first(raw, "bid", "bid_price", "bidPrice")
+600:            ),
+601:            ask=self._float(
+602:                self._first(raw, "ask", "ask_price", "askPrice")
+603:            ),
+604:            bid_size=self._float(
+605:                self._first(
+606:                    raw,
+607:                    "bid_size",
+608:                    "bidSize",
+609:                    "bid_qty",
+610:                    "bidQty",
+611:                    "bid_quantity",
+612:                )
+613:            ),
+614:            ask_size=self._float(
+615:                self._first(
+616:                    raw,
+617:                    "ask_size",
+618:                    "askSize",
+619:                    "ask_qty",
+620:                    "askQty",
+621:                    "ask_quantity",
+622:                )
+623:            ),
+624:            volume=self._float(
+625:                self._first(
+626:                    raw,
+627:                    "volume",
+628:                    "vol",
+629:                    "total_volume",
+630:                    "totalVolume",
+631:                )
+632:            ),
+633:            average_volume=self._float(
+634:                self._first(
+635:                    raw,
+636:                    "average_volume",
+637:                    "avg_volume",
+638:                    "avgVolume",
+639:                    "volume_average",
+640:                )
+641:            ),
+642:            turnover=self._float(
+643:                self._first(
+644:                    raw,
+645:                    "turnover",
+646:                    "value_traded",
+647:                    "valueTraded",
+648:                )
+649:            ),
+650:            average_turnover=self._float(
+651:                self._first(
+652:                    raw,
+653:                    "average_turnover",
+654:                    "avg_turnover",
+655:                    "avgTurnover",
+656:                )
+657:            ),
+658:            lqs=self._float(
+659:                self._first(
+660:                    raw,
+661:                    "lqs",
+662:                    "LQS",
+663:                    "liquidity_score",
+664:                    "liquidityScore",
+665:                )
+666:            ),
+667:            order_book_depth=self._float(
+668:                self._first(
+669:                    raw,
+670:                    "order_book_depth",
+671:                    "orderBookDepth",
+672:                    "book_depth",
+673:                    "bookDepth",
+674:                )
+675:            ),
+676:            spread_bps=self._float(
+677:                self._first(
+678:                    raw,
+679:                    "spread_bps",
+680:                    "spreadBps",
+681:                )
+682:            ),
+683:            market_id=(
+684:                str(
+685:                    self._first(
+686:                        raw,
+687:                        "market_id",
+688:                        "marketId",
+689:                        "market",
+690:                        "segment",
+691:                    )
+692:                )
+693:                if self._first(
+694:                    raw,
+695:                    "market_id",
+696:                    "marketId",
+697:                    "market",
+698:                    "segment",
+699:                )
+700:                is not None
+701:                else None
+702:            ),
+703:            metadata=metadata,
+704:        )
+705:
+706:    # ------------------------------------------------------------------------
+707:    # LIQUIDITY CALCULATIONS
+708:    # ------------------------------------------------------------------------
+709:
+710:    @staticmethod
+711:    def _calculate_spread_bps(
+712:        snapshot: LiquiditySnapshot,
+713:    ) -> Optional[float]:
+714:        """
+715:        Calculate bid/ask spread in basis points.
+716:
+717:        spread_bps = ((ask - bid) / midpoint) * 10,000
+718:        """
+719:
+720:        if snapshot.spread_bps is not None:
+721:            if snapshot.spread_bps < 0:
+722:                return None
+723:
+724:            return snapshot.spread_bps
+725:
+726:        if snapshot.bid is None or snapshot.ask is None:
+727:            return None
+728:
+729:        if snapshot.bid <= 0 or snapshot.ask <= 0:
+730:            return None
+731:
+732:        if snapshot.ask < snapshot.bid:
+733:            return None
+734:
+735:        midpoint = (snapshot.bid + snapshot.ask) / 2.0
+736:
+737:        if midpoint <= 0:
+738:            return None
+739:
+740:        return (
+741:            (snapshot.ask - snapshot.bid)
+742:            / midpoint
+743:            * 10_000.0
+744:        )
+745:
+746:    @staticmethod
+747:    def _book_imbalance(
+748:        snapshot: LiquiditySnapshot,
+749:    ) -> Optional[float]:
+750:        """
+751:        Order-book imbalance:
+752:
+753:            (bid_size - ask_size)
+754:            ---------------------
+755:            (bid_size + ask_size)
+756:
+757:        Range:
+758:            -1 to +1
+759:
+760:        This is descriptive only. It is NOT interpreted as direction.
+761:        """
+762:
+763:        bid = snapshot.bid_size
+764:        ask = snapshot.ask_size
+765:
+766:        if bid is None or ask is None:
+767:            return None
+768:
+769:        if bid < 0 or ask < 0:
+770:            return None
+771:
+772:        denominator = bid + ask
+773:
+774:        if denominator <= 0:
+775:            return None
+776:
+777:        return (bid - ask) / denominator
+778:
+779:    @staticmethod
+780:    def _ratio(
+781:        current: Optional[float],
+782:        average: Optional[float],
+783:    ) -> Optional[float]:
+784:        """
+785:        current / average
+786:
+787:        Returns None when the comparison is unavailable.
+788:        """
+789:
+790:        if current is None or average is None:
+791:            return None
+792:
+793:        if current < 0 or average <= 0:
+794:            return None
+795:
+796:        return current / average
+797:
+798:    # ------------------------------------------------------------------------
+799:    # CONDITION CLASSIFICATION
+800:    # ------------------------------------------------------------------------
+801:
+802:    @staticmethod
+803:    def _condition(
+804:        *,
+805:        status: str,
+806:        lqs: Optional[float],
+807:        spread_bps: Optional[float],
+808:        volume_ratio: Optional[float],
+809:    ) -> str:
+810:
+811:        if status == LiquidityStatus.REJECT.value:
+812:            return LiquidityCondition.POOR.value
+813:
+814:        # Prefer authoritative LQS when available.
+815:        if lqs is not None:
+816:
+817:            if lqs >= 80:
+818:                return LiquidityCondition.HEALTHY.value
+819:
+820:            if lqs >= 60:
+821:                return LiquidityCondition.ADEQUATE.value
+822:
+823:            if lqs >= 40:
+824:                return LiquidityCondition.THIN.value
+825:
+826:            return LiquidityCondition.POOR.value
+827:
+828:        # Without LQS, use only observable descriptive evidence.
+829:        healthy_signals = 0
+830:        weak_signals = 0
+831:
+832:        if spread_bps is not None:
+833:            if spread_bps <= 5:
+834:                healthy_signals += 1
+835:            elif spread_bps > 25:
+836:                weak_signals += 1
+837:
+838:        if volume_ratio is not None:
+839:            if volume_ratio >= 1.0:
+840:                healthy_signals += 1
+841:            elif volume_ratio < 0.5:
+842:                weak_signals += 1
+843:
+844:        if healthy_signals >= 2:
+845:            return LiquidityCondition.HEALTHY.value
+846:
+847:        if healthy_signals == 1 and weak_signals == 0:
+848:            return LiquidityCondition.ADEQUATE.value
+849:
+850:        if weak_signals > 0:
+851:            return LiquidityCondition.THIN.value
+852:
+853:        return LiquidityCondition.UNKNOWN.value
+854:
+855:    # ------------------------------------------------------------------------
+856:    # TIME / VALIDATION HELPERS
+857:    # ------------------------------------------------------------------------
+858:
+859:    @staticmethod
+860:    def _is_future(
+861:        timestamp: str,
+862:        as_of: str,
+863:    ) -> bool:
+864:        """
+865:        Compare ISO-compatible timestamps.
+866:
+867:        Invalid timestamps are not treated as future data.
+868:        They remain observable as malformed input rather than
+869:        being silently rewritten.
+870:        """
+871:
+872:        ts = LiquidityFilter._parse_timestamp(timestamp)
+873:        ref = LiquidityFilter._parse_timestamp(as_of)
+874:
+875:        if ts is None or ref is None:
+876:            return False
+877:
+878:        return ts > ref
+879:
+880:    @staticmethod
+881:    def _parse_timestamp(value: Any):
+882:        from datetime import datetime, timezone
+883:
+884:        if value is None:
+885:            return None
+886:
+887:        if isinstance(value, datetime):
+888:            dt = value
+889:        else:
+890:            text = str(value).strip()
+891:
+892:            if not text:
+893:                return None
+894:
+895:            text = text.replace("Z", "+00:00")
+896:
+897:            try:
+898:                dt = datetime.fromisoformat(text)
+899:            except ValueError:
+900:                return None
+901:
+902:        if dt.tzinfo is None:
+903:            dt = dt.replace(tzinfo=timezone.utc)
+904:
+905:        return dt.astimezone(timezone.utc)
+906:
+907:    # ------------------------------------------------------------------------
+908:    # GENERIC HELPERS
+909:    # ------------------------------------------------------------------------
+910:
+911:    @staticmethod
+912:    def _to_mapping(value: Any) -> Dict[str, Any]:
+913:
+914:        if value is None:
+915:            return {}
+916:
+917:        if isinstance(value, Mapping):
+918:            return dict(value)
+919:
+920:        if hasattr(value, "__dict__"):
+921:            return dict(vars(value))
+922:
+923:        try:
+924:            return asdict(value)
+925:        except (TypeError, ValueError):
+926:            return {}
+927:
+928:    @staticmethod
+929:    def _first(
+930:        mapping: Mapping[str, Any],
+931:        *keys: str,
+932:    ) -> Any:
+933:
+934:        for key in keys:
+935:            if key in mapping and mapping[key] is not None:
+936:                return mapping[key]
+937:
+938:        return None
+939:
+940:    @staticmethod
+941:    def _float(value: Any) -> Optional[float]:
+942:
+943:        if value is None or value == "":
+944:            return None
+945:
+946:        try:
+947:            number = float(value)
+948:        except (TypeError, ValueError):
+949:            return None
+950:
+951:        if not isfinite(number):
+952:            return None
+953:
+954:        return number
+955:
+956:    @staticmethod
+957:    def _valid_number(value: Any) -> bool:
+958:
+959:        try:
+960:            return isfinite(float(value))
+961:        except (TypeError, ValueError):
+962:            return False
+963:
+964:    # ------------------------------------------------------------------------
+965:    # SERIALIZATION
+966:    # ------------------------------------------------------------------------
+967:
+968:    @staticmethod
+969:    def decision_to_dict(
+970:        decision: LiquidityFilterDecision,
+971:    ) -> Dict[str, Any]:
+972:        return asdict(decision)
+973:
+974:    @staticmethod
+975:    def result_to_dict(
+976:        result: LiquidityFilterResult,
+977:    ) -> Dict[str, Any]:
+978:
+979:        return {
+980:            "status": result.status,
+981:            "as_of": result.as_of,
+982:            "passed": [
+983:                asdict(item)
+984:                for item in result.passed
+985:            ],
+986:            "review": [
+987:                asdict(item)
+988:                for item in result.review
+989:            ],
+990:            "rejected": [
+991:                asdict(item)
+992:                for item in result.rejected
+993:            ],
+994:            "total_input": result.total_input,
+995:            "total_passed": result.total_passed,
+996:            "total_review": result.total_review,
+997:            "total_rejected": result.total_rejected,
+998:            "provenance": dict(result.provenance),
+999:        }
+1000:
+1001:
+1002:# ============================================================================
+1003:# FUNCTIONAL API
+1004:# ============================================================================
+1005:
+1006:def filter_liquidity(
+1007:    snapshots: Iterable[Any],
+1008:    *,
+1009:    market_id: Optional[str] = None,
+1010:    as_of: Optional[str] = None,
+1011:    policy: Optional[LiquidityPolicy] = None,
+1012:) -> LiquidityFilterResult:
+1013:    """
+1014:    Functional convenience wrapper.
+1015:    """
+1016:
+1017:    engine = LiquidityFilter(policy=policy)
+1018:
+1019:    return engine.filter(
+1020:        snapshots,
+1021:        market_id=market_id,
+1022:        as_of=as_of,
+1023:    )
+1024:
+1025:
+1026:# ============================================================================
+1027:# SELF TESTS
+1028:# ============================================================================
+1029:
+1030:def _self_test() -> None:
+1031:    """
+1032:    Deterministic local tests.
+1033:
+1034:    No API/network dependency.
+1035:    """
+1036:
+1037:    engine = LiquidityFilter(
+1038:        LiquidityPolicy(
+1039:            minimum_lqs=60,
+1040:            review_lqs=70,
+1041:            max_spread_bps=30,
+1042:            review_spread_bps=15,
+1043:            minimum_volume_ratio=0.50,
+1044:            review_volume_ratio=0.80,
+1045:            reject_future_data=True,
+1046:        )
+1047:    )
+1048:
+1049:    # ------------------------------------------------------------------
+1050:    # 1. Healthy instrument
+1051:    # ------------------------------------------------------------------
+1052:
+1053:    healthy = engine.evaluate(
+1054:        {
+1055:            "instrument_id": "NIFTY",
+1056:            "symbol": "NIFTY",
+1057:            "market_id": "NSE",
+1058:            "timestamp": "2026-09-05T09:30:00+00:00",
+1059:            "bid": 24999,
+1060:            "ask": 25001,
+1061:            "volume": 1000000,
+1062:            "average_volume": 800000,
+1063:            "lqs": 85,
+1064:        },
+1065:        market_id="NSE",
+1066:        as_of="2026-09-05T09:31:00+00:00",
+1067:    )
+1068:
+1069:    assert healthy.status == "PASS"
+1070:    assert healthy.lqs == 85
+1071:    assert healthy.spread_bps is not None
+1072:    assert healthy.volume_ratio == 1.25
+1073:
+1074:    # ------------------------------------------------------------------
+1075:    # 2. Wide spread
+1076:    # ------------------------------------------------------------------
+1077:
+1078:    wide = engine.evaluate(
+1079:        {
+1080:            "instrument_id": "THIN",
+1081:            "symbol": "THIN",
+1082:            "market_id": "NSE",
+1083:            "timestamp": "2026-09-05T09:30:00+00:00",
+1084:            "bid": 100,
+1085:            "ask": 102,
+1086:            "volume": 1000,
+1087:            "average_volume": 1000,
+1088:            "lqs": 75,
+1089:        },
+1090:        market_id="NSE",
+1091:        as_of="2026-09-05T09:31:00+00:00",
+1092:    )
+1093:
+1094:    assert wide.status == "REJECT"
+1095:    assert "SPREAD_TOO_WIDE" in wide.reasons
+1096:
+1097:    # ------------------------------------------------------------------
+1098:    # 3. Low relative volume
+1099:    # ------------------------------------------------------------------
+1100:
+1101:    low_volume = engine.evaluate(
+1102:        {
+1103:            "instrument_id": "LOWVOL",
+1104:            "symbol": "LOWVOL",
+1105:            "market_id": "NSE",
+1106:            "timestamp": "2026-09-05T09:30:00+00:00",
+1107:            "bid": 100,
+1108:            "ask": 100.01,
+1109:            "volume": 200,
+1110:            "average_volume": 1000,
+1111:            "lqs": 75,
+1112:        },
+1113:        market_id="NSE",
+1114:        as_of="2026-09-05T09:31:00+00:00",
+1115:    )
+1116:
+1117:    assert low_volume.status == "REJECT"
+1118:    assert "LOW_RELATIVE_VOLUME" in low_volume.reasons
+1119:
+1120:    # ------------------------------------------------------------------
+1121:    # 4. Wrong market identity
+1122:    # ------------------------------------------------------------------
+1123:
+1124:    wrong_market = engine.evaluate(
+1125:        {
+1126:            "instrument_id": "BTCUSDT",
+1127:            "symbol": "BTCUSDT",
+1128:            "market_id": "BINANCE",
+1129:            "timestamp": "2026-09-05T09:30:00+00:00",
+1130:            "bid": 100,
+1131:            "ask": 100.01,
+1132:            "lqs": 90,
+1133:        },
+1134:        market_id="NSE",
+1135:        as_of="2026-09-05T09:31:00+00:00",
+1136:    )
+1137:
+1138:    assert wrong_market.status == "REJECT"
+1139:    assert "MARKET_ID_MISMATCH" in wrong_market.reasons
+1140:
+1141:    # ------------------------------------------------------------------
+1142:    # 5. Future data
+1143:    # ------------------------------------------------------------------
+1144:
+1145:    future = engine.evaluate(
+1146:        {
+1147:            "instrument_id": "FUTURE",
+1148:            "symbol": "FUTURE",
+1149:            "market_id": "NSE",
+1150:            "timestamp": "2026-09-05T10:00:00+00:00",
+1151:            "bid": 100,
+1152:            "ask": 100.01,
+1153:            "lqs": 90,
+1154:        },
+1155:        market_id="NSE",
+1156:        as_of="2026-09-05T09:31:00+00:00",
+1157:    )
+1158:
+1159:    assert future.status == "REJECT"
+1160:    assert "FUTURE_DATA" in future.reasons
+1161:
+1162:    # ------------------------------------------------------------------
+1163:    # 6. Book imbalance calculation
+1164:    # ------------------------------------------------------------------
+1165:
+1166:    imbalance = engine.evaluate(
+1167:        {
+1168:            "instrument_id": "BOOK",
+1169:            "symbol": "BOOK",
+1170:            "market_id": "NSE",
+1171:            "timestamp": "2026-09-05T09:30:00+00:00",
+1172:            "bid": 100,
+1173:            "ask": 100.01,
+1174:            "bid_size": 600,
+1175:            "ask_size": 400,
+1176:            "volume": 1000,
+1177:            "average_volume": 1000,
+1178:            "lqs": 80,
+1179:        },
+1180:        market_id="NSE",
+1181:        as_of="2026-09-05T09:31:00+00:00",
+1182:    )
+1183:
+1184:    assert imbalance.status == "PASS"
+1185:    assert imbalance.book_imbalance == 0.2
+1186:
+1187:    # ------------------------------------------------------------------
+1188:    # 7. Collection filter
+1189:    # ------------------------------------------------------------------
+1190:
+1191:    result = engine.filter(
+1192:        [
+1193:            {
+1194:                "instrument_id": "A",
+1195:                "symbol": "A",
+1196:                "market_id": "NSE",
+1197:                "timestamp": "2026-09-05T09:30:00+00:00",
+1198:                "bid": 100,
+1199:                "ask": 100.01,
+1200:                "volume": 1000,
+1201:                "average_volume": 800,
+1202:                "lqs": 90,
+1203:            },
+1204:            {
+1205:                "instrument_id": "B",
+1206:                "symbol": "B",
+1207:                "market_id": "NSE",
+1208:                "timestamp": "2026-09-05T09:30:00+00:00",
+1209:                "bid": 100,
+1210:                "ask": 100.01,
+1211:                "volume": 100,
+1212:                "average_volume": 1000,
+1213:                "lqs": 30,
+1214:            },
+1215:        ],
+1216:        market_id="NSE",
+1217:        as_of="2026-09-05T09:31:00+00:00",
+1218:    )
+1219:
+1220:    assert result.total_input == 2
+1221:    assert result.total_passed == 1
+1222:    assert result.total_rejected == 1
+1223:
+1224:    print(
+1225:        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+1226:    )
+1227:
+1228:
+1229:if __name__ == "__main__":
+1230:    _self_test()

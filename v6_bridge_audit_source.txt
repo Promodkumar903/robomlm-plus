@@ -1,0 +1,3479 @@
+
+===== app\v6_bridge\v6_bridge.py =====
+"""
+ROBOMLM PLUS - V6 Bridge
+
+Purpose:
+    Provide the central compatibility boundary between the completed V6
+    engine and the ROBOMLM PLUS application.
+
+Design principles:
+    - V6 remains an isolated compatibility source.
+    - V7+ intelligence does not depend directly on V6 implementation details.
+    - Translation is explicit and deterministic.
+    - No network, broker, exchange, or order-execution side effects.
+    - Unknown V6 fields are preserved rather than silently discarded.
+    - The bridge can be disabled without changing the V7+ intelligence core.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from threading import RLock
+from typing import Any, Callable, Mapping, Optional
+
+
+class V6BridgeError(Exception):
+    """Base exception for V6 bridge errors."""
+
+
+class V6BridgeValidationError(V6BridgeError):
+    """Raised when V6 bridge input is invalid."""
+
+
+class V6BridgeDisabledError(V6BridgeError):
+    """Raised when an operation requires an enabled bridge."""
+
+
+@dataclass(frozen=True)
+class V6BridgeConfig:
+    """
+    Configuration for the V6 compatibility boundary.
+
+    The bridge is enabled by default because V6 is part of the completed
+    compatibility layer. Runtime execution remains outside this object.
+    """
+
+    enabled: bool = True
+    preserve_unknown_fields: bool = True
+    preserve_original_payload: bool = True
+    source_label: str = "V6"
+    bridge_version: str = "1.0"
+
+    def __post_init__(self) -> None:
+        if not str(self.source_label).strip():
+            raise V6BridgeValidationError(
+                "source_label cannot be empty."
+            )
+
+        if not str(self.bridge_version).strip():
+            raise V6BridgeValidationError(
+                "bridge_version cannot be empty."
+            )
+
+
+@dataclass
+class V6BridgeResult:
+    """
+    Result of a V6 bridge translation operation.
+    """
+
+    success: bool
+    operation: str
+    translated: dict[str, Any] = field(default_factory=dict)
+    original: dict[str, Any] = field(default_factory=dict)
+    preserved_fields: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "success": self.success,
+            "operation": self.operation,
+            "translated": dict(self.translated),
+            "original": dict(self.original),
+            "preserved_fields": list(self.preserved_fields),
+            "warnings": list(self.warnings),
+            "errors": list(self.errors),
+            "timestamp": self.timestamp.isoformat(),
+        }
+
+
+class V6Bridge:
+    """
+    Central compatibility bridge for V6.
+
+    Responsibilities:
+        - Validate bridge configuration.
+        - Normalize common V6 field naming.
+        - Translate V6 payloads into canonical PLUS structures.
+        - Preserve source information.
+        - Optionally invoke a supplied translation handler.
+
+    Non-responsibilities:
+        - Market-data retrieval.
+        - Broker connectivity.
+        - Order placement.
+        - Position management.
+        - Trade execution.
+        - V7+ intelligence decisions.
+    """
+
+    REQUIRED_CANONICAL_FIELDS = (
+        "event_type",
+        "action",
+    )
+
+    FIELD_ALIASES: dict[str, tuple[str, ...]] = {
+        "event_id": (
+            "event_id",
+            "Event_ID",
+            "eventId",
+            "id",
+            "ID",
+        ),
+        "sequence": (
+            "sequence",
+            "Sequence",
+            "seq",
+        ),
+        "timestamp": (
+            "timestamp",
+            "Timestamp",
+            "time",
+            "Time",
+            "created_at",
+            "Created_At",
+        ),
+        "event_type": (
+            "event_type",
+            "Event_Type",
+            "eventType",
+            "type",
+            "Type",
+        ),
+        "source": (
+            "source",
+            "Source",
+        ),
+        "component": (
+            "component",
+            "Component",
+        ),
+        "action": (
+            "action",
+            "Action",
+            "event_action",
+            "Event_Action",
+        ),
+        "status": (
+            "status",
+            "Status",
+            "event_status",
+            "Event_Status",
+        ),
+        "mode": (
+            "mode",
+            "Mode",
+        ),
+        "request_id": (
+            "request_id",
+            "Request_ID",
+            "requestId",
+        ),
+        "session_id": (
+            "session_id",
+            "Session_ID",
+            "sessionId",
+        ),
+        "user_id": (
+            "user_id",
+            "User_ID",
+            "userId",
+        ),
+        "market": (
+            "market",
+            "Market",
+        ),
+        "instrument": (
+            "instrument",
+            "Instrument",
+            "symbol",
+            "Symbol",
+        ),
+        "venue": (
+            "venue",
+            "Venue",
+            "exchange",
+            "Exchange",
+        ),
+        "metadata": (
+            "metadata",
+            "Metadata",
+        ),
+        "payload": (
+            "payload",
+            "Payload",
+        ),
+    }
+
+    def __init__(
+        self,
+        config: Optional[V6BridgeConfig] = None,
+        translation_handler: Optional[
+            Callable[[dict[str, Any]], Any]
+        ] = None,
+    ) -> None:
+        self.config = config or V6BridgeConfig()
+        self.translation_handler = translation_handler
+        self._lock = RLock()
+        self._translation_count = 0
+        self._error_count = 0
+        self._last_operation_at: Optional[datetime] = None
+
+    # ------------------------------------------------------------------
+    # Configuration
+    # ------------------------------------------------------------------
+
+    @property
+    def enabled(self) -> bool:
+        """Return whether the bridge is enabled."""
+        return self.config.enabled
+
+    def set_enabled(self, enabled: bool) -> None:
+        """Enable or disable the bridge."""
+        with self._lock:
+            self.config = V6BridgeConfig(
+                enabled=bool(enabled),
+                preserve_unknown_fields=self.config.preserve_unknown_fields,
+                preserve_original_payload=self.config.preserve_original_payload,
+                source_label=self.config.source_label,
+                bridge_version=self.config.bridge_version,
+            )
+
+    def require_enabled(self) -> None:
+        """Raise an error if the bridge is disabled."""
+        if not self.enabled:
+            raise V6BridgeDisabledError(
+                "V6 compatibility bridge is disabled."
+            )
+
+    # ------------------------------------------------------------------
+    # Validation
+    # ------------------------------------------------------------------
+
+    def validate(
+        self,
+        payload: Mapping[str, Any],
+    ) -> bool:
+        """
+        Validate a V6 payload.
+
+        Validation is detection-only and has no external side effects.
+        """
+        if not isinstance(payload, Mapping):
+            raise V6BridgeValidationError(
+                "V6 payload must be a mapping."
+            )
+
+        for field_name in self.REQUIRED_CANONICAL_FIELDS:
+            value = self._get_alias_value(
+                payload,
+                field_name,
+            )
+
+            if value is None:
+                raise V6BridgeValidationError(
+                    f"Required V6 field missing: {field_name}"
+                )
+
+            if isinstance(value, str) and not value.strip():
+                raise V6BridgeValidationError(
+                    f"Required V6 field is empty: {field_name}"
+                )
+
+        return True
+
+    # ------------------------------------------------------------------
+    # Normalization
+    # ------------------------------------------------------------------
+
+    def normalize(
+        self,
+        payload: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Normalize V6 field names into canonical lowercase names.
+        """
+        self.require_enabled()
+
+        if not isinstance(payload, Mapping):
+            raise V6BridgeValidationError(
+                "V6 payload must be a mapping."
+            )
+
+        self.validate(payload)
+
+        data = dict(payload)
+        normalized: dict[str, Any] = {}
+
+        for canonical_name, aliases in self.FIELD_ALIASES.items():
+            value = self._get_alias_value(
+                data,
+                canonical_name,
+            )
+
+            if value is not None:
+                normalized[canonical_name] = value
+
+        if "status" not in normalized:
+            normalized["status"] = "INFO"
+
+        if "source" not in normalized:
+            normalized["source"] = self.config.source_label
+
+        if "component" not in normalized:
+            normalized["component"] = "V6_BRIDGE"
+
+        timestamp = normalized.get("timestamp")
+
+        if timestamp is None:
+            normalized["timestamp"] = datetime.now(
+                timezone.utc
+            ).isoformat()
+        elif isinstance(timestamp, datetime):
+            normalized["timestamp"] = self._normalize_datetime(
+                timestamp
+            ).isoformat()
+        elif isinstance(timestamp, str):
+            normalized["timestamp"] = self._normalize_timestamp_string(
+                timestamp
+            )
+
+        if self.config.preserve_unknown_fields:
+            known_aliases = {
+                alias
+                for aliases in self.FIELD_ALIASES.values()
+                for alias in aliases
+            }
+
+            unknown_fields = {
+                key: value
+                for key, value in data.items()
+                if key not in known_aliases
+            }
+
+            if unknown_fields:
+                normalized["unknown_fields"] = unknown_fields
+
+        if self.config.preserve_original_payload:
+            normalized["original_payload"] = dict(data)
+
+        normalized["bridge"] = {
+            "name": "V6Bridge",
+            "version": self.config.bridge_version,
+            "source": self.config.source_label,
+        }
+
+        return normalized
+
+    # ------------------------------------------------------------------
+    # Translation
+    # ------------------------------------------------------------------
+
+    def translate(
+        self,
+        payload: Mapping[str, Any],
+    ) -> V6BridgeResult:
+        """
+        Translate a V6 payload into the canonical PLUS representation.
+        """
+        operation = "translate"
+
+        try:
+            normalized = self.normalize(payload)
+
+            preserved_fields = list(
+                normalized.get(
+                    "unknown_fields",
+                    {},
+                ).keys()
+            )
+
+            result = V6BridgeResult(
+                success=True,
+                operation=operation,
+                translated=normalized,
+                original=dict(payload),
+                preserved_fields=preserved_fields,
+            )
+
+            with self._lock:
+                self._translation_count += 1
+                self._last_operation_at = datetime.now(
+                    timezone.utc
+                )
+
+            return result
+
+        except V6BridgeError:
+            with self._lock:
+                self._error_count += 1
+                self._last_operation_at = datetime.now(
+                    timezone.utc
+                )
+            raise
+
+    def translate_or_result(
+        self,
+        payload: Mapping[str, Any],
+    ) -> V6BridgeResult:
+        """
+        Translate without raising bridge validation errors.
+
+        Intended for inspection and diagnostics.
+        """
+        try:
+            return self.translate(payload)
+
+        except V6BridgeError as exc:
+            return V6BridgeResult(
+                success=False,
+                operation="translate",
+                original=dict(payload)
+                if isinstance(payload, Mapping)
+                else {},
+                errors=[str(exc)],
+            )
+
+    def translate_many(
+        self,
+        payloads: list[Mapping[str, Any]],
+        *,
+        strict: bool = True,
+    ) -> list[V6BridgeResult]:
+        """
+        Translate multiple V6 payloads.
+
+        strict=True:
+            Stop at the first invalid payload.
+
+        strict=False:
+            Return failed results for invalid payloads and continue.
+        """
+        if payloads is None:
+            raise V6BridgeValidationError(
+                "payloads cannot be None."
+            )
+
+        results: list[V6BridgeResult] = []
+
+        for payload in payloads:
+            if strict:
+                results.append(
+                    self.translate(payload)
+                )
+            else:
+                results.append(
+                    self.translate_or_result(payload)
+                )
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Handler integration
+    # ------------------------------------------------------------------
+
+    def set_translation_handler(
+        self,
+        handler: Optional[
+            Callable[[dict[str, Any]], Any]
+        ],
+    ) -> None:
+        """
+        Set an optional application-owned translation handler.
+
+        The handler is not called automatically by normalize().
+        """
+        if handler is not None and not callable(handler):
+            raise V6BridgeValidationError(
+                "translation handler must be callable or None."
+            )
+
+        with self._lock:
+            self.translation_handler = handler
+
+    def dispatch(
+        self,
+        payload: Mapping[str, Any],
+    ) -> Any:
+        """
+        Translate a payload and pass the translated structure to the
+        configured handler.
+
+        No handler means the translated result is returned directly.
+        """
+        result = self.translate(payload)
+
+        handler = self.translation_handler
+
+        if handler is None:
+            return result
+
+        return handler(dict(result.translated))
+
+    # ------------------------------------------------------------------
+    # Compatibility helpers
+    # ------------------------------------------------------------------
+
+    def canonical_field(
+        self,
+        payload: Mapping[str, Any],
+        field_name: str,
+        default: Any = None,
+    ) -> Any:
+        """Read a canonical field using known V6 aliases."""
+        if not isinstance(payload, Mapping):
+            raise V6BridgeValidationError(
+                "payload must be a mapping."
+            )
+
+        canonical = str(field_name).strip()
+
+        if canonical not in self.FIELD_ALIASES:
+            return payload.get(
+                canonical,
+                default,
+            )
+
+        value = self._get_alias_value(
+            payload,
+            canonical,
+        )
+
+        return default if value is None else value
+
+    def preserve_payload(
+        self,
+        payload: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Return a detached copy of the original V6 payload.
+        """
+        if not isinstance(payload, Mapping):
+            raise V6BridgeValidationError(
+                "payload must be a mapping."
+            )
+
+        return dict(payload)
+
+    # ------------------------------------------------------------------
+    # Statistics
+    # ------------------------------------------------------------------
+
+    def stats(self) -> dict[str, Any]:
+        """Return bridge runtime statistics."""
+        with self._lock:
+            return {
+                "enabled": self.enabled,
+                "translation_count": self._translation_count,
+                "error_count": self._error_count,
+                "last_operation_at": (
+                    self._last_operation_at.isoformat()
+                    if self._last_operation_at
+                    else None
+                ),
+                "bridge_version": self.config.bridge_version,
+                "source_label": self.config.source_label,
+                "preserve_unknown_fields": (
+                    self.config.preserve_unknown_fields
+                ),
+                "preserve_original_payload": (
+                    self.config.preserve_original_payload
+                ),
+            }
+
+    def reset_stats(self) -> None:
+        """Reset bridge counters."""
+        with self._lock:
+            self._translation_count = 0
+            self._error_count = 0
+            self._last_operation_at = None
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def _get_alias_value(
+        cls,
+        payload: Mapping[str, Any],
+        canonical_name: str,
+    ) -> Any:
+        aliases = cls.FIELD_ALIASES.get(
+            canonical_name,
+            (canonical_name,),
+        )
+
+        for alias in aliases:
+            if alias in payload:
+                return payload[alias]
+
+        return None
+
+    @staticmethod
+    def _normalize_datetime(
+        value: datetime,
+    ) -> datetime:
+        if value.tzinfo is None:
+            return value.replace(
+                tzinfo=timezone.utc
+            )
+
+        return value.astimezone(timezone.utc)
+
+    @classmethod
+    def _normalize_timestamp_string(
+        cls,
+        value: str,
+    ) -> str:
+        text = value.strip()
+
+        if not text:
+            raise V6BridgeValidationError(
+                "timestamp cannot be empty."
+            )
+
+        try:
+            parsed = datetime.fromisoformat(
+                text.replace("Z", "+00:00")
+            )
+        except ValueError as exc:
+            raise V6BridgeValidationError(
+                f"Invalid timestamp: {value}"
+            ) from exc
+
+        return cls._normalize_datetime(
+            parsed
+        ).isoformat()
+
+
+# ---------------------------------------------------------------------------
+# Global bridge
+# ---------------------------------------------------------------------------
+
+v6_bridge = V6Bridge()
+
+
+# ---------------------------------------------------------------------------
+# Convenience functions
+# ---------------------------------------------------------------------------
+
+def normalize_v6(
+    payload: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Normalize a V6 payload."""
+    return v6_bridge.normalize(payload)
+
+
+def translate_v6(
+    payload: Mapping[str, Any],
+) -> V6BridgeResult:
+    """Translate a V6 payload."""
+    return v6_bridge.translate(payload)
+
+
+def translate_v6_or_result(
+    payload: Mapping[str, Any],
+) -> V6BridgeResult:
+    """Translate a V6 payload without raising validation errors."""
+    return v6_bridge.translate_or_result(payload)
+
+
+def validate_v6(
+    payload: Mapping[str, Any],
+) -> bool:
+    """Validate a V6 payload."""
+    return v6_bridge.validate(payload)
+
+
+def dispatch_v6(
+    payload: Mapping[str, Any],
+) -> Any:
+    """Translate and dispatch a V6 payload."""
+    return v6_bridge.dispatch(payload)
+
+
+def v6_bridge_stats() -> dict[str, Any]:
+    """Return V6 bridge statistics."""
+    return v6_bridge.stats()
+
+
+===== app\v6_bridge\v6_blackbox_bridge.py =====
+"""
+ROBOMLM PLUS
+V6 BlackBox Bridge
+
+Purpose:
+    Controlled boundary between the newly engineered V6 layer
+    and the existing ROBOMLM PLUS BlackBox Logger.
+
+Rules:
+    - Records events only.
+    - Does not make trading decisions.
+    - Does not authorize execution.
+    - Does not execute orders.
+    - Does not modify source objects.
+    - Does not contain V7+ intelligence.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Mapping, Optional
+
+from app.core.logging.blackbox_logger import BlackboxLogger
+
+
+V6_BLACKBOX_BRIDGE_VERSION = "1.0.0"
+V6_BLACKBOX_BRIDGE_LAYER = "V6_BLACKBOX_BRIDGE"
+
+
+class V6BlackboxBridge:
+    """
+    Controlled V6 interface for BlackBox event recording.
+    """
+
+    def __init__(
+        self,
+        blackbox: Optional[BlackboxLogger] = None,
+    ) -> None:
+        self._blackbox = blackbox or BlackboxLogger()
+
+    @property
+    def blackbox(self) -> BlackboxLogger:
+        """Return the underlying BlackBox logger."""
+        return self._blackbox
+
+    def record(
+        self,
+        event_type: str,
+        *,
+        source: Optional[str] = "V6",
+        component: Optional[str] = None,
+        action: Optional[str] = None,
+        status: Optional[str] = None,
+        mode: Optional[str] = None,
+        request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        user_id: Optional[str] = None,
+        market: Optional[str] = None,
+        instrument: Optional[str] = None,
+        venue: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """
+        Record one V6 event through the existing BlackBox logger.
+        """
+
+        return self._blackbox.record(
+            event_type,
+            source=source,
+            component=component,
+            action=action,
+            status=status,
+            mode=mode,
+            request_id=request_id,
+            session_id=session_id,
+            user_id=user_id,
+            market=market,
+            instrument=instrument,
+            venue=venue,
+            metadata=metadata,
+        )
+
+    def system(
+        self,
+        event_type: str,
+        *,
+        status: Optional[str] = None,
+        component: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 system event."""
+
+        return self._blackbox.system(
+            event_type,
+            status=status,
+            component=component,
+            metadata=metadata,
+        )
+
+    def market(
+        self,
+        event_type: str,
+        *,
+        market: Optional[str] = None,
+        instrument: Optional[str] = None,
+        venue: Optional[str] = None,
+        status: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 market/data event."""
+
+        return self._blackbox.market(
+            event_type,
+            market=market,
+            instrument=instrument,
+            venue=venue,
+            status=status,
+            metadata=metadata,
+        )
+
+    def evidence(
+        self,
+        event_type: str,
+        *,
+        instrument: Optional[str] = None,
+        status: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 evidence event."""
+
+        return self._blackbox.evidence(
+            event_type,
+            instrument=instrument,
+            status=status,
+            metadata=metadata,
+        )
+
+    def decision(
+        self,
+        event_type: str,
+        *,
+        instrument: Optional[str] = None,
+        status: Optional[str] = None,
+        mode: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 decision event."""
+
+        return self._blackbox.decision(
+            event_type,
+            instrument=instrument,
+            status=status,
+            mode=mode,
+            metadata=metadata,
+        )
+
+    def risk(
+        self,
+        event_type: str,
+        *,
+        instrument: Optional[str] = None,
+        status: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 risk event."""
+
+        return self._blackbox.risk(
+            event_type,
+            instrument=instrument,
+            status=status,
+            metadata=metadata,
+        )
+
+    def execution(
+        self,
+        event_type: str,
+        *,
+        instrument: Optional[str] = None,
+        venue: Optional[str] = None,
+        action: Optional[str] = None,
+        status: Optional[str] = None,
+        mode: Optional[str] = None,
+        request_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """
+        Record a V6 execution event.
+
+        This method records execution information only.
+        It does not submit or modify an order.
+        """
+
+        return self._blackbox.execution(
+            event_type,
+            instrument=instrument,
+            venue=venue,
+            action=action,
+            status=status,
+            mode=mode,
+            request_id=request_id,
+            session_id=session_id,
+            metadata=metadata,
+        )
+
+    def automation(
+        self,
+        event_type: str,
+        *,
+        instrument: Optional[str] = None,
+        status: Optional[str] = None,
+        mode: Optional[str] = None,
+        session_id: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record an AUTOROBIMLM automation event."""
+
+        return self._blackbox.automation(
+            event_type,
+            instrument=instrument,
+            status=status,
+            mode=mode,
+            session_id=session_id,
+            metadata=metadata,
+        )
+
+    def error(
+        self,
+        event_type: str,
+        *,
+        source: Optional[str] = "V6",
+        component: Optional[str] = None,
+        status: Optional[str] = None,
+        metadata: Optional[Mapping[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Record a V6 error event."""
+
+        return self._blackbox.error(
+            event_type,
+            source=source,
+            component=component,
+            status=status,
+            metadata=metadata,
+        )
+
+    def health(self) -> dict[str, Any]:
+        """Return structural health information for the bridge."""
+
+        return {
+            "layer": V6_BLACKBOX_BRIDGE_LAYER,
+            "version": V6_BLACKBOX_BRIDGE_VERSION,
+            "status": "ready",
+            "blackbox_available": self._blackbox is not None,
+            "records_events_only": True,
+            "decision_logic": False,
+            "execution_logic": False,
+            "v7_dependency": False,
+        }
+
+
+def get_v6_blackbox_bridge() -> V6BlackboxBridge:
+    """Return a V6 BlackBox bridge instance."""
+
+    return V6BlackboxBridge()
+
+
+def v6_blackbox_bridge_health() -> dict[str, Any]:
+    """Return V6 BlackBox bridge health."""
+
+    return V6BlackboxBridge().health()
+
+
+===== app\v6_bridge\v6_compatibility.py =====
+"""
+ROBOMLM PLUS - V6 Compatibility Layer
+
+Purpose
+-------
+Provides a controlled compatibility boundary around the completed V6 engine.
+
+Design principles
+-----------------
+1. V6 remains the authoritative legacy/core engine.
+2. No dependency on the non-existent app.core.logging.blackbox_logger module.
+3. No V7+ intelligence is introduced here.
+4. Legacy V6 objects are normalized into predictable compatibility structures.
+5. Missing optional attributes do not immediately break the bridge.
+6. The compatibility layer must remain deterministic and side-effect aware.
+7. Existing V6 behavior is preserved wherever possible.
+
+This module is intentionally lightweight and self-contained.
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field, is_dataclass
+from datetime import date, datetime
+from enum import Enum
+from typing import Any, Dict, Iterable, Mapping, Optional
+
+
+# ---------------------------------------------------------------------------
+# Package / Layer Identity
+# ---------------------------------------------------------------------------
+
+V6_COMPATIBILITY_VERSION = "1.0.0"
+V6_COMPATIBILITY_LAYER = "V6_COMPATIBILITY"
+
+
+# ---------------------------------------------------------------------------
+# Compatibility Status
+# ---------------------------------------------------------------------------
+
+class CompatibilityStatus(str, Enum):
+    """
+    Normalized compatibility states.
+    """
+
+    COMPATIBLE = "compatible"
+    PARTIAL = "partial"
+    INCOMPATIBLE = "incompatible"
+    UNKNOWN = "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Compatibility Result
+# ---------------------------------------------------------------------------
+
+@dataclass
+class CompatibilityResult:
+    """
+    Standard result returned by compatibility checks.
+
+    This structure deliberately contains only compatibility information.
+    It does not make trading decisions.
+    """
+
+    status: CompatibilityStatus
+    compatible: bool
+    component: str = ""
+    version: str = ""
+    message: str = ""
+    warnings: list[str] = field(default_factory=list)
+    missing_fields: list[str] = field(default_factory=list)
+    extra_fields: list[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "status": self.status.value,
+            "compatible": self.compatible,
+            "component": self.component,
+            "version": self.version,
+            "message": self.message,
+            "warnings": list(self.warnings),
+            "missing_fields": list(self.missing_fields),
+            "extra_fields": list(self.extra_fields),
+            "metadata": dict(self.metadata),
+        }
+
+
+# ---------------------------------------------------------------------------
+# Generic Value Helpers
+# ---------------------------------------------------------------------------
+
+def _safe_get(
+    source: Any,
+    name: str,
+    default: Any = None,
+) -> Any:
+    """
+    Safely retrieve an attribute or mapping key.
+
+    Supports:
+        - normal Python objects
+        - dataclasses
+        - dictionaries / mappings
+    """
+
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        return source.get(name, default)
+
+    try:
+        return getattr(source, name, default)
+    except Exception:
+        return default
+
+
+def _safe_set(
+    target: Any,
+    name: str,
+    value: Any,
+) -> bool:
+    """
+    Safely set an attribute/key where possible.
+
+    Returns True when the value was written.
+    """
+
+    if target is None:
+        return False
+
+    if isinstance(target, dict):
+        target[name] = value
+        return True
+
+    try:
+        setattr(target, name, value)
+        return True
+    except Exception:
+        return False
+
+
+def _serialize_value(value: Any) -> Any:
+    """
+    Convert common V6 values into JSON-friendly representations.
+
+    This function does not attempt to serialize arbitrary runtime objects.
+    """
+
+    if value is None:
+        return None
+
+    if isinstance(value, (str, int, float, bool)):
+        return value
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+
+    if is_dataclass(value):
+        try:
+            return {
+                str(k): _serialize_value(v)
+                for k, v in asdict(value).items()
+            }
+        except Exception:
+            pass
+
+    if isinstance(value, Mapping):
+        return {
+            str(k): _serialize_value(v)
+            for k, v in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [_serialize_value(item) for item in value]
+
+    # Last-resort representation.
+    try:
+        return str(value)
+    except Exception:
+        return repr(value)
+
+
+# ---------------------------------------------------------------------------
+# V6 Field Compatibility
+# ---------------------------------------------------------------------------
+
+class V6FieldCompatibility:
+    """
+    Handles field-name compatibility between different V6 object shapes.
+
+    The bridge may encounter slightly different names for the same concept.
+    Only explicit aliases are supported here.
+    """
+
+    FIELD_ALIASES: Dict[str, tuple[str, ...]] = {
+        "symbol": (
+            "symbol",
+            "ticker",
+            "instrument",
+            "instrument_symbol",
+        ),
+        "market": (
+            "market",
+            "market_type",
+            "asset_class",
+        ),
+        "exchange": (
+            "exchange",
+            "venue",
+            "exchange_name",
+        ),
+        "price": (
+            "price",
+            "ltp",
+            "last_price",
+            "last_traded_price",
+        ),
+        "timestamp": (
+            "timestamp",
+            "time",
+            "datetime",
+            "event_time",
+        ),
+        "volume": (
+            "volume",
+            "total_volume",
+            "traded_volume",
+        ),
+        "bid": (
+            "bid",
+            "bid_price",
+            "best_bid",
+        ),
+        "ask": (
+            "ask",
+            "ask_price",
+            "best_ask",
+        ),
+        "side": (
+            "side",
+            "order_side",
+            "direction",
+        ),
+    }
+
+    @classmethod
+    def resolve(
+        cls,
+        source: Any,
+        canonical_name: str,
+        default: Any = None,
+    ) -> Any:
+        """
+        Resolve a canonical field from known V6 aliases.
+        """
+
+        aliases = cls.FIELD_ALIASES.get(
+            canonical_name,
+            (canonical_name,),
+        )
+
+        for alias in aliases:
+            value = _safe_get(source, alias, None)
+
+            if value is not None:
+                return value
+
+        return default
+
+    @classmethod
+    def normalize(
+        cls,
+        source: Any,
+        fields: Optional[Iterable[str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Return a canonical field dictionary.
+        """
+
+        requested = (
+            list(fields)
+            if fields is not None
+            else list(cls.FIELD_ALIASES.keys())
+        )
+
+        normalized: Dict[str, Any] = {}
+
+        for field_name in requested:
+            normalized[field_name] = _serialize_value(
+                cls.resolve(source, field_name)
+            )
+
+        return normalized
+
+
+# ---------------------------------------------------------------------------
+# V6 Object Adapter
+# ---------------------------------------------------------------------------
+
+class V6ObjectAdapter:
+    """
+    Converts an arbitrary V6 object into a controlled dictionary view.
+
+    It does not mutate the original object.
+    """
+
+    DEFAULT_FIELDS = (
+        "symbol",
+        "market",
+        "exchange",
+        "price",
+        "timestamp",
+        "volume",
+        "bid",
+        "ask",
+        "side",
+    )
+
+    @classmethod
+    def to_dict(
+        cls,
+        source: Any,
+        fields: Optional[Iterable[str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Convert a V6 object into a normalized dictionary.
+        """
+
+        if source is None:
+            return {}
+
+        if isinstance(source, Mapping):
+            raw = dict(source)
+
+            normalized = dict(raw)
+
+            for canonical_name in cls.DEFAULT_FIELDS:
+                resolved = V6FieldCompatibility.resolve(
+                    source,
+                    canonical_name,
+                )
+
+                if resolved is not None:
+                    normalized[canonical_name] = _serialize_value(
+                        resolved
+                    )
+
+            return {
+                str(key): _serialize_value(value)
+                for key, value in normalized.items()
+            }
+
+        if is_dataclass(source):
+            try:
+                raw = asdict(source)
+                return cls.to_dict(raw, fields=fields)
+            except Exception:
+                pass
+
+        requested = (
+            list(fields)
+            if fields is not None
+            else list(cls.DEFAULT_FIELDS)
+        )
+
+        result: Dict[str, Any] = {}
+
+        for name in requested:
+            value = V6FieldCompatibility.resolve(
+                source,
+                name,
+            )
+
+            if value is not None:
+                result[name] = _serialize_value(value)
+
+        return result
+
+
+# ---------------------------------------------------------------------------
+# Required Interface Checks
+# ---------------------------------------------------------------------------
+
+def check_required_fields(
+    source: Any,
+    required_fields: Iterable[str],
+    component: str = "",
+) -> CompatibilityResult:
+    """
+    Check whether an object exposes the required canonical fields.
+    """
+
+    required = list(required_fields)
+    missing: list[str] = []
+
+    for field_name in required:
+        value = V6FieldCompatibility.resolve(
+            source,
+            field_name,
+        )
+
+        if value is None:
+            missing.append(field_name)
+
+    if not missing:
+        return CompatibilityResult(
+            status=CompatibilityStatus.COMPATIBLE,
+            compatible=True,
+            component=component,
+            version=V6_COMPATIBILITY_VERSION,
+            message="Required V6 fields are available.",
+        )
+
+    return CompatibilityResult(
+        status=CompatibilityStatus.PARTIAL,
+        compatible=False,
+        component=component,
+        version=V6_COMPATIBILITY_VERSION,
+        message="One or more required V6 fields are unavailable.",
+        missing_fields=missing,
+    )
+
+
+# ---------------------------------------------------------------------------
+# V6 Version Compatibility
+# ---------------------------------------------------------------------------
+
+def check_version_compatibility(
+    version: Any,
+    component: str = "",
+) -> CompatibilityResult:
+    """
+    Basic V6 version compatibility check.
+
+    Empty version information is treated as UNKNOWN rather than
+    automatically incompatible.
+    """
+
+    if version is None or str(version).strip() == "":
+        return CompatibilityResult(
+            status=CompatibilityStatus.UNKNOWN,
+            compatible=True,
+            component=component,
+            version=V6_COMPATIBILITY_VERSION,
+            message="V6 component version was not declared.",
+            warnings=[
+                "Version information is unavailable; compatibility "
+                "was not rejected."
+            ],
+        )
+
+    version_text = str(version).strip()
+
+    if version_text.upper().startswith("V6"):
+        return CompatibilityResult(
+            status=CompatibilityStatus.COMPATIBLE,
+            compatible=True,
+            component=component,
+            version=version_text,
+            message="V6 component version is compatible.",
+        )
+
+    return CompatibilityResult(
+        status=CompatibilityStatus.PARTIAL,
+        compatible=True,
+        component=component,
+        version=version_text,
+        message="Component version is not explicitly identified as V6.",
+        warnings=[
+            "Version was not rejected, but explicit V6 identification "
+            "is recommended."
+        ],
+    )
+
+
+# ---------------------------------------------------------------------------
+# Snapshot Compatibility
+# ---------------------------------------------------------------------------
+
+def normalize_snapshot(snapshot: Any) -> Dict[str, Any]:
+    """
+    Normalize a V6 market/snapshot-like object.
+
+    This is intentionally generic so the bridge does not become coupled
+    to one specific V6 snapshot class.
+    """
+
+    result = V6ObjectAdapter.to_dict(snapshot)
+
+    # Keep common compatibility aliases synchronized when values exist.
+    price = result.get("price")
+
+    if price is not None:
+        result.setdefault("ltp", price)
+        result.setdefault("last_price", price)
+
+    timestamp = result.get("timestamp")
+
+    if timestamp is not None:
+        result.setdefault("time", timestamp)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Decision Compatibility
+# ---------------------------------------------------------------------------
+
+def normalize_decision(decision: Any) -> Dict[str, Any]:
+    """
+    Normalize a V6 decision-like object without changing its meaning.
+    """
+
+    if decision is None:
+        return {}
+
+    if isinstance(decision, Mapping):
+        source = dict(decision)
+    elif is_dataclass(decision):
+        try:
+            source = asdict(decision)
+        except Exception:
+            source = {}
+    else:
+        source = {}
+
+        candidate_fields = (
+            "action",
+            "decision",
+            "signal",
+            "direction",
+            "side",
+            "confidence",
+            "score",
+            "reason",
+            "timestamp",
+        )
+
+        for field_name in candidate_fields:
+            value = _safe_get(
+                decision,
+                field_name,
+                None,
+            )
+
+            if value is not None:
+                source[field_name] = _serialize_value(value)
+
+    return {
+        str(key): _serialize_value(value)
+        for key, value in source.items()
+    }
+
+
+# ---------------------------------------------------------------------------
+# Compatibility Validation
+# ---------------------------------------------------------------------------
+
+def validate_v6_component(
+    component: Any,
+    required_fields: Optional[Iterable[str]] = None,
+    component_name: str = "",
+    version: Any = None,
+) -> CompatibilityResult:
+    """
+    Perform a non-destructive compatibility validation.
+
+    The function intentionally does not import or instantiate any V6
+    component. The caller supplies the already-created component.
+    """
+
+    if component is None:
+        return CompatibilityResult(
+            status=CompatibilityStatus.INCOMPATIBLE,
+            compatible=False,
+            component=component_name,
+            version=V6_COMPATIBILITY_VERSION,
+            message="V6 component is None.",
+        )
+
+    required = list(required_fields or [])
+
+    field_result = check_required_fields(
+        component,
+        required,
+        component=component_name,
+    )
+
+    version_result = check_version_compatibility(
+        version,
+        component=component_name,
+    )
+
+    warnings = list(field_result.warnings)
+    warnings.extend(version_result.warnings)
+
+    if not field_result.compatible:
+        return CompatibilityResult(
+            status=CompatibilityStatus.PARTIAL,
+            compatible=False,
+            component=component_name,
+            version=str(version or V6_COMPATIBILITY_VERSION),
+            message="V6 component failed required-field compatibility.",
+            warnings=warnings,
+            missing_fields=field_result.missing_fields,
+        )
+
+    if version_result.status == CompatibilityStatus.PARTIAL:
+        return CompatibilityResult(
+            status=CompatibilityStatus.PARTIAL,
+            compatible=True,
+            component=component_name,
+            version=str(version or V6_COMPATIBILITY_VERSION),
+            message="V6 component is usable with version warning.",
+            warnings=warnings,
+        )
+
+    return CompatibilityResult(
+        status=CompatibilityStatus.COMPATIBLE,
+        compatible=True,
+        component=component_name,
+        version=str(version or V6_COMPATIBILITY_VERSION),
+        message="V6 component is compatible.",
+        warnings=warnings,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Safe Compatibility Invocation
+# ---------------------------------------------------------------------------
+
+def call_compatible(
+    component: Any,
+    method_name: str,
+    *args: Any,
+    default: Any = None,
+    **kwargs: Any,
+) -> Any:
+    """
+    Safely call a method exposed by a V6 component.
+
+    This helper does not swallow arbitrary application failures silently.
+    It only returns the supplied default when the requested method does
+    not exist or is not callable.
+    """
+
+    method = _safe_get(
+        component,
+        method_name,
+        None,
+    )
+
+    if not callable(method):
+        return default
+
+    return method(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Legacy Alias Helpers
+# ---------------------------------------------------------------------------
+
+def get_symbol(source: Any, default: Optional[str] = None) -> Optional[str]:
+    return V6FieldCompatibility.resolve(
+        source,
+        "symbol",
+        default,
+    )
+
+
+def get_price(source: Any, default: Any = None) -> Any:
+    return V6FieldCompatibility.resolve(
+        source,
+        "price",
+        default,
+    )
+
+
+def get_timestamp(source: Any, default: Any = None) -> Any:
+    return V6FieldCompatibility.resolve(
+        source,
+        "timestamp",
+        default,
+    )
+
+
+def get_volume(source: Any, default: Any = None) -> Any:
+    return V6FieldCompatibility.resolve(
+        source,
+        "volume",
+        default,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Module Health
+# ---------------------------------------------------------------------------
+
+def compatibility_health() -> Dict[str, Any]:
+    """
+    Return deterministic health information for this compatibility layer.
+    """
+
+    return {
+        "layer": V6_COMPATIBILITY_LAYER,
+        "version": V6_COMPATIBILITY_VERSION,
+        "status": "ready",
+        "blackbox_logger_dependency": False,
+        "external_runtime_dependency": False,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+__all__ = [
+    "V6_COMPATIBILITY_VERSION",
+    "V6_COMPATIBILITY_LAYER",
+    "CompatibilityStatus",
+    "CompatibilityResult",
+    "V6FieldCompatibility",
+    "V6ObjectAdapter",
+    "check_required_fields",
+    "check_version_compatibility",
+    "normalize_snapshot",
+    "normalize_decision",
+    "validate_v6_component",
+    "call_compatible",
+    "get_symbol",
+    "get_price",
+    "get_timestamp",
+    "get_volume",
+    "compatibility_health",
+]
+
+
+===== app\v6_bridge\v6_loader.py =====
+"""
+ROBOMLM PLUS
+V6 Loader
+
+Purpose:
+    Controlled loader for the newly engineered V6 bridge components.
+
+Rules:
+    - V6 is newly engineered from the V4.5 + V5 foundation.
+    - No legacy/v6_current path is assumed.
+    - No V7+ dependency.
+    - No trading decisions.
+    - No execution.
+"""
+
+from __future__ import annotations
+
+import importlib
+import importlib.util
+from dataclasses import dataclass, field, asdict
+from pathlib import Path
+from types import ModuleType
+from typing import Any, Optional
+
+
+V6_LOADER_VERSION = "2.0.0"
+V6_LOADER_LAYER = "V6_LOADER"
+
+APP_ROOT = Path(__file__).resolve().parents[1]
+V6_BRIDGE_ROOT = APP_ROOT / "v6_bridge"
+
+
+@dataclass
+class V6LoadResult:
+    success: bool
+    status: str
+    module_name: Optional[str] = None
+    object_name: Optional[str] = None
+    source: Optional[str] = None
+    message: str = ""
+    error: Optional[str] = None
+    warnings: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+class V6Loader:
+    """
+    Loader for the newly engineered V6 bridge package.
+    """
+
+    DEFAULT_MODULES = (
+        "app.v6_bridge.v6_blackbox_bridge",
+        "app.v6_bridge.v6_bridge",
+        "app.v6_bridge.v6_compatibility",
+        "app.v6_bridge.v6_mapper",
+        "app.v6_bridge.v6_normalizer",
+    )
+
+    def __init__(
+        self,
+        v6_root: Optional[Path | str] = None,
+    ) -> None:
+        self._root = (
+            Path(v6_root).resolve()
+            if v6_root is not None
+            else V6_BRIDGE_ROOT.resolve()
+        )
+
+        self._module_cache: dict[str, ModuleType] = {}
+        self._object_cache: dict[str, Any] = {}
+
+    @property
+    def root_exists(self) -> bool:
+        return self._root.exists() and self._root.is_dir()
+
+    def get_root(self) -> Path:
+        return self._root
+
+    def discover_python_files(self) -> list[Path]:
+        """
+        Discover Python files inside the V6 bridge directory.
+        """
+
+        if not self.root_exists:
+            return []
+
+        return sorted(
+            path
+            for path in self._root.glob("*.py")
+            if path.is_file()
+        )
+
+    def load_module(
+        self,
+        module_name: str,
+        *,
+        force_reload: bool = False,
+    ) -> V6LoadResult:
+        """
+        Import a V6 module by its Python module name.
+        """
+
+        if not module_name:
+            return V6LoadResult(
+                success=False,
+                status="INVALID",
+                message="Module name is required.",
+            )
+
+        if not force_reload and module_name in self._module_cache:
+            return V6LoadResult(
+                success=True,
+                status="CACHED",
+                module_name=module_name,
+                message="V6 module loaded from cache.",
+            )
+
+        try:
+            module = importlib.import_module(module_name)
+
+            if force_reload:
+                module = importlib.reload(module)
+
+            self._module_cache[module_name] = module
+
+            return V6LoadResult(
+                success=True,
+                status="LOADED",
+                module_name=module_name,
+                source=getattr(module, "__file__", None),
+                message="V6 module loaded successfully.",
+            )
+
+        except Exception as exc:
+            return V6LoadResult(
+                success=False,
+                status="ERROR",
+                module_name=module_name,
+                message="V6 module loading failed.",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+
+    def load_file(
+        self,
+        file_path: Path | str,
+        *,
+        module_name: Optional[str] = None,
+    ) -> V6LoadResult:
+        """
+        Load a Python file directly from the V6 bridge directory.
+        """
+
+        path = Path(file_path).resolve()
+
+        if not path.exists() or not path.is_file():
+            return V6LoadResult(
+                success=False,
+                status="NOT_FOUND",
+                source=str(path),
+                message="V6 Python file does not exist.",
+            )
+
+        if path.suffix.lower() != ".py":
+            return V6LoadResult(
+                success=False,
+                status="INVALID",
+                source=str(path),
+                message="Only Python files can be loaded.",
+            )
+
+        try:
+            name = module_name or f"_robomlm_v6_{path.stem}"
+
+            spec = importlib.util.spec_from_file_location(
+                name,
+                path,
+            )
+
+            if spec is None or spec.loader is None:
+                return V6LoadResult(
+                    success=False,
+                    status="ERROR",
+                    source=str(path),
+                    message="Unable to create module specification.",
+                )
+
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            self._module_cache[name] = module
+
+            return V6LoadResult(
+                success=True,
+                status="LOADED",
+                module_name=name,
+                source=str(path),
+                message="V6 file loaded successfully.",
+            )
+
+        except Exception as exc:
+            return V6LoadResult(
+                success=False,
+                status="ERROR",
+                source=str(path),
+                message="V6 file loading failed.",
+                error=f"{type(exc).__name__}: {exc}",
+            )
+
+    def load_object(
+        self,
+        module_name: str,
+        object_name: str,
+        *,
+        force_reload: bool = False,
+    ) -> V6LoadResult:
+        """
+        Load one object from a V6 module.
+        """
+
+        cache_key = f"{module_name}:{object_name}"
+
+        if not force_reload and cache_key in self._object_cache:
+            return V6LoadResult(
+                success=True,
+                status="CACHED",
+                module_name=module_name,
+                object_name=object_name,
+                message="V6 object loaded from cache.",
+            )
+
+        module_result = self.load_module(
+            module_name,
+            force_reload=force_reload,
+        )
+
+        if not module_result.success:
+            return V6LoadResult(
+                success=False,
+                status="ERROR",
+                module_name=module_name,
+                object_name=object_name,
+                message="Unable to load V6 module.",
+                error=module_result.error,
+            )
+
+        module = self._module_cache.get(module_name)
+
+        if module is None:
+            return V6LoadResult(
+                success=False,
+                status="ERROR",
+                module_name=module_name,
+                object_name=object_name,
+                message="Loaded module is unavailable.",
+            )
+
+        if not hasattr(module, object_name):
+            return V6LoadResult(
+                success=False,
+                status="NOT_FOUND",
+                module_name=module_name,
+                object_name=object_name,
+                source=getattr(module, "__file__", None),
+                message="V6 object was not found in module.",
+            )
+
+        obj = getattr(module, object_name)
+        self._object_cache[cache_key] = obj
+
+        return V6LoadResult(
+            success=True,
+            status="LOADED",
+            module_name=module_name,
+            object_name=object_name,
+            source=getattr(module, "__file__", None),
+            message="V6 object loaded successfully.",
+        )
+
+    def inspect_v6_root(self) -> dict[str, Any]:
+        """
+        Return structural information about the V6 bridge directory.
+        """
+
+        files = self.discover_python_files()
+
+        return {
+            "root": str(self._root),
+            "root_exists": self.root_exists,
+            "python_file_count": len(files),
+            "python_files": [str(path) for path in files],
+        }
+
+    def loaded_modules(self) -> list[str]:
+        return sorted(self._module_cache.keys())
+
+    def loaded_objects(self) -> list[str]:
+        return sorted(self._object_cache.keys())
+
+    def clear_cache(self) -> None:
+        self._module_cache.clear()
+        self._object_cache.clear()
+
+    def health(self) -> dict[str, Any]:
+        """
+        Return structural health information.
+        """
+
+        return {
+            "layer": V6_LOADER_LAYER,
+            "version": V6_LOADER_VERSION,
+            "status": "ready",
+            "v6_root": str(self._root),
+            "v6_root_exists": self.root_exists,
+            "python_file_count": len(self.discover_python_files()),
+            "loaded_module_count": len(self._module_cache),
+            "loaded_object_count": len(self._object_cache),
+            "legacy_v6_path_dependency": False,
+            "v7_dependency": False,
+        }
+
+
+_default_loader = V6Loader()
+
+
+def get_v6_loader() -> V6Loader:
+    return _default_loader
+
+
+def load_v6_module(
+    module_name: str,
+    *,
+    force_reload: bool = False,
+) -> V6LoadResult:
+    return _default_loader.load_module(
+        module_name,
+        force_reload=force_reload,
+    )
+
+
+def load_v6_object(
+    module_name: str,
+    object_name: str,
+    *,
+    force_reload: bool = False,
+) -> V6LoadResult:
+    return _default_loader.load_object(
+        module_name,
+        object_name,
+        force_reload=force_reload,
+    )
+
+
+def inspect_v6_root() -> dict[str, Any]:
+    return _default_loader.inspect_v6_root()
+
+
+def v6_loader_health() -> dict[str, Any]:
+    return _default_loader.health()
+
+
+===== app\v6_bridge\v6_mapper.py =====
+"""
+ROBOMLM PLUS - V6 Mapper
+
+Purpose
+-------
+Maps legacy/current V6 structures into the canonical structures expected
+at the V6 bridge boundary.
+
+This module performs structural mapping only.
+
+It does NOT:
+    - generate trading signals
+    - make decisions
+    - calculate new intelligence
+    - modify V6 source objects
+    - depend on blackbox_logger
+    - introduce V7+ intelligence
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, is_dataclass
+from datetime import date, datetime
+from enum import Enum
+from typing import Any, Iterable, Mapping, Optional
+
+
+V6_MAPPER_VERSION = "1.0.0"
+V6_MAPPER_LAYER = "V6_MAPPER"
+
+
+# ---------------------------------------------------------------------------
+# Generic Helpers
+# ---------------------------------------------------------------------------
+
+def _get(source: Any, name: str, default: Any = None) -> Any:
+    """Safely read a field from an object or mapping."""
+
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        return source.get(name, default)
+
+    try:
+        return getattr(source, name, default)
+    except Exception:
+        return default
+
+
+def _first(
+    source: Any,
+    names: Iterable[str],
+    default: Any = None,
+) -> Any:
+    """Return the first non-None value from a list of aliases."""
+
+    for name in names:
+        value = _get(source, name, None)
+
+        if value is not None:
+            return value
+
+    return default
+
+
+def _serialize(value: Any) -> Any:
+    """Convert common runtime values to safe primitive structures."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, (str, int, float, bool)):
+        return value
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+
+    if is_dataclass(value):
+        try:
+            return {
+                str(k): _serialize(v)
+                for k, v in asdict(value).items()
+            }
+        except Exception:
+            return str(value)
+
+    if isinstance(value, Mapping):
+        return {
+            str(k): _serialize(v)
+            for k, v in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [_serialize(item) for item in value]
+
+    try:
+        return str(value)
+    except Exception:
+        return repr(value)
+
+
+# ---------------------------------------------------------------------------
+# Mapping Specification
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class FieldMap:
+    """Definition of one canonical V6 field and its accepted aliases."""
+
+    canonical: str
+    aliases: tuple[str, ...]
+
+
+# ---------------------------------------------------------------------------
+# Canonical V6 Field Maps
+# ---------------------------------------------------------------------------
+
+MARKET_FIELDS = (
+    FieldMap(
+        "market",
+        ("market", "market_type", "asset_class"),
+    ),
+    FieldMap(
+        "symbol",
+        ("symbol", "ticker", "instrument", "instrument_symbol"),
+    ),
+    FieldMap(
+        "exchange",
+        ("exchange", "venue", "exchange_name"),
+    ),
+    FieldMap(
+        "price",
+        ("price", "ltp", "last_price", "last_traded_price"),
+    ),
+    FieldMap(
+        "timestamp",
+        ("timestamp", "time", "datetime", "event_time"),
+    ),
+    FieldMap(
+        "volume",
+        ("volume", "traded_volume", "total_volume"),
+    ),
+    FieldMap(
+        "bid",
+        ("bid", "bid_price", "best_bid"),
+    ),
+    FieldMap(
+        "ask",
+        ("ask", "ask_price", "best_ask"),
+    ),
+)
+
+DECISION_FIELDS = (
+    FieldMap(
+        "action",
+        ("action", "decision", "signal", "direction", "side"),
+    ),
+    FieldMap(
+        "confidence",
+        ("confidence", "confidence_score"),
+    ),
+    FieldMap(
+        "score",
+        ("score", "decision_score", "signal_score"),
+    ),
+    FieldMap(
+        "reason",
+        ("reason", "rationale", "explanation"),
+    ),
+    FieldMap(
+        "timestamp",
+        ("timestamp", "time", "datetime", "event_time"),
+    ),
+)
+
+IDENTITY_FIELDS = (
+    FieldMap(
+        "market",
+        ("market", "market_type", "asset_class"),
+    ),
+    FieldMap(
+        "exchange",
+        ("exchange", "venue", "exchange_name"),
+    ),
+    FieldMap(
+        "symbol",
+        ("symbol", "ticker", "instrument", "instrument_symbol"),
+    ),
+    FieldMap(
+        "instrument_id",
+        ("instrument_id", "instrumentId", "security_id"),
+    ),
+    FieldMap(
+        "contract_id",
+        ("contract_id", "contractId"),
+    ),
+)
+
+
+# ---------------------------------------------------------------------------
+# Mapping Result
+# ---------------------------------------------------------------------------
+
+@dataclass
+class MappingResult:
+    """
+    Result of a mapping operation.
+
+    Mapping is considered successful when the source was processed without
+    a structural exception. Missing optional fields are reported separately.
+    """
+
+    success: bool
+    source_type: str = ""
+    target_type: str = ""
+    mapped: dict[str, Any] | None = None
+    missing: list[str] | None = None
+    warnings: list[str] | None = None
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        if self.mapped is None:
+            self.mapped = {}
+
+        if self.missing is None:
+            self.missing = []
+
+        if self.warnings is None:
+            self.warnings = []
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "success": self.success,
+            "source_type": self.source_type,
+            "target_type": self.target_type,
+            "mapped": dict(self.mapped or {}),
+            "missing": list(self.missing or []),
+            "warnings": list(self.warnings or []),
+            "message": self.message,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Core Mapper
+# ---------------------------------------------------------------------------
+
+class V6Mapper:
+    """
+    Controlled mapper for V6 structures.
+
+    The mapper never mutates the source object.
+    """
+
+    def __init__(self) -> None:
+        self.version = V6_MAPPER_VERSION
+
+    # -----------------------------------------------------------------------
+    # Generic Mapping
+    # -----------------------------------------------------------------------
+
+    def map_fields(
+        self,
+        source: Any,
+        field_maps: Iterable[FieldMap],
+        *,
+        include_missing: bool = False,
+    ) -> MappingResult:
+        """
+        Map source aliases into canonical field names.
+        """
+
+        if source is None:
+            return MappingResult(
+                success=False,
+                source_type="NoneType",
+                target_type="mapping",
+                message="Source object is None.",
+            )
+
+        mapped: dict[str, Any] = {}
+        missing: list[str] = []
+
+        for field_map in field_maps:
+            value = _first(
+                source,
+                field_map.aliases,
+                None,
+            )
+
+            if value is None:
+                missing.append(field_map.canonical)
+
+                if include_missing:
+                    mapped[field_map.canonical] = None
+
+                continue
+
+            mapped[field_map.canonical] = _serialize(value)
+
+        return MappingResult(
+            success=True,
+            source_type=type(source).__name__,
+            target_type="mapping",
+            mapped=mapped,
+            missing=missing,
+            message="V6 fields mapped successfully.",
+        )
+
+    # -----------------------------------------------------------------------
+    # Market Snapshot
+    # -----------------------------------------------------------------------
+
+    def map_market_snapshot(
+        self,
+        source: Any,
+    ) -> MappingResult:
+        """
+        Map a V6 market/snapshot-like object.
+        """
+
+        return self.map_fields(
+            source,
+            MARKET_FIELDS,
+            include_missing=False,
+        )
+
+    # -----------------------------------------------------------------------
+    # Decision
+    # -----------------------------------------------------------------------
+
+    def map_decision(
+        self,
+        source: Any,
+    ) -> MappingResult:
+        """
+        Map a V6 decision-like object.
+
+        Original decision semantics are preserved; this function only
+        normalizes field names.
+        """
+
+        return self.map_fields(
+            source,
+            DECISION_FIELDS,
+            include_missing=False,
+        )
+
+    # -----------------------------------------------------------------------
+    # Identity
+    # -----------------------------------------------------------------------
+
+    def map_identity(
+        self,
+        source: Any,
+    ) -> MappingResult:
+        """
+        Map market/instrument/contract identity fields.
+        """
+
+        return self.map_fields(
+            source,
+            IDENTITY_FIELDS,
+            include_missing=False,
+        )
+
+    # -----------------------------------------------------------------------
+    # Arbitrary Object
+    # -----------------------------------------------------------------------
+
+    def map_object(
+        self,
+        source: Any,
+        fields: Optional[Iterable[str]] = None,
+    ) -> MappingResult:
+        """
+        Produce a safe dictionary representation of an arbitrary V6 object.
+
+        When explicit fields are supplied, only those fields are mapped.
+        """
+
+        if source is None:
+            return MappingResult(
+                success=False,
+                source_type="NoneType",
+                target_type="mapping",
+                message="Source object is None.",
+            )
+
+        if isinstance(source, Mapping):
+            source_dict = dict(source)
+
+        elif is_dataclass(source):
+            try:
+                source_dict = asdict(source)
+            except Exception:
+                source_dict = {}
+
+        else:
+            source_dict = {}
+
+            if fields is not None:
+                for field_name in fields:
+                    value = _get(
+                        source,
+                        field_name,
+                        None,
+                    )
+
+                    if value is not None:
+                        source_dict[field_name] = value
+
+            else:
+                # Only inspect explicitly exposed instance attributes.
+                try:
+                    source_dict = vars(source)
+                except Exception:
+                    source_dict = {}
+
+        mapped = {
+            str(key): _serialize(value)
+            for key, value in source_dict.items()
+        }
+
+        return MappingResult(
+            success=True,
+            source_type=type(source).__name__,
+            target_type="mapping",
+            mapped=mapped,
+            message="V6 object mapped successfully.",
+        )
+
+    # -----------------------------------------------------------------------
+    # Batch Mapping
+    # -----------------------------------------------------------------------
+
+    def map_many(
+        self,
+        sources: Iterable[Any],
+        mapping_type: str = "object",
+    ) -> list[MappingResult]:
+        """
+        Map multiple V6 objects using the requested mapping type.
+        """
+
+        mapper = {
+            "market": self.map_market_snapshot,
+            "snapshot": self.map_market_snapshot,
+            "decision": self.map_decision,
+            "identity": self.map_identity,
+            "object": self.map_object,
+        }.get(mapping_type.lower())
+
+        if mapper is None:
+            return [
+                MappingResult(
+                    success=False,
+                    target_type=mapping_type,
+                    message=f"Unsupported mapping type: {mapping_type}",
+                )
+            ]
+
+        return [
+            mapper(source)
+            for source in sources
+        ]
+
+    # -----------------------------------------------------------------------
+    # Compatibility Projection
+    # -----------------------------------------------------------------------
+
+    def project(
+        self,
+        source: Any,
+        target_fields: Iterable[str],
+    ) -> dict[str, Any]:
+        """
+        Project a source object into a requested canonical field set.
+
+        This is useful when a downstream V6 bridge component requires
+        only a defined subset of fields.
+        """
+
+        result: dict[str, Any] = {}
+
+        for field_name in target_fields:
+            value = _get(
+                source,
+                field_name,
+                None,
+            )
+
+            if value is None:
+                # Try known aliases.
+                known_aliases: tuple[str, ...] = ()
+
+                for field_map in (
+                    *MARKET_FIELDS,
+                    *DECISION_FIELDS,
+                    *IDENTITY_FIELDS,
+                ):
+                    if field_map.canonical == field_name:
+                        known_aliases = field_map.aliases
+                        break
+
+                if known_aliases:
+                    value = _first(
+                        source,
+                        known_aliases,
+                        None,
+                    )
+
+            result[field_name] = _serialize(value)
+
+        return result
+
+    # -----------------------------------------------------------------------
+    # Health
+    # -----------------------------------------------------------------------
+
+    def health(self) -> dict[str, Any]:
+        """
+        Return mapper health information.
+        """
+
+        return {
+            "layer": V6_MAPPER_LAYER,
+            "version": V6_MAPPER_VERSION,
+            "status": "ready",
+            "mutates_source": False,
+            "blackbox_logger_dependency": False,
+            "v7_dependency": False,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Default Mapper
+# ---------------------------------------------------------------------------
+
+_default_mapper = V6Mapper()
+
+
+# ---------------------------------------------------------------------------
+# Convenience Functions
+# ---------------------------------------------------------------------------
+
+def get_v6_mapper() -> V6Mapper:
+    """Return the process-local V6 mapper."""
+
+    return _default_mapper
+
+
+def map_v6_market_snapshot(
+    source: Any,
+) -> MappingResult:
+    """Map a V6 market snapshot."""
+
+    return _default_mapper.map_market_snapshot(source)
+
+
+def map_v6_decision(
+    source: Any,
+) -> MappingResult:
+    """Map a V6 decision."""
+
+    return _default_mapper.map_decision(source)
+
+
+def map_v6_identity(
+    source: Any,
+) -> MappingResult:
+    """Map V6 market/instrument/contract identity."""
+
+    return _default_mapper.map_identity(source)
+
+
+def map_v6_object(
+    source: Any,
+    fields: Optional[Iterable[str]] = None,
+) -> MappingResult:
+    """Map an arbitrary V6 object."""
+
+    return _default_mapper.map_object(
+        source,
+        fields=fields,
+    )
+
+
+def v6_mapper_health() -> dict[str, Any]:
+    """Return V6 mapper health."""
+
+    return _default_mapper.health()
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+__all__ = [
+    "V6_MAPPER_VERSION",
+    "V6_MAPPER_LAYER",
+    "FieldMap",
+    "MappingResult",
+    "V6Mapper",
+    "get_v6_mapper",
+    "map_v6_market_snapshot",
+    "map_v6_decision",
+    "map_v6_identity",
+    "map_v6_object",
+    "v6_mapper_health",
+]
+
+
+===== app\v6_bridge\v6_normalizer.py =====
+"""
+ROBOMLM PLUS - V6 Normalizer
+
+Purpose
+-------
+Normalizes legacy/current V6 runtime objects at the V6 bridge boundary.
+
+This module performs structural normalization only.
+
+It does NOT:
+    - generate trading signals
+    - make trading decisions
+    - calculate intelligence
+    - alter legacy V6 source objects
+    - introduce V7+ intelligence
+    - discard unknown source information
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, is_dataclass
+from datetime import date, datetime
+from enum import Enum
+from typing import Any, Iterable, Mapping, Optional
+
+
+V6_NORMALIZER_VERSION = "1.0.0"
+V6_NORMALIZER_LAYER = "V6_NORMALIZER"
+
+
+# ---------------------------------------------------------------------------
+# Generic Helpers
+# ---------------------------------------------------------------------------
+
+def _get(source: Any, name: str, default: Any = None) -> Any:
+    """Safely read a field from mappings or objects."""
+
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        return source.get(name, default)
+
+    try:
+        return getattr(source, name, default)
+    except Exception:
+        return default
+
+
+def _first(
+    source: Any,
+    aliases: Iterable[str],
+    default: Any = None,
+) -> Any:
+    """Return the first available non-None alias value."""
+
+    for name in aliases:
+        value = _get(source, name, None)
+
+        if value is not None:
+            return value
+
+    return default
+
+
+def _serialize(value: Any) -> Any:
+    """Convert common runtime values into safe serializable values."""
+
+    if value is None:
+        return None
+
+    if isinstance(value, (str, int, float, bool)):
+        return value
+
+    if isinstance(value, Enum):
+        return value.value
+
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+
+    if is_dataclass(value):
+        try:
+            return {
+                str(key): _serialize(item)
+                for key, item in asdict(value).items()
+            }
+        except Exception:
+            return str(value)
+
+    if isinstance(value, Mapping):
+        return {
+            str(key): _serialize(item)
+            for key, item in value.items()
+        }
+
+    if isinstance(value, (list, tuple, set)):
+        return [
+            _serialize(item)
+            for item in value
+        ]
+
+    try:
+        return str(value)
+    except Exception:
+        return repr(value)
+
+
+def _clean_key(key: Any) -> str:
+    """Create a stable string field name."""
+
+    return str(key).strip()
+
+
+# ---------------------------------------------------------------------------
+# Normalization Result
+# ---------------------------------------------------------------------------
+
+@dataclass
+class NormalizationResult:
+    """Result returned by a V6 normalization operation."""
+
+    success: bool
+    source_type: str = ""
+    target_type: str = ""
+    data: dict[str, Any] | None = None
+    changed_fields: list[str] | None = None
+    missing_fields: list[str] | None = None
+    warnings: list[str] | None = None
+    message: str = ""
+
+    def __post_init__(self) -> None:
+        if self.data is None:
+            self.data = {}
+
+        if self.changed_fields is None:
+            self.changed_fields = []
+
+        if self.missing_fields is None:
+            self.missing_fields = []
+
+        if self.warnings is None:
+            self.warnings = []
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "success": self.success,
+            "source_type": self.source_type,
+            "target_type": self.target_type,
+            "data": dict(self.data or {}),
+            "changed_fields": list(self.changed_fields or []),
+            "missing_fields": list(self.missing_fields or []),
+            "warnings": list(self.warnings or []),
+            "message": self.message,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Canonical Alias Definitions
+# ---------------------------------------------------------------------------
+
+FIELD_ALIASES: dict[str, tuple[str, ...]] = {
+    "symbol": (
+        "symbol",
+        "ticker",
+        "instrument",
+        "instrument_symbol",
+    ),
+    "market": (
+        "market",
+        "market_type",
+        "asset_class",
+    ),
+    "exchange": (
+        "exchange",
+        "venue",
+        "exchange_name",
+    ),
+    "price": (
+        "price",
+        "ltp",
+        "last_price",
+        "last_traded_price",
+    ),
+    "timestamp": (
+        "timestamp",
+        "time",
+        "datetime",
+        "event_time",
+    ),
+    "volume": (
+        "volume",
+        "traded_volume",
+        "total_volume",
+    ),
+    "bid": (
+        "bid",
+        "bid_price",
+        "best_bid",
+    ),
+    "ask": (
+        "ask",
+        "ask_price",
+        "best_ask",
+    ),
+    "side": (
+        "side",
+        "direction",
+        "order_side",
+    ),
+    "action": (
+        "action",
+        "decision",
+        "signal",
+    ),
+    "confidence": (
+        "confidence",
+        "confidence_score",
+    ),
+    "score": (
+        "score",
+        "decision_score",
+        "signal_score",
+    ),
+    "reason": (
+        "reason",
+        "rationale",
+        "explanation",
+    ),
+}
+
+
+# ---------------------------------------------------------------------------
+# Core Normalizer
+# ---------------------------------------------------------------------------
+
+class V6Normalizer:
+    """
+    Controlled V6 normalizer.
+
+    The normalizer creates new dictionaries and does not mutate the source.
+    """
+
+    def __init__(self) -> None:
+        self.version = V6_NORMALIZER_VERSION
+
+    # -----------------------------------------------------------------------
+    # Object Conversion
+    # -----------------------------------------------------------------------
+
+    def to_dict(
+        self,
+        source: Any,
+    ) -> dict[str, Any]:
+        """Convert a V6 source object to a safe dictionary."""
+
+        if source is None:
+            return {}
+
+        if isinstance(source, Mapping):
+            return {
+                _clean_key(key): _serialize(value)
+                for key, value in source.items()
+            }
+
+        if is_dataclass(source):
+            try:
+                raw = asdict(source)
+
+                return {
+                    _clean_key(key): _serialize(value)
+                    for key, value in raw.items()
+                }
+            except Exception:
+                pass
+
+        try:
+            raw = vars(source)
+
+            return {
+                _clean_key(key): _serialize(value)
+                for key, value in raw.items()
+                if not str(key).startswith("_")
+            }
+        except Exception:
+            return {}
+
+    # -----------------------------------------------------------------------
+    # Alias Normalization
+    # -----------------------------------------------------------------------
+
+    def normalize_aliases(
+        self,
+        source: Any,
+        canonical_fields: Optional[Iterable[str]] = None,
+    ) -> NormalizationResult:
+        """
+        Normalize known aliases into canonical field names.
+
+        Unknown fields are preserved.
+        """
+
+        source_dict = self.to_dict(source)
+
+        if source is None:
+            return NormalizationResult(
+                success=False,
+                source_type="NoneType",
+                target_type="mapping",
+                message="Source object is None.",
+            )
+
+        result = dict(source_dict)
+        changed_fields: list[str] = []
+
+        if canonical_fields is None:
+            fields = list(FIELD_ALIASES.keys())
+        else:
+            fields = list(canonical_fields)
+
+        for canonical in fields:
+            aliases = FIELD_ALIASES.get(
+                canonical,
+                (canonical,),
+            )
+
+            value = _first(
+                source,
+                aliases,
+                None,
+            )
+
+            if value is None:
+                continue
+
+            if canonical not in result:
+                result[canonical] = _serialize(value)
+                changed_fields.append(canonical)
+
+        return NormalizationResult(
+            success=True,
+            source_type=type(source).__name__,
+            target_type="mapping",
+            data=result,
+            changed_fields=changed_fields,
+            message="V6 aliases normalized successfully.",
+        )
+
+    # -----------------------------------------------------------------------
+    # Market Snapshot
+    # -----------------------------------------------------------------------
+
+    def normalize_market_snapshot(
+        self,
+        source: Any,
+    ) -> NormalizationResult:
+        """
+        Normalize a market snapshot without changing its meaning.
+        """
+
+        fields = (
+            "market",
+            "symbol",
+            "exchange",
+            "price",
+            "timestamp",
+            "volume",
+            "bid",
+            "ask",
+        )
+
+        return self.normalize_aliases(
+            source,
+            canonical_fields=fields,
+        )
+
+    # -----------------------------------------------------------------------
+    # Decision
+    # -----------------------------------------------------------------------
+
+    def normalize_decision(
+        self,
+        source: Any,
+    ) -> NormalizationResult:
+        """
+        Normalize a V6 decision structure.
+
+        Decision semantics are preserved.
+        """
+
+        fields = (
+            "action",
+            "confidence",
+            "score",
+            "reason",
+            "timestamp",
+        )
+
+        result = self.normalize_aliases(
+            source,
+            canonical_fields=fields,
+        )
+
+        if not result.success:
+            return result
+
+        data = result.data or {}
+
+        # Preserve common side/direction information separately.
+        side = _first(
+            source,
+            FIELD_ALIASES["side"],
+            None,
+        )
+
+        if side is not None and "side" not in data:
+            data["side"] = _serialize(side)
+            result.changed_fields.append("side")
+
+        return result
+
+    # -----------------------------------------------------------------------
+    # Identity
+    # -----------------------------------------------------------------------
+
+    def normalize_identity(
+        self,
+        source: Any,
+    ) -> NormalizationResult:
+        """
+        Normalize market/instrument identity fields.
+        """
+
+        source_dict = self.to_dict(source)
+
+        if source is None:
+            return NormalizationResult(
+                success=False,
+                source_type="NoneType",
+                target_type="identity",
+                message="Source object is None.",
+            )
+
+        result = dict(source_dict)
+        changed_fields: list[str] = []
+
+        identity_aliases = {
+            "market": FIELD_ALIASES["market"],
+            "exchange": FIELD_ALIASES["exchange"],
+            "symbol": FIELD_ALIASES["symbol"],
+            "instrument_id": (
+                "instrument_id",
+                "instrumentId",
+                "security_id",
+            ),
+            "contract_id": (
+                "contract_id",
+                "contractId",
+            ),
+        }
+
+        for canonical, aliases in identity_aliases.items():
+            value = _first(
+                source,
+                aliases,
+                None,
+            )
+
+            if value is None:
+                continue
+
+            if canonical not in result:
+                result[canonical] = _serialize(value)
+                changed_fields.append(canonical)
+
+        return NormalizationResult(
+            success=True,
+            source_type=type(source).__name__,
+            target_type="identity",
+            data=result,
+            changed_fields=changed_fields,
+            message="V6 identity normalized successfully.",
+        )
+
+    # -----------------------------------------------------------------------
+    # Timestamp
+    # -----------------------------------------------------------------------
+
+    def normalize_timestamp(
+        self,
+        value: Any,
+    ) -> Any:
+        """
+        Normalize timestamp-like values.
+
+        Existing ISO-compatible strings are preserved.
+        Datetime/date objects are converted to ISO strings.
+        Numeric timestamps remain numeric.
+        """
+
+        if value is None:
+            return None
+
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+
+        if isinstance(value, (int, float)):
+            return value
+
+        if isinstance(value, str):
+            return value.strip()
+
+        return _serialize(value)
+
+    # -----------------------------------------------------------------------
+    # Numeric Fields
+    # -----------------------------------------------------------------------
+
+    def normalize_numeric(
+        self,
+        value: Any,
+    ) -> Any:
+        """
+        Normalize numeric-like values without changing their meaning.
+
+        Non-numeric values are preserved as strings.
+        """
+
+        if value is None:
+            return None
+
+        if isinstance(value, bool):
+            return value
+
+        if isinstance(value, (int, float)):
+            return value
+
+        if isinstance(value, str):
+            cleaned = value.strip()
+
+            if not cleaned:
+                return cleaned
+
+            try:
+                if "." in cleaned:
+                    return float(cleaned)
+
+                return int(cleaned)
+
+            except (ValueError, TypeError):
+                return cleaned
+
+        return _serialize(value)
+
+    # -----------------------------------------------------------------------
+    # Single Field
+    # -----------------------------------------------------------------------
+
+    def normalize_field(
+        self,
+        source: Any,
+        canonical_field: str,
+    ) -> Any:
+        """
+        Resolve one canonical field from a V6 object.
+        """
+
+        aliases = FIELD_ALIASES.get(
+            canonical_field,
+            (canonical_field,),
+        )
+
+        value = _first(
+            source,
+            aliases,
+            None,
+        )
+
+        if canonical_field == "timestamp":
+            return self.normalize_timestamp(value)
+
+        if canonical_field in {
+            "price",
+            "volume",
+            "bid",
+            "ask",
+            "confidence",
+            "score",
+        }:
+            return self.normalize_numeric(value)
+
+        return _serialize(value)
+
+    # -----------------------------------------------------------------------
+    # Required Field Check
+    # -----------------------------------------------------------------------
+
+    def check_required(
+        self,
+        data: Mapping[str, Any],
+        required_fields: Iterable[str],
+    ) -> list[str]:
+        """Return required fields that are absent or None."""
+
+        missing: list[str] = []
+
+        for field_name in required_fields:
+            if field_name not in data:
+                missing.append(field_name)
+                continue
+
+            if data.get(field_name) is None:
+                missing.append(field_name)
+
+        return missing
+
+    # -----------------------------------------------------------------------
+    # Generic Normalization
+    # -----------------------------------------------------------------------
+
+    def normalize(
+        self,
+        source: Any,
+        *,
+        target_type: str = "generic",
+        canonical_fields: Optional[Iterable[str]] = None,
+        required_fields: Optional[Iterable[str]] = None,
+    ) -> NormalizationResult:
+        """
+        Generic V6 normalization entry point.
+        """
+
+        result = self.normalize_aliases(
+            source,
+            canonical_fields=canonical_fields,
+        )
+
+        result.target_type = target_type
+
+        if not result.success:
+            return result
+
+        if required_fields is not None:
+            missing = self.check_required(
+                result.data or {},
+                required_fields,
+            )
+
+            result.missing_fields.extend(missing)
+
+            if missing:
+                result.warnings.append(
+                    "One or more required fields are missing."
+                )
+
+        return result
+
+    # -----------------------------------------------------------------------
+    # Batch Normalization
+    # -----------------------------------------------------------------------
+
+    def normalize_many(
+        self,
+        sources: Iterable[Any],
+        *,
+        target_type: str = "generic",
+        canonical_fields: Optional[Iterable[str]] = None,
+    ) -> list[NormalizationResult]:
+        """Normalize multiple V6 objects."""
+
+        return [
+            self.normalize(
+                source,
+                target_type=target_type,
+                canonical_fields=canonical_fields,
+            )
+            for source in sources
+        ]
+
+    # -----------------------------------------------------------------------
+    # Health
+    # -----------------------------------------------------------------------
+
+    def health(self) -> dict[str, Any]:
+        """Return V6 normalizer health information."""
+
+        return {
+            "layer": V6_NORMALIZER_LAYER,
+            "version": V6_NORMALIZER_VERSION,
+            "status": "ready",
+            "mutates_source": False,
+            "preserves_unknown_fields": True,
+            "blackbox_logger_dependency": False,
+            "v7_dependency": False,
+        }
+
+
+# ---------------------------------------------------------------------------
+# Default Normalizer
+# ---------------------------------------------------------------------------
+
+_default_normalizer = V6Normalizer()
+
+
+# ---------------------------------------------------------------------------
+# Convenience Functions
+# ---------------------------------------------------------------------------
+
+def get_v6_normalizer() -> V6Normalizer:
+    """Return the process-local V6 normalizer."""
+
+    return _default_normalizer
+
+
+def normalize_v6(
+    source: Any,
+    *,
+    target_type: str = "generic",
+    canonical_fields: Optional[Iterable[str]] = None,
+    required_fields: Optional[Iterable[str]] = None,
+) -> NormalizationResult:
+    """Generic V6 normalization."""
+
+    return _default_normalizer.normalize(
+        source,
+        target_type=target_type,
+        canonical_fields=canonical_fields,
+        required_fields=required_fields,
+    )
+
+
+def normalize_v6_market_snapshot(
+    source: Any,
+) -> NormalizationResult:
+    """Normalize a V6 market snapshot."""
+
+    return _default_normalizer.normalize_market_snapshot(source)
+
+
+def normalize_v6_decision(
+    source: Any,
+) -> NormalizationResult:
+    """Normalize a V6 decision."""
+
+    return _default_normalizer.normalize_decision(source)
+
+
+def normalize_v6_identity(
+    source: Any,
+) -> NormalizationResult:
+    """Normalize V6 identity information."""
+
+    return _default_normalizer.normalize_identity(source)
+
+
+def v6_normalizer_health() -> dict[str, Any]:
+    """Return V6 normalizer health."""
+
+    return _default_normalizer.health()
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
+
+__all__ = [
+    "V6_NORMALIZER_VERSION",
+    "V6_NORMALIZER_LAYER",
+    "NormalizationResult",
+    "V6Normalizer",
+    "FIELD_ALIASES",
+    "get_v6_normalizer",
+    "normalize_v6",
+    "normalize_v6_market_snapshot",
+    "normalize_v6_decision",
+    "normalize_v6_identity",
+    "v6_normalizer_health",
+]

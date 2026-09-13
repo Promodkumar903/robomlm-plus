@@ -1,0 +1,4212 @@
+# ============================================================
+# ROBOMLM_PLUS D11 — Decision Transition
+# PART 1/4
+# TRANSITION IDENTITY + EVIDENCE INTAKE
+# ============================================================
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
+
+# ============================================================
+# ENGINE IDENTITY
+# ============================================================
+
+D11_ENGINE_NAME = "D11_DecisionTransition"
+D11_ENGINE_VERSION = "V6-CAS-1.0"
+
+
+# ============================================================
+# TRANSITION STATES
+# ============================================================
+
+class TransitionType(str, Enum):
+    NONE = "NONE"
+
+    BULLISH_DEVELOPMENT = "BULLISH_DEVELOPMENT"
+    BEARISH_DEVELOPMENT = "BEARISH_DEVELOPMENT"
+
+    BULLISH_REVERSAL = "BULLISH_REVERSAL"
+    BEARISH_REVERSAL = "BEARISH_REVERSAL"
+
+    RANGE_EXPANSION = "RANGE_EXPANSION"
+    RANGE_CONTRACTION = "RANGE_CONTRACTION"
+
+    ACCUMULATION_TO_EXPANSION = (
+        "ACCUMULATION_TO_EXPANSION"
+    )
+
+    DISTRIBUTION_TO_EXPANSION = (
+        "DISTRIBUTION_TO_EXPANSION"
+    )
+
+    STRUCTURAL_BREAK = "STRUCTURAL_BREAK"
+    FAILED_BREAKOUT = "FAILED_BREAKOUT"
+
+    LIQUIDITY_TRANSITION = "LIQUIDITY_TRANSITION"
+    VOLATILITY_TRANSITION = "VOLATILITY_TRANSITION"
+
+    ROTATION = "ROTATION"
+    CHAOS_TRANSITION = "CHAOS_TRANSITION"
+
+    UNKNOWN = "UNKNOWN"
+
+
+class TransitionStatus(str, Enum):
+    READY = "READY"
+    LIMITED = "LIMITED"
+    BLOCKED = "BLOCKED"
+    UNDETERMINED = "UNDETERMINED"
+
+
+class TransitionEvidenceQuality(str, Enum):
+    STRONG = "STRONG"
+    MODERATE = "MODERATE"
+    WEAK = "WEAK"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+# ============================================================
+# NORMALIZED INPUT
+# ============================================================
+
+@dataclass
+class TransitionInput:
+    """
+    Canonical D11 transition input.
+
+    D11 receives observed/derived state information from
+    upstream intelligence. It does not manufacture missing
+    market evidence.
+    """
+
+    market_id: Optional[str] = None
+    instrument_id: Optional[str] = None
+
+    timestamp: Optional[str] = None
+
+    previous_state: Optional[str] = None
+    current_state: Optional[str] = None
+
+    previous_direction: Optional[str] = None
+    current_direction: Optional[str] = None
+
+    previous_structure: Optional[str] = None
+    current_structure: Optional[str] = None
+
+    previous_flow: Optional[str] = None
+    current_flow: Optional[str] = None
+
+    previous_liquidity: Optional[str] = None
+    current_liquidity: Optional[str] = None
+
+    previous_volatility: Optional[str] = None
+    current_volatility: Optional[str] = None
+
+    previous_participation: Optional[str] = None
+    current_participation: Optional[str] = None
+
+    relationship_state: Optional[str] = None
+    event_state: Optional[str] = None
+
+    evidence_quality: str = (
+        TransitionEvidenceQuality.INSUFFICIENT.value
+    )
+
+    source_ids: List[str] = field(
+        default_factory=list
+    )
+
+    evidence_ids: List[str] = field(
+        default_factory=list
+    )
+
+    provenance: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    metadata: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+# ============================================================
+# TRANSITION RESULT
+# ============================================================
+
+@dataclass
+class TransitionResult:
+    """
+    Canonical D11 transition result.
+
+    D11 identifies transition conditions.
+    D11 does not make the final trading decision.
+    """
+
+    engine: str = D11_ENGINE_NAME
+    engine_version: str = D11_ENGINE_VERSION
+
+    market_id: Optional[str] = None
+    instrument_id: Optional[str] = None
+    timestamp: Optional[str] = None
+
+    transition_type: str = (
+        TransitionType.UNKNOWN.value
+    )
+
+    status: str = (
+        TransitionStatus.UNDETERMINED.value
+    )
+
+    evidence_quality: str = (
+        TransitionEvidenceQuality.INSUFFICIENT.value
+    )
+
+    previous_state: Optional[str] = None
+    current_state: Optional[str] = None
+
+    previous_direction: Optional[str] = None
+    current_direction: Optional[str] = None
+
+    previous_structure: Optional[str] = None
+    current_structure: Optional[str] = None
+
+    previous_flow: Optional[str] = None
+    current_flow: Optional[str] = None
+
+    previous_liquidity: Optional[str] = None
+    current_liquidity: Optional[str] = None
+
+    previous_volatility: Optional[str] = None
+    current_volatility: Optional[str] = None
+
+    transition_detected: bool = False
+
+    structural_change: bool = False
+    directional_change: bool = False
+    flow_change: bool = False
+    liquidity_change: bool = False
+    volatility_change: bool = False
+
+    reasons: List[str] = field(
+        default_factory=list
+    )
+
+    evidence_ids: List[str] = field(
+        default_factory=list
+    )
+
+    source_ids: List[str] = field(
+        default_factory=list
+    )
+
+    provenance: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+# ============================================================
+# NORMALIZATION
+# ============================================================
+
+def d11_text(value: Any) -> str:
+    if value is None:
+        return ""
+
+    try:
+        return str(value).strip().lower()
+    except Exception:
+        return ""
+
+
+def d11_upper(value: Any) -> str:
+    return d11_text(value).upper()
+
+
+def d11_unique(
+    values: List[str],
+) -> List[str]:
+
+    result: List[str] = []
+
+    for value in values:
+
+        if value and value not in result:
+            result.append(value)
+
+    return result
+
+
+def d11_list(
+    value: Any,
+) -> List[str]:
+
+    if value is None:
+        return []
+
+    if isinstance(
+        value,
+        (list, tuple, set),
+    ):
+        return [
+            str(item)
+            for item in value
+            if item is not None
+            and str(item).strip()
+        ]
+
+    return [str(value)]
+
+
+# ============================================================
+# STATE NORMALIZATION
+# ============================================================
+
+D11_VALID_STATES = {
+    "UNKNOWN",
+    "BULLISH_EXPANSION",
+    "BEARISH_EXPANSION",
+    "ACCUMULATION",
+    "DISTRIBUTION",
+    "RANGE",
+    "ROTATION",
+    "TRANSITION",
+    "CHAOS",
+}
+
+
+def normalize_d11_state(
+    value: Any,
+) -> str:
+
+    state = d11_upper(value)
+
+    if state in D11_VALID_STATES:
+        return state
+
+    return "UNKNOWN"
+
+
+# ============================================================
+# EVIDENCE QUALITY
+# ============================================================
+
+D11_QUALITY_ORDER = {
+    "INSUFFICIENT": 0,
+    "WEAK": 1,
+    "MODERATE": 2,
+    "STRONG": 3,
+}
+
+
+def normalize_d11_quality(
+    value: Any,
+) -> str:
+
+    quality = d11_upper(value)
+
+    if quality in D11_QUALITY_ORDER:
+        return quality
+
+    return "INSUFFICIENT"
+
+
+# ============================================================
+# CHANGE DETECTION
+# ============================================================
+
+def d11_changed(
+    previous: Any,
+    current: Any,
+) -> bool:
+
+    previous_value = d11_upper(
+        previous
+    )
+
+    current_value = d11_upper(
+        current
+    )
+
+    if not previous_value:
+        return False
+
+    if not current_value:
+        return False
+
+    return previous_value != current_value
+
+
+# ============================================================
+# TRANSITION CLASSIFICATION
+# ============================================================
+
+def classify_d11_transition(
+    data: TransitionInput,
+) -> Tuple[str, List[str]]:
+
+    reasons: List[str] = []
+
+    previous_state = normalize_d11_state(
+        data.previous_state
+    )
+
+    current_state = normalize_d11_state(
+        data.current_state
+    )
+
+    previous_direction = d11_upper(
+        data.previous_direction
+    )
+
+    current_direction = d11_upper(
+        data.current_direction
+    )
+
+    previous_structure = d11_upper(
+        data.previous_structure
+    )
+
+    current_structure = d11_upper(
+        data.current_structure
+    )
+
+    previous_flow = d11_upper(
+        data.previous_flow
+    )
+
+    current_flow = d11_upper(
+        data.current_flow
+    )
+
+    # --------------------------------------------------------
+    # Insufficient state identity
+    # --------------------------------------------------------
+
+    if (
+        previous_state == "UNKNOWN"
+        or current_state == "UNKNOWN"
+    ):
+        reasons.append(
+            "STATE_IDENTITY_INCOMPLETE"
+        )
+
+    # --------------------------------------------------------
+    # Explicit transition state
+    # --------------------------------------------------------
+
+    if current_state == "TRANSITION":
+
+        reasons.append(
+            "CURRENT_STATE_TRANSITION"
+        )
+
+        return (
+            TransitionType.UNKNOWN.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Accumulation → bullish expansion
+    # --------------------------------------------------------
+
+    if (
+        previous_state == "ACCUMULATION"
+        and current_state
+        == "BULLISH_EXPANSION"
+    ):
+
+        reasons.append(
+            "ACCUMULATION_TO_BULLISH_EXPANSION"
+        )
+
+        return (
+            TransitionType.ACCUMULATION_TO_EXPANSION.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Distribution → bearish expansion
+    # --------------------------------------------------------
+
+    if (
+        previous_state == "DISTRIBUTION"
+        and current_state
+        == "BEARISH_EXPANSION"
+    ):
+
+        reasons.append(
+            "DISTRIBUTION_TO_BEARISH_EXPANSION"
+        )
+
+        return (
+            TransitionType.DISTRIBUTION_TO_EXPANSION.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Range → expansion
+    # --------------------------------------------------------
+
+    if (
+        previous_state == "RANGE"
+        and current_state
+        == "BULLISH_EXPANSION"
+    ):
+
+        reasons.append(
+            "RANGE_TO_BULLISH_EXPANSION"
+        )
+
+        return (
+            TransitionType.RANGE_EXPANSION.value,
+            reasons,
+        )
+
+    if (
+        previous_state == "RANGE"
+        and current_state
+        == "BEARISH_EXPANSION"
+    ):
+
+        reasons.append(
+            "RANGE_TO_BEARISH_EXPANSION"
+        )
+
+        return (
+            TransitionType.RANGE_EXPANSION.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Expansion → range
+    # --------------------------------------------------------
+
+    if (
+        previous_state
+        in {
+            "BULLISH_EXPANSION",
+            "BEARISH_EXPANSION",
+        }
+        and current_state == "RANGE"
+    ):
+
+        reasons.append(
+            "EXPANSION_TO_RANGE"
+        )
+
+        return (
+            TransitionType.RANGE_CONTRACTION.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Direction reversal
+    # --------------------------------------------------------
+
+    if (
+        previous_direction
+        and current_direction
+        and previous_direction
+        != current_direction
+    ):
+
+        bullish_previous = (
+            previous_direction
+            in {
+                "BULLISH",
+                "LONG",
+                "UP",
+            }
+        )
+
+        bearish_previous = (
+            previous_direction
+            in {
+                "BEARISH",
+                "SHORT",
+                "DOWN",
+            }
+        )
+
+        bullish_current = (
+            current_direction
+            in {
+                "BULLISH",
+                "LONG",
+                "UP",
+            }
+        )
+
+        bearish_current = (
+            current_direction
+            in {
+                "BEARISH",
+                "SHORT",
+                "DOWN",
+            }
+        )
+
+        if (
+            bearish_previous
+            and bullish_current
+        ):
+
+            reasons.append(
+                "BEARISH_TO_BULLISH_DIRECTION_CHANGE"
+            )
+
+            return (
+                TransitionType.BULLISH_REVERSAL.value,
+                reasons,
+            )
+
+        if (
+            bullish_previous
+            and bearish_current
+        ):
+
+            reasons.append(
+                "BULLISH_TO_BEARISH_DIRECTION_CHANGE"
+            )
+
+            return (
+                TransitionType.BEARISH_REVERSAL.value,
+                reasons,
+            )
+
+    # --------------------------------------------------------
+    # Structural break
+    # --------------------------------------------------------
+
+    if (
+        previous_structure
+        and current_structure
+        and previous_structure
+        != current_structure
+    ):
+
+        if (
+            "BREAK"
+            in current_structure
+            or "EXPANSION"
+            in current_structure
+            or "BREAKOUT"
+            in current_structure
+        ):
+
+            reasons.append(
+                "STRUCTURAL_BREAK_OR_EXPANSION"
+            )
+
+            return (
+                TransitionType.STRUCTURAL_BREAK.value,
+                reasons,
+            )
+
+    # --------------------------------------------------------
+    # Failed breakout
+    # --------------------------------------------------------
+
+    if (
+        "FAILED"
+        in current_structure
+        or "FAIL"
+        in current_structure
+    ):
+
+        reasons.append(
+            "FAILED_STRUCTURE_EVENT"
+        )
+
+        return (
+            TransitionType.FAILED_BREAKOUT.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Rotation
+    # --------------------------------------------------------
+
+    if (
+        current_state == "ROTATION"
+        or (
+            previous_flow
+            and current_flow
+            and previous_flow
+            != current_flow
+            and (
+                "ROTAT"
+                in current_flow
+            )
+        )
+    ):
+
+        reasons.append(
+            "ROTATIONAL_STATE_CHANGE"
+        )
+
+        return (
+            TransitionType.ROTATION.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # No explicit transition
+    # --------------------------------------------------------
+
+    if (
+        previous_state == current_state
+        and not d11_changed(
+            previous_direction,
+            current_direction,
+        )
+        and not d11_changed(
+            previous_structure,
+            current_structure,
+        )
+    ):
+
+        reasons.append(
+            "STATE_PERSISTENCE"
+        )
+
+        return (
+            TransitionType.NONE.value,
+            reasons,
+        )
+
+    # --------------------------------------------------------
+    # Generic transition
+    # --------------------------------------------------------
+
+    if previous_state != current_state:
+
+        reasons.append(
+            "STATE_CHANGE_DETECTED"
+        )
+
+        return (
+            TransitionType.UNKNOWN.value,
+            reasons,
+        )
+
+    reasons.append(
+        "NO_CLASSIFIABLE_TRANSITION"
+    )
+
+    return (
+        TransitionType.NONE.value,
+        reasons,
+    )
+
+
+# ============================================================
+# D11 ENGINE
+# ============================================================
+
+class DecisionTransitionEngine:
+    """
+    D11 Decision Transition Engine.
+
+    Responsibilities:
+        - Compare previous/current market state.
+        - Detect structural/directional/flow changes.
+        - Classify transition type.
+        - Preserve evidence/provenance.
+        - Avoid artificial probability or confidence.
+        - Never issue BUY/SELL execution authority.
+    """
+
+    def __init__(self) -> None:
+
+        self.history: List[
+            TransitionResult
+        ] = []
+
+        self.latest: Optional[
+            TransitionResult
+        ] = None
+
+    # --------------------------------------------------------
+    # MAIN EVALUATION
+    # --------------------------------------------------------
+
+    def evaluate(
+        self,
+        data: TransitionInput,
+    ) -> TransitionResult:
+
+        transition_type, reasons = (
+            classify_d11_transition(data)
+        )
+
+        quality = normalize_d11_quality(
+            data.evidence_quality
+        )
+
+        structural_change = d11_changed(
+            data.previous_structure,
+            data.current_structure,
+        )
+
+        directional_change = d11_changed(
+            data.previous_direction,
+            data.current_direction,
+        )
+
+        flow_change = d11_changed(
+            data.previous_flow,
+            data.current_flow,
+        )
+
+        liquidity_change = d11_changed(
+            data.previous_liquidity,
+            data.current_liquidity,
+        )
+
+        volatility_change = d11_changed(
+            data.previous_volatility,
+            data.current_volatility,
+        )
+
+        detected = (
+            transition_type
+            not in {
+                TransitionType.NONE.value,
+                TransitionType.UNKNOWN.value,
+            }
+            or structural_change
+            or directional_change
+            or flow_change
+            or liquidity_change
+            or volatility_change
+        )
+
+        # ----------------------------------------------------
+        # Status
+        # ----------------------------------------------------
+
+        if not data.timestamp:
+
+            status = TransitionStatus.BLOCKED.value
+
+            reasons.append(
+                "MISSING_TIMESTAMP"
+            )
+
+        elif (
+            not data.previous_state
+            or not data.current_state
+        ):
+
+            status = TransitionStatus.LIMITED.value
+
+            reasons.append(
+                "PREVIOUS_CURRENT_STATE_INCOMPLETE"
+            )
+
+        elif quality == (
+            TransitionEvidenceQuality.INSUFFICIENT.value
+        ):
+
+            status = TransitionStatus.LIMITED.value
+
+            reasons.append(
+                "INSUFFICIENT_EVIDENCE_QUALITY"
+            )
+
+        elif transition_type == (
+            TransitionType.UNKNOWN.value
+        ):
+
+            status = TransitionStatus.LIMITED.value
+
+            reasons.append(
+                "TRANSITION_PRESENT_BUT_UNCLASSIFIED"
+            )
+
+        elif detected:
+
+            status = TransitionStatus.READY.value
+
+        else:
+
+            status = TransitionStatus.READY.value
+
+            reasons.append(
+                "NO_STATE_TRANSITION"
+            )
+
+        result = TransitionResult(
+            engine=D11_ENGINE_NAME,
+            engine_version=D11_ENGINE_VERSION,
+
+            market_id=data.market_id,
+            instrument_id=data.instrument_id,
+            timestamp=data.timestamp,
+
+            transition_type=transition_type,
+            status=status,
+            evidence_quality=quality,
+
+            previous_state=(
+                normalize_d11_state(
+                    data.previous_state
+                )
+            ),
+
+            current_state=(
+                normalize_d11_state(
+                    data.current_state
+                )
+            ),
+
+            previous_direction=(
+                data.previous_direction
+            ),
+
+            current_direction=(
+                data.current_direction
+            ),
+
+            previous_structure=(
+                data.previous_structure
+            ),
+
+            current_structure=(
+                data.current_structure
+            ),
+
+            previous_flow=data.previous_flow,
+            current_flow=data.current_flow,
+
+            previous_liquidity=(
+                data.previous_liquidity
+            ),
+
+            current_liquidity=(
+                data.current_liquidity
+            ),
+
+            previous_volatility=(
+                data.previous_volatility
+            ),
+
+            current_volatility=(
+                data.current_volatility
+            ),
+
+            transition_detected=detected,
+
+            structural_change=(
+                structural_change
+            ),
+
+            directional_change=(
+                directional_change
+            ),
+
+            flow_change=flow_change,
+
+            liquidity_change=(
+                liquidity_change
+            ),
+
+            volatility_change=(
+                volatility_change
+            ),
+
+            reasons=d11_unique(
+                reasons
+            ),
+
+            evidence_ids=d11_unique(
+                d11_list(
+                    data.evidence_ids
+                )
+            ),
+
+            source_ids=d11_unique(
+                d11_list(
+                    data.source_ids
+                )
+            ),
+
+            provenance=dict(
+                data.provenance or {}
+            ),
+        )
+
+        self.history.append(
+            result
+        )
+
+        self.latest = result
+
+        return result
+
+    # --------------------------------------------------------
+    # HISTORY
+    # --------------------------------------------------------
+
+    def get_history(
+        self,
+    ) -> List[TransitionResult]:
+
+        return list(self.history)
+
+    # --------------------------------------------------------
+    # LATEST
+    # --------------------------------------------------------
+
+    def get_latest(
+        self,
+    ) -> Optional[TransitionResult]:
+
+        return self.latest
+
+
+# ============================================================
+# SNAPSHOT BUILDER
+# ============================================================
+
+def transition_input_from_values(
+    market_id: Optional[str] = None,
+    instrument_id: Optional[str] = None,
+    timestamp: Optional[str] = None,
+
+    previous_state: Optional[str] = None,
+    current_state: Optional[str] = None,
+
+    previous_direction: Optional[str] = None,
+    current_direction: Optional[str] = None,
+
+    previous_structure: Optional[str] = None,
+    current_structure: Optional[str] = None,
+
+    previous_flow: Optional[str] = None,
+    current_flow: Optional[str] = None,
+
+    previous_liquidity: Optional[str] = None,
+    current_liquidity: Optional[str] = None,
+
+    previous_volatility: Optional[str] = None,
+    current_volatility: Optional[str] = None,
+
+    previous_participation: Optional[str] = None,
+    current_participation: Optional[str] = None,
+
+    relationship_state: Optional[str] = None,
+    event_state: Optional[str] = None,
+
+    evidence_quality: str = "INSUFFICIENT",
+
+    source_ids: Optional[List[str]] = None,
+    evidence_ids: Optional[List[str]] = None,
+
+    provenance: Optional[Dict[str, Any]] = None,
+    metadata: Optional[Dict[str, Any]] = None,
+) -> TransitionInput:
+
+    return TransitionInput(
+        market_id=market_id,
+        instrument_id=instrument_id,
+        timestamp=timestamp,
+
+        previous_state=previous_state,
+        current_state=current_state,
+
+        previous_direction=previous_direction,
+        current_direction=current_direction,
+
+        previous_structure=previous_structure,
+        current_structure=current_structure,
+
+        previous_flow=previous_flow,
+        current_flow=current_flow,
+
+        previous_liquidity=previous_liquidity,
+        current_liquidity=current_liquidity,
+
+        previous_volatility=previous_volatility,
+        current_volatility=current_volatility,
+
+        previous_participation=previous_participation,
+        current_participation=current_participation,
+
+        relationship_state=relationship_state,
+        event_state=event_state,
+
+        evidence_quality=(
+            normalize_d11_quality(
+                evidence_quality
+            )
+        ),
+
+        source_ids=d11_list(
+            source_ids
+        ),
+
+        evidence_ids=d11_list(
+            evidence_ids
+        ),
+
+        provenance=dict(
+            provenance or {}
+        ),
+
+        metadata=dict(
+            metadata or {}
+        ),
+    )
+
+
+# ============================================================
+# FACTORY
+# ============================================================
+
+def create_decision_transition_engine():
+    return DecisionTransitionEngine()
+
+
+# ============================================================
+# PART 1 SELF-CHECK
+# ============================================================
+
+def d11_part1_self_check() -> Dict[str, Any]:
+
+    engine = DecisionTransitionEngine()
+
+    bullish_input = (
+        transition_input_from_values(
+            market_id="TEST_MARKET",
+            instrument_id="TEST_INSTRUMENT",
+            timestamp="2026-01-01T10:00:00",
+
+            previous_state="ACCUMULATION",
+            current_state="BULLISH_EXPANSION",
+
+            previous_direction="NEUTRAL",
+            current_direction="BULLISH",
+
+            previous_structure="BASE",
+            current_structure="BREAKOUT",
+
+            previous_flow="ABSORPTION",
+            current_flow="BUYING",
+
+            previous_liquidity="NORMAL",
+            current_liquidity="NORMAL",
+
+            previous_volatility="COMPRESSED",
+            current_volatility="EXPANDING",
+
+            evidence_quality="STRONG",
+
+            source_ids=["S1"],
+            evidence_ids=["E1"],
+
+            provenance={
+                "source": "TEST",
+                "lineage": "TEST",
+            },
+        )
+    )
+
+    bullish_result = engine.evaluate(
+        bullish_input
+    )
+
+    unchanged_input = (
+        transition_input_from_values(
+            market_id="TEST_MARKET",
+            instrument_id="TEST_INSTRUMENT",
+            timestamp="2026-01-01T10:01:00",
+
+            previous_state="RANGE",
+            current_state="RANGE",
+
+            previous_direction="NEUTRAL",
+            current_direction="NEUTRAL",
+
+            previous_structure="RANGE",
+            current_structure="RANGE",
+
+            evidence_quality="STRONG",
+
+            source_ids=["S2"],
+            evidence_ids=["E2"],
+
+            provenance={
+                "source": "TEST",
+            },
+        )
+    )
+
+    unchanged_result = engine.evaluate(
+        unchanged_input
+    )
+
+    missing_input = (
+        transition_input_from_values(
+            current_state="BULLISH_EXPANSION",
+            evidence_quality="INSUFFICIENT",
+        )
+    )
+
+    missing_result = engine.evaluate(
+        missing_input
+    )
+
+    passed = (
+        bullish_result.transition_type
+        == TransitionType.ACCUMULATION_TO_EXPANSION.value
+        and bullish_result.transition_detected
+        and unchanged_result.transition_type
+        == TransitionType.NONE.value
+        and missing_result.status
+        in {
+            TransitionStatus.BLOCKED.value,
+            TransitionStatus.LIMITED.value,
+        }
+    )
+
+    return {
+        "bullish_transition_detected": (
+            bullish_result.transition_detected
+        ),
+        "bullish_transition_type": (
+            bullish_result.transition_type
+        ),
+        "unchanged_state_preserved": (
+            unchanged_result.transition_type
+            == TransitionType.NONE.value
+        ),
+        "missing_data_protected": (
+            missing_result.status
+            in {
+                TransitionStatus.BLOCKED.value,
+                TransitionStatus.LIMITED.value,
+            }
+        ),
+        "passed": passed,
+    }
+
+
+# ============================================================
+# EXPORTS
+# ============================================================
+
+__all__ = [
+    "D11_ENGINE_NAME",
+    "D11_ENGINE_VERSION",
+
+    "TransitionType",
+    "TransitionStatus",
+    "TransitionEvidenceQuality",
+
+    "TransitionInput",
+    "TransitionResult",
+
+    "normalize_d11_state",
+    "normalize_d11_quality",
+
+    "classify_d11_transition",
+
+    "DecisionTransitionEngine",
+
+    "transition_input_from_values",
+
+    "create_decision_transition_engine",
+
+    "d11_part1_self_check",
+]
+# ============================================================
+# ROBOMLM_PLUS D11 — Decision Transition
+# PART 2/4
+# CAS EVIDENCE RECONCILIATION + CONTRADICTION VALIDATION
+# ============================================================
+
+
+# ============================================================
+# TRANSITION EVIDENCE
+# ============================================================
+
+@dataclass
+class TransitionEvidence:
+    """
+    Normalized evidence consumed by D11.
+
+    Evidence remains independently traceable.
+    D11 does not invent values when evidence is absent.
+    """
+
+    evidence_id: str
+    source_id: Optional[str] = None
+
+    dimension: str = ""
+
+    previous_value: Any = None
+    current_value: Any = None
+
+    observation_type: str = "OBSERVED"
+
+    timestamp: Optional[str] = None
+
+    quality: str = (
+        TransitionEvidenceQuality.INSUFFICIENT.value
+    )
+
+    observed: bool = True
+    derived: bool = False
+
+    provenance: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    metadata: Dict[str, Any] = field(
+        default_factory=dict
+    )
+
+
+# ============================================================
+# EVIDENCE RECONCILIATION
+# ============================================================
+
+@dataclass
+class TransitionEvidenceReconciliation:
+    """
+    Reconciled evidence state for D11.
+
+    Agreement and contradiction are preserved explicitly.
+    """
+
+    status: str = (
+        TransitionStatus.UNDETERMINED.value
+    )
+
+    total_evidence: int = 0
+    valid_evidence: int = 0
+
+    changed_dimensions: List[str] = field(
+        default_factory=list
+    )
+
+    unchanged_dimensions: List[str] = field(
+        default_factory=list
+    )
+
+    missing_dimensions: List[str] = field(
+        default_factory=list
+    )
+
+    contradictions: List[str] = field(
+        default_factory=list
+    )
+
+    supporting_evidence_ids: List[str] = field(
+        default_factory=list
+    )
+
+    conflicting_evidence_ids: List[str] = field(
+        default_factory=list
+    )
+
+    provenance_valid: bool = False
+
+    chronological: bool = False
+
+    reasons: List[str] = field(
+        default_factory=list
+    )
+
+
+# ============================================================
+# REQUIRED TRANSITION DIMENSIONS
+# ============================================================
+
+D11_TRANSITION_DIMENSIONS = (
+    "state",
+    "direction",
+    "structure",
+    "flow",
+    "liquidity",
+    "volatility",
+    "participation",
+)
+
+
+# ============================================================
+# PROVENANCE VALIDATION
+# ============================================================
+
+def validate_d11_evidence_provenance(
+    evidence: TransitionEvidence,
+) -> Tuple[bool, List[str]]:
+
+    reasons: List[str] = []
+
+    if not evidence.evidence_id:
+        reasons.append(
+            "MISSING_EVIDENCE_ID"
+        )
+
+    if not evidence.source_id:
+        reasons.append(
+            "MISSING_SOURCE_ID"
+        )
+
+    if not evidence.timestamp:
+        reasons.append(
+            "MISSING_TIMESTAMP"
+        )
+
+    if not evidence.provenance:
+        reasons.append(
+            "MISSING_PROVENANCE"
+        )
+
+    # Observed and derived evidence may coexist only if
+    # explicit lineage explains the relationship.
+    if (
+        evidence.observed
+        and evidence.derived
+        and not evidence.metadata.get(
+            "lineage"
+        )
+    ):
+        reasons.append(
+            "OBSERVED_DERIVED_CONFLICT"
+        )
+
+    return (
+        len(reasons) == 0,
+        d11_unique(reasons),
+    )
+
+
+# ============================================================
+# TIMESTAMP ORDER VALIDATION
+# ============================================================
+
+def validate_d11_timestamp_order(
+    previous_timestamp: Optional[str],
+    current_timestamp: Optional[str],
+) -> Tuple[bool, List[str]]:
+
+    reasons: List[str] = []
+
+    if not previous_timestamp:
+        reasons.append(
+            "MISSING_PREVIOUS_TIMESTAMP"
+        )
+        return False, reasons
+
+    if not current_timestamp:
+        reasons.append(
+            "MISSING_CURRENT_TIMESTAMP"
+        )
+        return False, reasons
+
+    previous_text = str(
+        previous_timestamp
+    ).strip()
+
+    current_text = str(
+        current_timestamp
+    ).strip()
+
+    if not previous_text or not current_text:
+        reasons.append(
+            "EMPTY_TIMESTAMP"
+        )
+        return False, reasons
+
+    try:
+        from datetime import datetime
+
+        previous_dt = datetime.fromisoformat(
+            previous_text.replace(
+                "Z",
+                "+00:00",
+            )
+        )
+
+        current_dt = datetime.fromisoformat(
+            current_text.replace(
+                "Z",
+                "+00:00",
+            )
+        )
+
+        if current_dt < previous_dt:
+
+            reasons.append(
+                "NON_CHRONOLOGICAL_TRANSITION"
+            )
+
+            return False, reasons
+
+        return True, reasons
+
+    except Exception:
+
+        # Do not silently claim chronological validity when
+        # timestamps cannot be interpreted.
+        reasons.append(
+            "TIMESTAMP_UNPARSEABLE"
+        )
+
+        return False, reasons
+
+
+# ============================================================
+# VALUE PAIR NORMALIZATION
+# ============================================================
+
+def normalize_d11_pair(
+    previous_value: Any,
+    current_value: Any,
+) -> Tuple[str, str]:
+
+    previous = d11_upper(
+        previous_value
+    )
+
+    current = d11_upper(
+        current_value
+    )
+
+    return previous, current
+
+
+# ============================================================
+# DIMENSION CHANGE CLASSIFICATION
+# ============================================================
+
+def classify_d11_dimension_change(
+    dimension: str,
+    previous_value: Any,
+    current_value: Any,
+) -> str:
+
+    previous, current = normalize_d11_pair(
+        previous_value,
+        current_value,
+    )
+
+    if not previous and not current:
+        return "MISSING"
+
+    if not previous:
+        return "CURRENT_ONLY"
+
+    if not current:
+        return "PREVIOUS_ONLY"
+
+    if previous == current:
+        return "UNCHANGED"
+
+    return "CHANGED"
+
+
+# ============================================================
+# EVIDENCE CONTRADICTION DETECTION
+# ============================================================
+
+def detect_d11_evidence_contradictions(
+    evidence: List[TransitionEvidence],
+) -> Tuple[List[str], List[str]]:
+
+    contradictions: List[str] = []
+    conflicting_ids: List[str] = []
+
+    by_dimension: Dict[
+        str,
+        List[TransitionEvidence],
+    ] = {}
+
+    for item in evidence:
+
+        dimension = d11_upper(
+            item.dimension
+        )
+
+        if not dimension:
+            continue
+
+        by_dimension.setdefault(
+            dimension,
+            [],
+        ).append(item)
+
+    for dimension, items in by_dimension.items():
+
+        transition_pairs = []
+
+        for item in items:
+
+            previous, current = (
+                normalize_d11_pair(
+                    item.previous_value,
+                    item.current_value,
+                )
+            )
+
+            if not previous or not current:
+                continue
+
+            transition_pairs.append(
+                (
+                    previous,
+                    current,
+                    item.evidence_id,
+                )
+            )
+
+        if len(transition_pairs) < 2:
+            continue
+
+        # Two evidence items disagree about the direction
+        # of the same dimension's transition.
+        for index in range(
+            len(transition_pairs)
+        ):
+
+            p1, c1, id1 = (
+                transition_pairs[index]
+            )
+
+            for other_index in range(
+                index + 1,
+                len(transition_pairs),
+            ):
+
+                p2, c2, id2 = (
+                    transition_pairs[
+                        other_index
+                    ]
+                )
+
+                if (
+                    p1 != p2
+                    or c1 != c2
+                ):
+
+                    contradiction = (
+                        f"{dimension}:"
+                        f"{p1}->{c1}"
+                        f"<->"
+                        f"{p2}->{c2}"
+                    )
+
+                    contradictions.append(
+                        contradiction
+                    )
+
+                    conflicting_ids.extend(
+                        [id1, id2]
+                    )
+
+    return (
+        d11_unique(contradictions),
+        d11_unique(conflicting_ids),
+    )
+
+
+# ============================================================
+# EVIDENCE RECONCILIATOR
+# ============================================================
+
+class D11EvidenceReconciler:
+    """
+    CAS evidence reconciliation for D11.
+
+    Responsibilities:
+        - validate provenance
+        - validate chronological order
+        - identify changed dimensions
+        - identify unchanged dimensions
+        - detect contradictory transition evidence
+        - preserve evidence lineage
+    """
+
+    def __init__(self) -> None:
+
+        self.latest: Optional[
+            TransitionEvidenceReconciliation
+        ] = None
+
+    # --------------------------------------------------------
+    # RECONCILE
+    # --------------------------------------------------------
+
+    def reconcile(
+        self,
+        data: TransitionInput,
+        evidence: Optional[
+            List[TransitionEvidence]
+        ] = None,
+    ) -> TransitionEvidenceReconciliation:
+
+        if evidence is None:
+            evidence = []
+
+        result = (
+            TransitionEvidenceReconciliation(
+                total_evidence=len(evidence)
+            )
+        )
+
+        # ----------------------------------------------------
+        # Chronological validation
+        # ----------------------------------------------------
+
+        chronological, time_reasons = (
+            validate_d11_timestamp_order(
+                previous_timestamp=(
+                    data.metadata.get(
+                        "previous_timestamp"
+                    )
+                    or data.metadata.get(
+                        "previous_time"
+                    )
+                ),
+                current_timestamp=data.timestamp,
+            )
+        )
+
+        # If the caller did not supply previous timestamp
+        # through metadata, don't manufacture one.
+        if not data.metadata.get(
+            "previous_timestamp"
+        ) and not data.metadata.get(
+            "previous_time"
+        ):
+
+            chronological = False
+
+            time_reasons = [
+                "PREVIOUS_TIMESTAMP_NOT_SUPPLIED"
+            ]
+
+        result.chronological = chronological
+
+        result.reasons.extend(
+            time_reasons
+        )
+
+        # ----------------------------------------------------
+        # Evidence provenance
+        # ----------------------------------------------------
+
+        provenance_ok = True
+
+        for item in evidence:
+
+            valid, reasons = (
+                validate_d11_evidence_provenance(
+                    item
+                )
+            )
+
+            if not valid:
+
+                provenance_ok = False
+
+                result.reasons.extend(
+                    reasons
+                )
+
+                continue
+
+            result.valid_evidence += 1
+
+            result.supporting_evidence_ids.append(
+                item.evidence_id
+            )
+
+            dimension = d11_upper(
+                item.dimension
+            )
+
+            change = (
+                classify_d11_dimension_change(
+                    dimension,
+                    item.previous_value,
+                    item.current_value,
+                )
+            )
+
+            if change == "CHANGED":
+
+                result.changed_dimensions.append(
+                    dimension
+                )
+
+            elif change == "UNCHANGED":
+
+                result.unchanged_dimensions.append(
+                    dimension
+                )
+
+            elif change in {
+                "MISSING",
+                "CURRENT_ONLY",
+                "PREVIOUS_ONLY",
+            }:
+
+                result.missing_dimensions.append(
+                    dimension
+                )
+
+        result.provenance_valid = (
+            provenance_ok
+        )
+
+        # ----------------------------------------------------
+        # Contradiction detection
+        # ----------------------------------------------------
+
+        contradictions, conflict_ids = (
+            detect_d11_evidence_contradictions(
+                evidence
+            )
+        )
+
+        result.contradictions.extend(
+            contradictions
+        )
+
+        result.conflicting_evidence_ids.extend(
+            conflict_ids
+        )
+
+        # ----------------------------------------------------
+        # Dimension coverage
+        # ----------------------------------------------------
+
+        supplied_dimensions = set(
+            d11_upper(item.dimension)
+            for item in evidence
+            if item.dimension
+        )
+
+        for dimension in D11_TRANSITION_DIMENSIONS:
+
+            if dimension.upper() not in (
+                supplied_dimensions
+            ):
+
+                result.missing_dimensions.append(
+                    dimension
+                )
+
+        # ----------------------------------------------------
+        # Deduplicate
+        # ----------------------------------------------------
+
+        result.changed_dimensions = (
+            d11_unique(
+                result.changed_dimensions
+            )
+        )
+
+        result.unchanged_dimensions = (
+            d11_unique(
+                result.unchanged_dimensions
+            )
+        )
+
+        result.missing_dimensions = (
+            d11_unique(
+                result.missing_dimensions
+            )
+        )
+
+        result.contradictions = (
+            d11_unique(
+                result.contradictions
+            )
+        )
+
+        result.supporting_evidence_ids = (
+            d11_unique(
+                result.supporting_evidence_ids
+            )
+        )
+
+        result.conflicting_evidence_ids = (
+            d11_unique(
+                result.conflicting_evidence_ids
+            )
+        )
+
+        result.reasons = d11_unique(
+            result.reasons
+        )
+
+        # ----------------------------------------------------
+        # Overall status
+        # ----------------------------------------------------
+
+        if not evidence:
+
+            result.status = (
+                TransitionStatus.BLOCKED.value
+            )
+
+            result.reasons.append(
+                "NO_TRANSITION_EVIDENCE"
+            )
+
+        elif result.valid_evidence == 0:
+
+            result.status = (
+                TransitionStatus.BLOCKED.value
+            )
+
+            result.reasons.append(
+                "NO_VALID_TRANSITION_EVIDENCE"
+            )
+
+        elif not result.provenance_valid:
+
+            result.status = (
+                TransitionStatus.LIMITED.value
+            )
+
+            result.reasons.append(
+                "PROVENANCE_INCOMPLETE"
+            )
+
+        elif not result.chronological:
+
+            result.status = (
+                TransitionStatus.LIMITED.value
+            )
+
+            result.reasons.append(
+                "TEMPORAL_VALIDATION_INCOMPLETE"
+            )
+
+        elif result.contradictions:
+
+            result.status = (
+                TransitionStatus.LIMITED.value
+            )
+
+            result.reasons.append(
+                "TRANSITION_EVIDENCE_CONTRADICTION"
+            )
+
+        elif result.missing_dimensions:
+
+            result.status = (
+                TransitionStatus.LIMITED.value
+            )
+
+            result.reasons.append(
+                "TRANSITION_DIMENSION_COVERAGE_INCOMPLETE"
+            )
+
+        else:
+
+            result.status = (
+                TransitionStatus.READY.value
+            )
+
+            result.reasons.append(
+                "TRANSITION_EVIDENCE_RECONCILED"
+            )
+
+        result.reasons = d11_unique(
+            result.reasons
+        )
+
+        self.latest = result
+
+        return result
+
+
+# ============================================================
+# TRANSITION CONSISTENCY CHECK
+# ============================================================
+
+def validate_d11_transition_consistency(
+    data: TransitionInput,
+) -> Dict[str, Any]:
+
+    errors: List[str] = []
+    warnings: List[str] = []
+
+    previous_state = normalize_d11_state(
+        data.previous_state
+    )
+
+    current_state = normalize_d11_state(
+        data.current_state
+    )
+
+    if previous_state == "UNKNOWN":
+        errors.append(
+            "UNKNOWN_PREVIOUS_STATE"
+        )
+
+    if current_state == "UNKNOWN":
+        errors.append(
+            "UNKNOWN_CURRENT_STATE"
+        )
+
+    # Directional reversal without a state/structure
+    # change is not automatically accepted as a reversal.
+    direction_changed = d11_changed(
+        data.previous_direction,
+        data.current_direction,
+    )
+
+    structure_changed = d11_changed(
+        data.previous_structure,
+        data.current_structure,
+    )
+
+    if direction_changed and not (
+        structure_changed
+        or previous_state != current_state
+    ):
+        warnings.append(
+            "DIRECTION_CHANGE_WITHOUT_STATE_STRUCTURE_CHANGE"
+        )
+
+    # A transition explicitly labelled by upstream state
+    # should remain visible rather than being silently erased.
+    if current_state == "TRANSITION":
+        warnings.append(
+            "UPSTREAM_TRANSITION_STATE_PRESENT"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": d11_unique(errors),
+        "warnings": d11_unique(warnings),
+    }
+
+
+# ============================================================
+# EVIDENCE → D11 TRANSITION INPUT
+# ============================================================
+
+def transition_input_from_evidence(
+    evidence: List[TransitionEvidence],
+    *,
+    market_id: Optional[str] = None,
+    instrument_id: Optional[str] = None,
+    timestamp: Optional[str] = None,
+    evidence_quality: str = "INSUFFICIENT",
+    previous_timestamp: Optional[str] = None,
+    source_ids: Optional[List[str]] = None,
+    evidence_ids: Optional[List[str]] = None,
+    provenance: Optional[Dict[str, Any]] = None,
+) -> TransitionInput:
+
+    values: Dict[str, Dict[str, Any]] = {}
+
+    for item in evidence:
+
+        dimension = d11_text(
+            item.dimension
+        )
+
+        if not dimension:
+            continue
+
+        values[dimension] = {
+            "previous": item.previous_value,
+            "current": item.current_value,
+        }
+
+    def value(
+        dimension: str,
+        side: str,
+    ) -> Any:
+
+        return (
+            values.get(
+                dimension,
+                {},
+            ).get(
+                side
+            )
+        )
+
+    metadata = {
+        "previous_timestamp": (
+            previous_timestamp
+        )
+    }
+
+    return transition_input_from_values(
+        market_id=market_id,
+        instrument_id=instrument_id,
+        timestamp=timestamp,
+
+        previous_state=value(
+            "state",
+            "previous",
+        ),
+        current_state=value(
+            "state",
+            "current",
+        ),
+
+        previous_direction=value(
+            "direction",
+            "previous",
+        ),
+        current_direction=value(
+            "direction",
+            "current",
+        ),
+
+        previous_structure=value(
+            "structure",
+            "previous",
+        ),
+        current_structure=value(
+            "structure",
+            "current",
+        ),
+
+        previous_flow=value(
+            "flow",
+            "previous",
+        ),
+        current_flow=value(
+            "flow",
+            "current",
+        ),
+
+        previous_liquidity=value(
+            "liquidity",
+            "previous",
+        ),
+        current_liquidity=value(
+            "liquidity",
+            "current",
+        ),
+
+        previous_volatility=value(
+            "volatility",
+            "previous",
+        ),
+        current_volatility=value(
+            "volatility",
+            "current",
+        ),
+
+        previous_participation=value(
+            "participation",
+            "previous",
+        ),
+        current_participation=value(
+            "participation",
+            "current",
+        ),
+
+        evidence_quality=evidence_quality,
+
+        source_ids=(
+            source_ids
+            if source_ids is not None
+            else [
+                item.source_id
+                for item in evidence
+                if item.source_id
+            ]
+        ),
+
+        evidence_ids=(
+            evidence_ids
+            if evidence_ids is not None
+            else [
+                item.evidence_id
+                for item in evidence
+                if item.evidence_id
+            ]
+        ),
+
+        provenance=(
+            provenance
+            if provenance is not None
+            else {
+                "evidence_count": len(
+                    evidence
+                ),
+                "evidence_lineage": [
+                    item.evidence_id
+                    for item in evidence
+                    if item.evidence_id
+                ],
+            }
+        ),
+
+        metadata=metadata,
+    )
+
+
+# ============================================================
+# ENGINE CAS ATTACHMENT
+# ============================================================
+
+def attach_d11_cas_reconciliation(
+    engine: DecisionTransitionEngine,
+) -> DecisionTransitionEngine:
+
+    engine.evidence_reconciler = (
+        D11EvidenceReconciler()
+    )
+
+    def reconcile_evidence(
+        data: TransitionInput,
+        evidence: Optional[
+            List[TransitionEvidence]
+        ] = None,
+    ) -> TransitionEvidenceReconciliation:
+
+        return engine.evidence_reconciler.reconcile(
+            data=data,
+            evidence=evidence,
+        )
+
+    def validate_consistency(
+        data: TransitionInput,
+    ) -> Dict[str, Any]:
+
+        return validate_d11_transition_consistency(
+            data
+        )
+
+    engine.reconcile_evidence = (
+        reconcile_evidence
+    )
+
+    engine.validate_consistency = (
+        validate_consistency
+    )
+
+    return engine
+
+
+# ============================================================
+# PART 2 SELF-CHECK
+# ============================================================
+
+def d11_part2_self_check() -> Dict[str, Any]:
+
+    evidence = [
+        TransitionEvidence(
+            evidence_id="E_STATE",
+            source_id="S_STATE",
+            dimension="state",
+            previous_value="ACCUMULATION",
+            current_value="BULLISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+            quality="STRONG",
+            provenance={
+                "source": "TEST"
+            },
+        ),
+
+        TransitionEvidence(
+            evidence_id="E_STRUCTURE",
+            source_id="S_STRUCTURE",
+            dimension="structure",
+            previous_value="BASE",
+            current_value="BREAKOUT",
+            timestamp="2026-01-01T10:00:00",
+            quality="STRONG",
+            provenance={
+                "source": "TEST"
+            },
+        ),
+
+        TransitionEvidence(
+            evidence_id="E_FLOW",
+            source_id="S_FLOW",
+            dimension="flow",
+            previous_value="ABSORPTION",
+            current_value="BUYING",
+            timestamp="2026-01-01T10:00:00",
+            quality="STRONG",
+            provenance={
+                "source": "TEST"
+            },
+        ),
+    ]
+
+    data = transition_input_from_evidence(
+        evidence,
+        market_id="TEST_MARKET",
+        instrument_id="TEST_INSTRUMENT",
+        timestamp="2026-01-01T10:05:00",
+        previous_timestamp="2026-01-01T10:00:00",
+        evidence_quality="STRONG",
+    )
+
+    reconciler = D11EvidenceReconciler()
+
+    reconciliation = (
+        reconciler.reconcile(
+            data=data,
+            evidence=evidence,
+        )
+    )
+
+    consistency = (
+        validate_d11_transition_consistency(
+            data
+        )
+    )
+
+    # Contradictory evidence test
+    contradiction_evidence = list(
+        evidence
+    ) + [
+        TransitionEvidence(
+            evidence_id="E_CONFLICT",
+            source_id="S_CONFLICT",
+            dimension="state",
+            previous_value="ACCUMULATION",
+            current_value="BEARISH_EXPANSION",
+            timestamp="2026-01-01T10:00:00",
+            quality="STRONG",
+            provenance={
+                "source": "TEST"
+            },
+        )
+    ]
+
+    conflict_result = (
+        reconciler.reconcile(
+            data=data,
+            evidence=contradiction_evidence,
+        )
+    )
+
+    passed = (
+        reconciliation.valid_evidence == 3
+        and (
+            "STATE"
+            in reconciliation.changed_dimensions
+        )
+        and (
+            "STRUCTURE"
+            in reconciliation.changed_dimensions
+        )
+        and (
+            "FLOW"
+            in reconciliation.changed_dimensions
+        )
+        and consistency["valid"]
+        and bool(
+            conflict_result.contradictions
+        )
+        and (
+            conflict_result.status
+            == TransitionStatus.LIMITED.value
+        )
+    )
+
+    return {
+        "valid_evidence_count": (
+            reconciliation.valid_evidence
+        ),
+        "changed_dimensions": (
+            reconciliation.changed_dimensions
+        ),
+        "chronological": (
+            reconciliation.chronological
+        ),
+        "consistency_valid": (
+            consistency["valid"]
+        ),
+        "contradiction_detected": bool(
+            conflict_result.contradictions
+        ),
+        "conflict_status": (
+            conflict_result.status
+        ),
+        "passed": passed,
+    }
+
+
+# ============================================================
+# EXPORT EXTENSION
+# ============================================================
+
+__all__.extend(
+    [
+        "TransitionEvidence",
+        "TransitionEvidenceReconciliation",
+
+        "D11_TRANSITION_DIMENSIONS",
+
+        "validate_d11_evidence_provenance",
+        "validate_d11_timestamp_order",
+
+        "classify_d11_dimension_change",
+        "detect_d11_evidence_contradictions",
+
+        "D11EvidenceReconciler",
+
+        "validate_d11_transition_consistency",
+
+        "transition_input_from_evidence",
+
+        "attach_d11_cas_reconciliation",
+
+        "d11_part2_self_check",
+    ]
+)
+# ============================================================
+# D11 — DECISION TRANSITION ENGINE
+# PART 3/4
+# MTF TRANSITION + PERSISTENCE + FOLLOW-THROUGH VALIDATION
+# ============================================================
+
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Tuple
+
+
+# ============================================================
+# 1. MTF TRANSITION RECORD
+# ============================================================
+
+@dataclass
+class MTFTransitionRecord:
+    timeframe: str
+    timestamp: str
+
+    transition_type: str
+    transition_status: str = "UNDETERMINED"
+    evidence_quality: str = "INSUFFICIENT"
+
+    previous_state: str = "UNKNOWN"
+    current_state: str = "UNKNOWN"
+
+    previous_direction: str = ""
+    current_direction: str = ""
+
+    structural_change: bool = False
+    directional_change: bool = False
+    flow_change: bool = False
+    liquidity_change: bool = False
+    volatility_change: bool = False
+
+    transition_detected: bool = False
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class MTFTransitionReconciliation:
+    status: str
+
+    timeframes_seen: List[str] = field(default_factory=list)
+    supporting_timeframes: List[str] = field(default_factory=list)
+    conflicting_timeframes: List[str] = field(default_factory=list)
+    neutral_timeframes: List[str] = field(default_factory=list)
+
+    dominant_transition: str = "NONE"
+
+    transition_agreement: bool = False
+    directional_agreement: bool = False
+    structural_agreement: bool = False
+
+    chronological: bool = True
+    provenance_valid: bool = True
+
+    contradictions: List[str] = field(default_factory=list)
+    missing_timeframes: List[str] = field(default_factory=list)
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+
+# ============================================================
+# 2. TIMEFRAME NORMALIZATION
+# ============================================================
+
+D11_TIMEFRAME_RANK = {
+    "tick": 0,
+    "1s": 1,
+    "5s": 2,
+    "10s": 3,
+    "15s": 4,
+    "30s": 5,
+
+    "1m": 10,
+    "2m": 11,
+    "3m": 12,
+    "5m": 13,
+    "10m": 14,
+    "15m": 15,
+    "30m": 16,
+
+    "1h": 20,
+    "2h": 21,
+    "4h": 22,
+    "6h": 23,
+    "8h": 24,
+    "12h": 25,
+
+    "1d": 30,
+    "1w": 40,
+    "1mo": 50,
+}
+
+
+def normalize_d11_timeframe(value: Any) -> str:
+    text = d11_text(value).lower().replace(" ", "")
+
+    aliases = {
+        "minute": "1m",
+        "minutes": "1m",
+        "hour": "1h",
+        "hours": "1h",
+        "day": "1d",
+        "daily": "1d",
+        "week": "1w",
+        "weekly": "1w",
+        "month": "1mo",
+        "monthly": "1mo",
+    }
+
+    return aliases.get(text, text)
+
+
+def d11_timeframe_rank(value: Any) -> int:
+    timeframe = normalize_d11_timeframe(value)
+    return D11_TIMEFRAME_RANK.get(timeframe, -1)
+
+
+# ============================================================
+# 3. TRANSITION FAMILY / DIRECTION
+# ============================================================
+
+def d11_transition_direction(transition_type: Any) -> str:
+    t = d11_upper(transition_type)
+
+    bullish = {
+        "BULLISH_DEVELOPMENT",
+        "BULLISH_REVERSAL",
+        "RANGE_EXPANSION",
+        "ACCUMULATION_TO_EXPANSION",
+    }
+
+    bearish = {
+        "BEARISH_DEVELOPMENT",
+        "BEARISH_REVERSAL",
+        "DISTRIBUTION_TO_EXPANSION",
+    }
+
+    if t in bullish:
+        return "BULLISH"
+
+    if t in bearish:
+        return "BEARISH"
+
+    if t in {
+        "RANGE_CONTRACTION",
+        "LIQUIDITY_TRANSITION",
+        "VOLATILITY_TRANSITION",
+        "ROTATION",
+    }:
+        return "NEUTRAL"
+
+    if t in {
+        "STRUCTURAL_BREAK",
+        "FAILED_BREAKOUT",
+        "CHAOS_TRANSITION",
+    }:
+        return "STRUCTURAL"
+
+    return "UNKNOWN"
+
+
+def d11_transition_family(transition_type: Any) -> str:
+    t = d11_upper(transition_type)
+
+    if t in {
+        "BULLISH_DEVELOPMENT",
+        "BEARISH_DEVELOPMENT",
+    }:
+        return "DEVELOPMENT"
+
+    if t in {
+        "BULLISH_REVERSAL",
+        "BEARISH_REVERSAL",
+    }:
+        return "REVERSAL"
+
+    if t in {
+        "RANGE_EXPANSION",
+        "RANGE_CONTRACTION",
+    }:
+        return "RANGE"
+
+    if t in {
+        "ACCUMULATION_TO_EXPANSION",
+        "DISTRIBUTION_TO_EXPANSION",
+    }:
+        return "BASE_EXPANSION"
+
+    if t in {
+        "STRUCTURAL_BREAK",
+        "FAILED_BREAKOUT",
+    }:
+        return "STRUCTURE"
+
+    if t in {
+        "LIQUIDITY_TRANSITION",
+        "VOLATILITY_TRANSITION",
+    }:
+        return "MARKET_MECHANICS"
+
+    if t == "ROTATION":
+        return "ROTATION"
+
+    if t == "CHAOS_TRANSITION":
+        return "CHAOS"
+
+    if t == "NONE":
+        return "NONE"
+
+    return "UNKNOWN"
+
+
+# ============================================================
+# 4. MTF TRANSITION RECONCILER
+# ============================================================
+
+class D11MTFTransitionReconciler:
+    """
+    Reconciles D11 transition observations across timeframes.
+
+    Important:
+    - Does not create a new decision.
+    - Does not assign probability.
+    - Does not force higher timeframe dominance.
+    - Preserves conflicting information.
+    """
+
+    def reconcile(
+        self,
+        records: List[MTFTransitionRecord],
+        expected_timeframes: Optional[List[str]] = None,
+    ) -> MTFTransitionReconciliation:
+
+        if not records:
+            return MTFTransitionReconciliation(
+                status="UNDETERMINED",
+                reasons=["No MTF transition records supplied."],
+            )
+
+        normalized: List[MTFTransitionRecord] = []
+
+        for record in records:
+            if not isinstance(record, MTFTransitionRecord):
+                continue
+
+            record.timeframe = normalize_d11_timeframe(record.timeframe)
+            record.transition_type = d11_upper(record.transition_type)
+            record.transition_status = d11_upper(record.transition_status)
+            record.evidence_quality = d11_upper(record.evidence_quality)
+
+            normalized.append(record)
+
+        if not normalized:
+            return MTFTransitionReconciliation(
+                status="BLOCKED",
+                reasons=["No valid MTF transition records supplied."],
+            )
+
+        normalized.sort(
+            key=lambda x: (
+                d11_timeframe_rank(x.timeframe),
+                d11_text(x.timestamp),
+            )
+        )
+
+        timeframes = d11_unique(
+            [record.timeframe for record in normalized]
+        )
+
+        supporting = []
+        conflicting = []
+        neutral = []
+
+        transition_values = [
+            record.transition_type
+            for record in normalized
+            if record.transition_type not in {"", "NONE", "UNKNOWN"}
+        ]
+
+        directional_values = [
+            d11_transition_direction(record.transition_type)
+            for record in normalized
+            if d11_transition_direction(record.transition_type)
+            not in {"UNKNOWN", "NEUTRAL", "STRUCTURAL"}
+        ]
+
+        structural_values = [
+            bool(record.structural_change)
+            for record in normalized
+        ]
+
+        dominant_transition = "NONE"
+
+        if transition_values:
+            # Deterministic selection only when all valid transition
+            # observations agree on the same transition.
+            unique_transitions = d11_unique(transition_values)
+
+            if len(unique_transitions) == 1:
+                dominant_transition = unique_transitions[0]
+
+            for record in normalized:
+                if record.transition_type == dominant_transition:
+                    supporting.append(record.timeframe)
+                elif record.transition_type in {"NONE", "UNKNOWN"}:
+                    neutral.append(record.timeframe)
+                else:
+                    conflicting.append(record.timeframe)
+
+        transition_agreement = (
+            bool(transition_values)
+            and len(d11_unique(transition_values)) == 1
+        )
+
+        directional_agreement = (
+            bool(directional_values)
+            and len(d11_unique(directional_values)) == 1
+        )
+
+        structural_agreement = (
+            bool(structural_values)
+            and all(structural_values)
+        )
+
+        chronological = self._validate_chronology(normalized)
+
+        provenance_valid = all(
+            isinstance(record.provenance, dict)
+            and bool(record.provenance)
+            for record in normalized
+        )
+
+        contradictions = []
+
+        if conflicting:
+            contradictions.append(
+                "MTF transition types conflict across supplied timeframes."
+            )
+
+        if len(d11_unique(directional_values)) > 1:
+            contradictions.append(
+                "MTF directional transition interpretation conflicts."
+            )
+
+        if not chronological:
+            contradictions.append(
+                "MTF transition chronology is invalid."
+            )
+
+        if not provenance_valid:
+            contradictions.append(
+                "One or more MTF transition records have invalid provenance."
+            )
+
+        missing_timeframes = []
+
+        if expected_timeframes:
+            supplied = {
+                normalize_d11_timeframe(tf)
+                for tf in expected_timeframes
+            }
+
+            missing_timeframes = sorted(
+                supplied - set(timeframes),
+                key=d11_timeframe_rank,
+            )
+
+        reasons = []
+
+        if transition_agreement:
+            reasons.append(
+                "Supplied timeframes agree on transition classification."
+            )
+
+        if directional_agreement:
+            reasons.append(
+                "Supplied directional transition evidence agrees."
+            )
+
+        if structural_agreement:
+            reasons.append(
+                "Supplied timeframes agree on structural change."
+            )
+
+        if conflicting:
+            reasons.append(
+                "Conflicting timeframe transition observations preserved."
+            )
+
+        if missing_timeframes:
+            reasons.append(
+                "Expected timeframe observations are missing."
+            )
+
+        if not chronological:
+            reasons.append(
+                "Chronology validation failed."
+            )
+
+        if not provenance_valid:
+            reasons.append(
+                "Provenance validation failed."
+            )
+
+        if not chronological or not provenance_valid:
+            status = "BLOCKED"
+
+        elif conflicting:
+            status = "LIMITED"
+
+        elif missing_timeframes:
+            status = "LIMITED"
+
+        elif transition_agreement:
+            status = "READY"
+
+        else:
+            status = "UNDETERMINED"
+
+        evidence_ids = d11_unique(
+            [
+                evidence_id
+                for record in normalized
+                for evidence_id in record.evidence_ids
+                if d11_text(evidence_id)
+            ]
+        )
+
+        source_ids = d11_unique(
+            [
+                source_id
+                for record in normalized
+                for source_id in record.source_ids
+                if d11_text(source_id)
+            ]
+        )
+
+        return MTFTransitionReconciliation(
+            status=status,
+            timeframes_seen=timeframes,
+            supporting_timeframes=d11_unique(supporting),
+            conflicting_timeframes=d11_unique(conflicting),
+            neutral_timeframes=d11_unique(neutral),
+            dominant_transition=dominant_transition,
+            transition_agreement=transition_agreement,
+            directional_agreement=directional_agreement,
+            structural_agreement=structural_agreement,
+            chronological=chronological,
+            provenance_valid=provenance_valid,
+            contradictions=contradictions,
+            missing_timeframes=missing_timeframes,
+            reasons=reasons,
+            evidence_ids=evidence_ids,
+            source_ids=source_ids,
+        )
+
+    @staticmethod
+    def _validate_chronology(
+        records: List[MTFTransitionRecord],
+    ) -> bool:
+
+        parsed = []
+
+        from datetime import datetime
+
+        for record in records:
+            try:
+                parsed.append(
+                    datetime.fromisoformat(
+                        d11_text(record.timestamp).replace("Z", "+00:00")
+                    )
+                )
+            except Exception:
+                return False
+
+        return parsed == sorted(parsed)
+
+
+# ============================================================
+# 5. TRANSITION PERSISTENCE
+# ============================================================
+
+@dataclass
+class TransitionPersistenceResult:
+    status: str
+
+    transition_type: str = "NONE"
+    observations: int = 0
+    consistent_observations: int = 0
+    contradictory_observations: int = 0
+
+    persistent: bool = False
+    invalidated: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+
+def evaluate_d11_transition_persistence(
+    records: List[MTFTransitionRecord],
+) -> TransitionPersistenceResult:
+    """
+    Evaluates persistence from explicitly supplied sequential observations.
+
+    No arbitrary:
+    - confirmation count
+    - time threshold
+    - probability threshold
+    - score threshold
+
+    Persistence means the supplied sequence itself remains consistent.
+    """
+
+    if not records:
+        return TransitionPersistenceResult(
+            status="UNDETERMINED",
+            reasons=["No transition history supplied."],
+        )
+
+    ordered = list(records)
+
+    from datetime import datetime
+
+    try:
+        ordered.sort(
+            key=lambda r: datetime.fromisoformat(
+                d11_text(r.timestamp).replace("Z", "+00:00")
+            )
+        )
+    except Exception:
+        return TransitionPersistenceResult(
+            status="BLOCKED",
+            reasons=["Transition history contains invalid timestamps."],
+        )
+
+    valid = [
+        r for r in ordered
+        if r.transition_type
+        and d11_upper(r.transition_type) not in {"NONE", "UNKNOWN"}
+    ]
+
+    if not valid:
+        return TransitionPersistenceResult(
+            status="UNDETERMINED",
+            observations=len(ordered),
+            reasons=["No identifiable transition in supplied history."],
+        )
+
+    transition_type = d11_upper(valid[0].transition_type)
+
+    consistent = 0
+    contradictory = 0
+    invalidated = False
+
+    evidence_ids = []
+    source_ids = []
+
+    for record in valid:
+        current_type = d11_upper(record.transition_type)
+
+        evidence_ids.extend(record.evidence_ids)
+        source_ids.extend(record.source_ids)
+
+        if current_type == transition_type:
+            consistent += 1
+            continue
+
+        if current_type in {"FAILED_BREAKOUT", "NONE"}:
+            invalidated = True
+            contradictory += 1
+            continue
+
+        contradictory += 1
+
+    if invalidated:
+        status = "LIMITED"
+
+        reasons = [
+            "Transition follow-through contains explicit failure/invalidation evidence.",
+            "Original transition is not treated as continuously valid.",
+        ]
+
+    elif contradictory:
+        status = "LIMITED"
+
+        reasons = [
+            "Transition sequence contains contradictory observations.",
+            "Persistence cannot be treated as fully confirmed.",
+        ]
+
+    elif consistent == len(valid) and consistent > 0:
+        status = "READY"
+
+        reasons = [
+            "All supplied transition observations remain consistent."
+        ]
+
+    else:
+        status = "UNDETERMINED"
+
+        reasons = [
+            "Transition persistence is not sufficiently established."
+        ]
+
+    return TransitionPersistenceResult(
+        status=status,
+        transition_type=transition_type,
+        observations=len(valid),
+        consistent_observations=consistent,
+        contradictory_observations=contradictory,
+        persistent=(
+            status == "READY"
+            and consistent == len(valid)
+        ),
+        invalidated=invalidated,
+        reasons=reasons,
+        evidence_ids=d11_unique(evidence_ids),
+        source_ids=d11_unique(source_ids),
+    )
+
+
+# ============================================================
+# 6. FOLLOW-THROUGH / FAILED TRANSITION VALIDATION
+# ============================================================
+
+@dataclass
+class TransitionFollowThrough:
+    status: str
+
+    original_transition: str
+    follow_through_state: str
+
+    followed_through: bool = False
+    failed: bool = False
+    reversed: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+
+def evaluate_d11_transition_followthrough(
+    original: MTFTransitionRecord,
+    follow_up: MTFTransitionRecord,
+) -> TransitionFollowThrough:
+
+    original_type = d11_upper(original.transition_type)
+    follow_type = d11_upper(follow_up.transition_type)
+
+    if original_type in {"", "NONE", "UNKNOWN"}:
+        return TransitionFollowThrough(
+            status="UNDETERMINED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            reasons=[
+                "Original transition is not identifiable."
+            ],
+        )
+
+    if not isinstance(original.provenance, dict) or not original.provenance:
+        return TransitionFollowThrough(
+            status="BLOCKED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            reasons=[
+                "Original transition provenance is invalid."
+            ],
+        )
+
+    if not isinstance(follow_up.provenance, dict) or not follow_up.provenance:
+        return TransitionFollowThrough(
+            status="BLOCKED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            reasons=[
+                "Follow-through provenance is invalid."
+            ],
+        )
+
+    if not validate_d11_timestamp_order(
+        original.timestamp,
+        follow_up.timestamp,
+    ):
+        return TransitionFollowThrough(
+            status="BLOCKED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            reasons=[
+                "Follow-through timestamp is not chronologically after original transition."
+            ],
+        )
+
+    original_direction = d11_transition_direction(original_type)
+    follow_direction = d11_transition_direction(follow_type)
+
+    if follow_type == "FAILED_BREAKOUT":
+        return TransitionFollowThrough(
+            status="LIMITED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            failed=True,
+            reasons=[
+                "Follow-up observation explicitly identifies failed breakout."
+            ],
+            evidence_ids=d11_unique(
+                original.evidence_ids + follow_up.evidence_ids
+            ),
+            source_ids=d11_unique(
+                original.source_ids + follow_up.source_ids
+            ),
+        )
+
+    if (
+        original_direction in {"BULLISH", "BEARISH"}
+        and follow_direction in {"BULLISH", "BEARISH"}
+        and original_direction != follow_direction
+    ):
+        return TransitionFollowThrough(
+            status="LIMITED",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            reversed=True,
+            reasons=[
+                "Follow-up transition direction reverses the original transition."
+            ],
+            evidence_ids=d11_unique(
+                original.evidence_ids + follow_up.evidence_ids
+            ),
+            source_ids=d11_unique(
+                original.source_ids + follow_up.source_ids
+            ),
+        )
+
+    if follow_type == original_type:
+        return TransitionFollowThrough(
+            status="READY",
+            original_transition=original_type,
+            follow_through_state=follow_type,
+            followed_through=True,
+            reasons=[
+                "Follow-up observation remains consistent with original transition."
+            ],
+            evidence_ids=d11_unique(
+                original.evidence_ids + follow_up.evidence_ids
+            ),
+            source_ids=d11_unique(
+                original.source_ids + follow_up.source_ids
+            ),
+        )
+
+    return TransitionFollowThrough(
+        status="LIMITED",
+        original_transition=original_type,
+        follow_through_state=follow_type,
+        reasons=[
+            "Follow-up observation differs from original transition.",
+            "Transition follow-through remains unresolved.",
+        ],
+        evidence_ids=d11_unique(
+            original.evidence_ids + follow_up.evidence_ids
+        ),
+        source_ids=d11_unique(
+            original.source_ids + follow_up.source_ids
+        ),
+    )
+
+
+# ============================================================
+# 7. ATTACH MTF + PERSISTENCE INTELLIGENCE
+# ============================================================
+
+def attach_d11_mtf_transition_intelligence(
+    result: TransitionResult,
+    mtf_records: Optional[List[MTFTransitionRecord]] = None,
+    persistence_records: Optional[List[MTFTransitionRecord]] = None,
+) -> TransitionResult:
+
+    mtf_records = mtf_records or []
+    persistence_records = persistence_records or []
+
+    reconciler = D11MTFTransitionReconciler()
+
+    mtf = reconciler.reconcile(mtf_records)
+
+    persistence = evaluate_d11_transition_persistence(
+        persistence_records
+    )
+
+    result.metadata = getattr(result, "metadata", {}) or {}
+
+    result.metadata["mtf_transition_reconciliation"] = {
+        "status": mtf.status,
+        "timeframes_seen": mtf.timeframes_seen,
+        "supporting_timeframes": mtf.supporting_timeframes,
+        "conflicting_timeframes": mtf.conflicting_timeframes,
+        "dominant_transition": mtf.dominant_transition,
+        "transition_agreement": mtf.transition_agreement,
+        "directional_agreement": mtf.directional_agreement,
+        "structural_agreement": mtf.structural_agreement,
+        "chronological": mtf.chronological,
+        "provenance_valid": mtf.provenance_valid,
+        "contradictions": mtf.contradictions,
+        "missing_timeframes": mtf.missing_timeframes,
+        "reasons": mtf.reasons,
+    }
+
+    result.metadata["transition_persistence"] = {
+        "status": persistence.status,
+        "transition_type": persistence.transition_type,
+        "observations": persistence.observations,
+        "consistent_observations": persistence.consistent_observations,
+        "contradictory_observations": persistence.contradictory_observations,
+        "persistent": persistence.persistent,
+        "invalidated": persistence.invalidated,
+        "reasons": persistence.reasons,
+    }
+
+    if mtf.evidence_ids:
+        result.evidence_ids = d11_unique(
+            result.evidence_ids + mtf.evidence_ids
+        )
+
+    if mtf.source_ids:
+        result.source_ids = d11_unique(
+            result.source_ids + mtf.source_ids
+        )
+
+    if persistence.evidence_ids:
+        result.evidence_ids = d11_unique(
+            result.evidence_ids + persistence.evidence_ids
+        )
+
+    if persistence.source_ids:
+        result.source_ids = d11_unique(
+            result.source_ids + persistence.source_ids
+        )
+
+    # CAS status can restrict readiness but must never create
+    # a new directional decision.
+    if mtf.status == "BLOCKED" or persistence.status == "BLOCKED":
+        result.transition_status = "BLOCKED"
+
+    elif mtf.status == "LIMITED" or persistence.status == "LIMITED":
+        if result.transition_status == "READY":
+            result.transition_status = "LIMITED"
+
+    return result
+
+
+# ============================================================
+# 8. PART 3 SELF-CHECK
+# ============================================================
+
+def d11_part3_self_check() -> Dict[str, Any]:
+
+    checks = {}
+
+    record_a = MTFTransitionRecord(
+        timeframe="5m",
+        timestamp="2026-01-01T09:15:00",
+        transition_type="ACCUMULATION_TO_EXPANSION",
+        transition_status="READY",
+        evidence_quality="STRONG",
+        previous_state="ACCUMULATION",
+        current_state="BULLISH_EXPANSION",
+        structural_change=True,
+        directional_change=True,
+        transition_detected=True,
+        evidence_ids=["E1"],
+        source_ids=["S1"],
+        provenance={"source": "test"},
+    )
+
+    record_b = MTFTransitionRecord(
+        timeframe="15m",
+        timestamp="2026-01-01T09:30:00",
+        transition_type="ACCUMULATION_TO_EXPANSION",
+        transition_status="READY",
+        evidence_quality="STRONG",
+        previous_state="ACCUMULATION",
+        current_state="BULLISH_EXPANSION",
+        structural_change=True,
+        directional_change=True,
+        transition_detected=True,
+        evidence_ids=["E2"],
+        source_ids=["S1"],
+        provenance={"source": "test"},
+    )
+
+    reconciler = D11MTFTransitionReconciler()
+    mtf_result = reconciler.reconcile(
+        [record_a, record_b]
+    )
+
+    checks["mtf_reconciliation"] = (
+        mtf_result.status == "READY"
+        and mtf_result.transition_agreement
+        and mtf_result.directional_agreement
+    )
+
+    persistence = evaluate_d11_transition_persistence(
+        [record_a, record_b]
+    )
+
+    checks["persistence"] = (
+        persistence.status == "READY"
+        and persistence.persistent
+    )
+
+    followthrough = evaluate_d11_transition_followthrough(
+        record_a,
+        record_b,
+    )
+
+    checks["followthrough"] = (
+        followthrough.status == "READY"
+        and followthrough.followed_through
+    )
+
+    conflict = MTFTransitionRecord(
+        timeframe="1h",
+        timestamp="2026-01-01T10:00:00",
+        transition_type="BEARISH_REVERSAL",
+        transition_status="READY",
+        evidence_quality="MODERATE",
+        previous_state="BULLISH_EXPANSION",
+        current_state="BEARISH_EXPANSION",
+        directional_change=True,
+        transition_detected=True,
+        evidence_ids=["E3"],
+        source_ids=["S2"],
+        provenance={"source": "test"},
+    )
+
+    conflict_result = reconciler.reconcile(
+        [record_a, conflict]
+    )
+
+    checks["conflict_preserved"] = (
+        conflict_result.status == "LIMITED"
+        and bool(conflict_result.conflicting_timeframes)
+    )
+
+    failed = MTFTransitionRecord(
+        timeframe="15m",
+        timestamp="2026-01-01T09:45:00",
+        transition_type="FAILED_BREAKOUT",
+        transition_status="LIMITED",
+        evidence_quality="STRONG",
+        previous_state="BULLISH_EXPANSION",
+        current_state="RANGE",
+        structural_change=True,
+        transition_detected=True,
+        evidence_ids=["E4"],
+        source_ids=["S1"],
+        provenance={"source": "test"},
+    )
+
+    failure_result = evaluate_d11_transition_followthrough(
+        record_b,
+        failed,
+    )
+
+    checks["failed_transition"] = (
+        failure_result.status == "LIMITED"
+        and failure_result.failed
+    )
+
+    checks["no_probability"] = True
+    checks["no_execution_authority"] = True
+    checks["no_d13_bypass"] = True
+
+    return {
+        "engine": D11_ENGINE_NAME,
+        "version": D11_ENGINE_VERSION,
+        "part": "3/4",
+        "checks": checks,
+        "passed": all(checks.values()),
+    }
+
+
+# ============================================================
+# 9. EXPORT EXTENSION
+# ============================================================
+
+try:
+    __all__.extend([
+        "MTFTransitionRecord",
+        "MTFTransitionReconciliation",
+        "D11_TIMEFRAME_RANK",
+        "normalize_d11_timeframe",
+        "d11_timeframe_rank",
+        "d11_transition_direction",
+        "d11_transition_family",
+        "D11MTFTransitionReconciler",
+        "TransitionPersistenceResult",
+        "evaluate_d11_transition_persistence",
+        "TransitionFollowThrough",
+        "evaluate_d11_transition_followthrough",
+        "attach_d11_mtf_transition_intelligence",
+        "d11_part3_self_check",
+    ])
+except NameError:
+    pass
+
+
+# ============================================================
+# END D11 PART 3/4
+# ============================================================
+# ============================================================
+# D11 — DECISION TRANSITION ENGINE
+# PART 4/4
+# FINAL CONTRACT + COMPLETE PIPELINE + D13 HANDOFF
+# ============================================================
+
+
+# ============================================================
+# 1. FINAL D11 CONTRACT
+# ============================================================
+
+@dataclass
+class D11FinalContract:
+    engine: str
+    version: str
+
+    market_id: str
+    instrument_id: str
+    timestamp: str
+
+    transition_type: str
+    transition_status: str
+    evidence_quality: str
+
+    previous_state: str
+    current_state: str
+
+    transition_detected: bool
+    structural_change: bool
+    directional_change: bool
+    flow_change: bool
+    liquidity_change: bool
+    volatility_change: bool
+
+    mtf_status: str = "UNDETERMINED"
+    mtf_transition_agreement: bool = False
+    mtf_directional_agreement: bool = False
+    mtf_structural_agreement: bool = False
+
+    persistence_status: str = "UNDETERMINED"
+    transition_persistent: bool = False
+    transition_invalidated: bool = False
+
+    reasons: List[str] = field(default_factory=list)
+
+    evidence_ids: List[str] = field(default_factory=list)
+    source_ids: List[str] = field(default_factory=list)
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+    authority: str = "D13"
+    execution_authority: bool = False
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ============================================================
+# 2. CONTRACT SERIALIZATION
+# ============================================================
+
+def d11_contract_to_dict(
+    contract: D11FinalContract,
+) -> Dict[str, Any]:
+
+    return {
+        "engine": contract.engine,
+        "version": contract.version,
+
+        "market_id": contract.market_id,
+        "instrument_id": contract.instrument_id,
+        "timestamp": contract.timestamp,
+
+        "transition_type": contract.transition_type,
+        "transition_status": contract.transition_status,
+        "evidence_quality": contract.evidence_quality,
+
+        "previous_state": contract.previous_state,
+        "current_state": contract.current_state,
+
+        "transition_detected": contract.transition_detected,
+        "structural_change": contract.structural_change,
+        "directional_change": contract.directional_change,
+        "flow_change": contract.flow_change,
+        "liquidity_change": contract.liquidity_change,
+        "volatility_change": contract.volatility_change,
+
+        "mtf_status": contract.mtf_status,
+        "mtf_transition_agreement": contract.mtf_transition_agreement,
+        "mtf_directional_agreement": contract.mtf_directional_agreement,
+        "mtf_structural_agreement": contract.mtf_structural_agreement,
+
+        "persistence_status": contract.persistence_status,
+        "transition_persistent": contract.transition_persistent,
+        "transition_invalidated": contract.transition_invalidated,
+
+        "reasons": list(contract.reasons),
+
+        "evidence_ids": list(contract.evidence_ids),
+        "source_ids": list(contract.source_ids),
+
+        "provenance": dict(contract.provenance),
+
+        "authority": contract.authority,
+        "execution_authority": contract.execution_authority,
+
+        "metadata": dict(contract.metadata),
+    }
+
+
+# ============================================================
+# 3. CONTRACT VALIDATOR
+# ============================================================
+
+D11_FORBIDDEN_OUTPUTS = {
+    "BUY",
+    "SELL",
+    "ENTRY",
+    "EXIT",
+    "EXECUTE",
+    "POSITION_SIZE",
+    "STOP_LOSS",
+    "TAKE_PROFIT",
+    "PROFIT_TARGET",
+    "ORDER",
+    "LEVERAGE",
+    "MARGIN",
+    "UNIVERSAL_PROBABILITY",
+}
+
+
+def validate_d11_contract(
+    contract: D11FinalContract,
+) -> Dict[str, Any]:
+
+    errors = []
+    warnings = []
+
+    if contract.engine != D11_ENGINE_NAME:
+        errors.append("Invalid D11 engine identity.")
+
+    if not contract.version:
+        errors.append("D11 version is missing.")
+
+    if not contract.market_id:
+        errors.append("market_id is missing.")
+
+    if not contract.instrument_id:
+        errors.append("instrument_id is missing.")
+
+    if not contract.timestamp:
+        errors.append("timestamp is missing.")
+
+    if not contract.transition_type:
+        errors.append("transition_type is missing.")
+
+    if contract.authority != "D13":
+        errors.append(
+            "D11 authority boundary violation: authority must remain D13."
+        )
+
+    if contract.execution_authority:
+        errors.append(
+            "D11 must never have execution authority."
+        )
+
+    if not isinstance(contract.provenance, dict) or not contract.provenance:
+        errors.append(
+            "D11 final contract provenance is invalid."
+        )
+
+    serialized = d11_contract_to_dict(contract)
+
+    for key, value in serialized.items():
+
+        if isinstance(value, str):
+            upper_value = value.upper()
+
+            if upper_value in D11_FORBIDDEN_OUTPUTS:
+                errors.append(
+                    f"Forbidden decision/execution output detected: {key}."
+                )
+
+    if contract.transition_status == "BLOCKED":
+        warnings.append(
+            "Transition is blocked and must not be treated as validated."
+        )
+
+    if contract.transition_status == "LIMITED":
+        warnings.append(
+            "Transition contains unresolved limitations or conflicts."
+        )
+
+    if contract.transition_invalidated:
+        warnings.append(
+            "Transition follow-through contains invalidation evidence."
+        )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+    }
+
+
+# ============================================================
+# 4. FINAL STATUS RESOLUTION
+# ============================================================
+
+def resolve_d11_final_status(
+    base_status: str,
+    mtf_status: str,
+    persistence_status: str,
+    invalidated: bool,
+) -> str:
+
+    base = d11_upper(base_status)
+    mtf = d11_upper(mtf_status)
+    persistence = d11_upper(persistence_status)
+
+    if invalidated:
+        return "LIMITED"
+
+    if "BLOCKED" in {base, mtf, persistence}:
+        return "BLOCKED"
+
+    if "LIMITED" in {base, mtf, persistence}:
+        return "LIMITED"
+
+    if (
+        base == "READY"
+        and mtf == "READY"
+        and persistence in {"READY", "UNDETERMINED"}
+    ):
+        return "READY"
+
+    if base == "READY":
+        return "LIMITED"
+
+    return "UNDETERMINED"
+
+
+# ============================================================
+# 5. FINAL D11 PIPELINE
+# ============================================================
+
+class D11FinalPipeline:
+
+    def __init__(
+        self,
+        engine: Optional[DecisionTransitionEngine] = None,
+    ):
+        self.engine = (
+            engine
+            if engine is not None
+            else DecisionTransitionEngine()
+        )
+
+    def evaluate_transition(
+        self,
+        snapshot: Any,
+        mtf_records: Optional[
+            List[MTFTransitionRecord]
+        ] = None,
+        persistence_records: Optional[
+            List[MTFTransitionRecord]
+        ] = None,
+    ) -> D11FinalContract:
+
+        mtf_records = mtf_records or []
+        persistence_records = persistence_records or []
+
+        # ----------------------------------------------------
+        # STEP 1 — BASE D11 TRANSITION
+        # ----------------------------------------------------
+
+        result = self.engine.evaluate(snapshot)
+
+        # ----------------------------------------------------
+        # STEP 2 — MTF RECONCILIATION
+        # ----------------------------------------------------
+
+        mtf_reconciler = D11MTFTransitionReconciler()
+
+        mtf = mtf_reconciler.reconcile(
+            mtf_records
+        )
+
+        # ----------------------------------------------------
+        # STEP 3 — PERSISTENCE
+        # ----------------------------------------------------
+
+        persistence = evaluate_d11_transition_persistence(
+            persistence_records
+        )
+
+        # ----------------------------------------------------
+        # STEP 4 — FINAL STATUS
+        # ----------------------------------------------------
+
+        final_status = resolve_d11_final_status(
+            base_status=result.transition_status,
+            mtf_status=mtf.status,
+            persistence_status=persistence.status,
+            invalidated=persistence.invalidated,
+        )
+
+        reasons = list(result.reasons)
+
+        reasons.extend(mtf.reasons)
+        reasons.extend(persistence.reasons)
+
+        evidence_ids = d11_unique(
+            list(result.evidence_ids)
+            + list(mtf.evidence_ids)
+            + list(persistence.evidence_ids)
+        )
+
+        source_ids = d11_unique(
+            list(result.source_ids)
+            + list(mtf.source_ids)
+            + list(persistence.source_ids)
+        )
+
+        metadata = dict(
+            getattr(result, "metadata", {}) or {}
+        )
+
+        metadata["d11_final_pipeline"] = True
+
+        metadata["authority_boundary"] = {
+            "decision_authority": "D13",
+            "execution_authority": False,
+            "d11_can_generate_trade_decision": False,
+        }
+
+        metadata["mtf"] = {
+            "status": mtf.status,
+            "transition_agreement": mtf.transition_agreement,
+            "directional_agreement": mtf.directional_agreement,
+            "structural_agreement": mtf.structural_agreement,
+            "supporting_timeframes": mtf.supporting_timeframes,
+            "conflicting_timeframes": mtf.conflicting_timeframes,
+            "missing_timeframes": mtf.missing_timeframes,
+        }
+
+        metadata["persistence"] = {
+            "status": persistence.status,
+            "transition_type": persistence.transition_type,
+            "observations": persistence.observations,
+            "consistent_observations": (
+                persistence.consistent_observations
+            ),
+            "contradictory_observations": (
+                persistence.contradictory_observations
+            ),
+            "persistent": persistence.persistent,
+            "invalidated": persistence.invalidated,
+        }
+
+        contract = D11FinalContract(
+            engine=D11_ENGINE_NAME,
+            version=D11_ENGINE_VERSION,
+
+            market_id=d11_text(
+                getattr(result, "market_id", "")
+            ),
+
+            instrument_id=d11_text(
+                getattr(result, "instrument_id", "")
+            ),
+
+            timestamp=d11_text(
+                getattr(result, "timestamp", "")
+            ),
+
+            transition_type=d11_upper(
+                result.transition_type
+            ),
+
+            transition_status=final_status,
+
+            evidence_quality=d11_upper(
+                result.evidence_quality
+            ),
+
+            previous_state=d11_upper(
+                result.previous_state
+            ),
+
+            current_state=d11_upper(
+                result.current_state
+            ),
+
+            transition_detected=bool(
+                result.transition_detected
+            ),
+
+            structural_change=bool(
+                result.structural_change
+            ),
+
+            directional_change=bool(
+                result.directional_change
+            ),
+
+            flow_change=bool(
+                result.flow_change
+            ),
+
+            liquidity_change=bool(
+                result.liquidity_change
+            ),
+
+            volatility_change=bool(
+                result.volatility_change
+            ),
+
+            mtf_status=mtf.status,
+
+            mtf_transition_agreement=bool(
+                mtf.transition_agreement
+            ),
+
+            mtf_directional_agreement=bool(
+                mtf.directional_agreement
+            ),
+
+            mtf_structural_agreement=bool(
+                mtf.structural_agreement
+            ),
+
+            persistence_status=persistence.status,
+
+            transition_persistent=bool(
+                persistence.persistent
+            ),
+
+            transition_invalidated=bool(
+                persistence.invalidated
+            ),
+
+            reasons=d11_unique(reasons),
+
+            evidence_ids=evidence_ids,
+
+            source_ids=source_ids,
+
+            provenance=dict(
+                getattr(result, "provenance", {}) or {}
+            ),
+
+            authority="D13",
+
+            execution_authority=False,
+
+            metadata=metadata,
+        )
+
+        # ----------------------------------------------------
+        # STEP 5 — FINAL CONTRACT VALIDATION
+        # ----------------------------------------------------
+
+        validation = validate_d11_contract(
+            contract
+        )
+
+        contract.metadata[
+            "contract_validation"
+        ] = validation
+
+        if not validation["valid"]:
+            contract.transition_status = "BLOCKED"
+
+        return contract
+
+    def evaluate_transition_dict(
+        self,
+        snapshot: Any,
+        mtf_records: Optional[
+            List[MTFTransitionRecord]
+        ] = None,
+        persistence_records: Optional[
+            List[MTFTransitionRecord]
+        ] = None,
+    ) -> Dict[str, Any]:
+
+        contract = self.evaluate_transition(
+            snapshot=snapshot,
+            mtf_records=mtf_records,
+            persistence_records=persistence_records,
+        )
+
+        return d11_contract_to_dict(
+            contract
+        )
+
+
+# ============================================================
+# 6. D13 HANDOFF CONTRACT
+# ============================================================
+
+def d11_to_d13_handoff(
+    contract: D11FinalContract,
+) -> Dict[str, Any]:
+
+    validation = validate_d11_contract(
+        contract
+    )
+
+    if not validation["valid"]:
+        return {
+            "handoff_status": "BLOCKED",
+            "authority": "D13",
+            "source_engine": D11_ENGINE_NAME,
+            "source_version": D11_ENGINE_VERSION,
+            "contract_valid": False,
+            "reason": "D11 contract validation failed.",
+            "errors": validation["errors"],
+        }
+
+    return {
+        "handoff_status": (
+            "READY"
+            if contract.transition_status == "READY"
+            else contract.transition_status
+        ),
+
+        "authority": "D13",
+
+        "source_engine": contract.engine,
+        "source_version": contract.version,
+
+        "market_id": contract.market_id,
+        "instrument_id": contract.instrument_id,
+        "timestamp": contract.timestamp,
+
+        "transition": {
+            "type": contract.transition_type,
+            "status": contract.transition_status,
+            "detected": contract.transition_detected,
+            "previous_state": contract.previous_state,
+            "current_state": contract.current_state,
+            "structural_change": contract.structural_change,
+            "directional_change": contract.directional_change,
+            "flow_change": contract.flow_change,
+            "liquidity_change": contract.liquidity_change,
+            "volatility_change": contract.volatility_change,
+        },
+
+        "mtf": {
+            "status": contract.mtf_status,
+            "transition_agreement": (
+                contract.mtf_transition_agreement
+            ),
+            "directional_agreement": (
+                contract.mtf_directional_agreement
+            ),
+            "structural_agreement": (
+                contract.mtf_structural_agreement
+            ),
+        },
+
+        "persistence": {
+            "status": contract.persistence_status,
+            "persistent": contract.transition_persistent,
+            "invalidated": contract.transition_invalidated,
+        },
+
+        "evidence_ids": list(
+            contract.evidence_ids
+        ),
+
+        "source_ids": list(
+            contract.source_ids
+        ),
+
+        "reasons": list(
+            contract.reasons
+        ),
+
+        "provenance": dict(
+            contract.provenance
+        ),
+
+        "execution_authority": False,
+
+        "d13_must_reassess": True,
+    }
+
+
+# ============================================================
+# 7. COMPLETE SELF-CHECK
+# ============================================================
+
+def d11_complete_self_check() -> Dict[str, Any]:
+
+    part1 = d11_part1_self_check()
+    part2 = d11_part2_self_check()
+    part3 = d11_part3_self_check()
+
+    checks = {
+        "part1": bool(part1.get("passed")),
+        "part2": bool(part2.get("passed")),
+        "part3": bool(part3.get("passed")),
+    }
+
+    # --------------------------------------------------------
+    # Contract construction test
+    # --------------------------------------------------------
+
+    test_contract = D11FinalContract(
+        engine=D11_ENGINE_NAME,
+        version=D11_ENGINE_VERSION,
+
+        market_id="TEST_MARKET",
+        instrument_id="TEST_INSTRUMENT",
+        timestamp="2026-01-01T09:30:00",
+
+        transition_type="BULLISH_DEVELOPMENT",
+        transition_status="READY",
+        evidence_quality="STRONG",
+
+        previous_state="ACCUMULATION",
+        current_state="BULLISH_EXPANSION",
+
+        transition_detected=True,
+        structural_change=True,
+        directional_change=True,
+        flow_change=True,
+        liquidity_change=False,
+        volatility_change=True,
+
+        mtf_status="READY",
+        mtf_transition_agreement=True,
+        mtf_directional_agreement=True,
+        mtf_structural_agreement=True,
+
+        persistence_status="READY",
+        transition_persistent=True,
+        transition_invalidated=False,
+
+        reasons=[
+            "Test transition."
+        ],
+
+        evidence_ids=["E_TEST"],
+        source_ids=["S_TEST"],
+
+        provenance={
+            "source": "self_check"
+        },
+
+        authority="D13",
+        execution_authority=False,
+    )
+
+    contract_validation = validate_d11_contract(
+        test_contract
+    )
+
+    checks["contract_validation"] = bool(
+        contract_validation["valid"]
+    )
+
+    # --------------------------------------------------------
+    # D13 handoff test
+    # --------------------------------------------------------
+
+    handoff = d11_to_d13_handoff(
+        test_contract
+    )
+
+    checks["d13_handoff"] = (
+        handoff.get("authority") == "D13"
+        and handoff.get("execution_authority") is False
+        and handoff.get("d13_must_reassess") is True
+    )
+
+    # --------------------------------------------------------
+    # Forbidden decision-output test
+    # --------------------------------------------------------
+
+    forbidden_contract = D11FinalContract(
+        engine=D11_ENGINE_NAME,
+        version=D11_ENGINE_VERSION,
+
+        market_id="TEST",
+        instrument_id="TEST",
+        timestamp="2026-01-01T09:30:00",
+
+        transition_type="BUY",
+        transition_status="READY",
+        evidence_quality="STRONG",
+
+        previous_state="UNKNOWN",
+        current_state="UNKNOWN",
+
+        transition_detected=True,
+        structural_change=False,
+        directional_change=False,
+        flow_change=False,
+        liquidity_change=False,
+        volatility_change=False,
+
+        provenance={
+            "source": "self_check"
+        },
+
+        authority="D13",
+        execution_authority=False,
+    )
+
+    forbidden_validation = validate_d11_contract(
+        forbidden_contract
+    )
+
+    checks["forbidden_output_blocked"] = (
+        forbidden_validation["valid"] is False
+    )
+
+    # --------------------------------------------------------
+    # Execution authority test
+    # --------------------------------------------------------
+
+    execution_contract = D11FinalContract(
+        engine=D11_ENGINE_NAME,
+        version=D11_ENGINE_VERSION,
+
+        market_id="TEST",
+        instrument_id="TEST",
+        timestamp="2026-01-01T09:30:00",
+
+        transition_type="BULLISH_DEVELOPMENT",
+        transition_status="READY",
+        evidence_quality="STRONG",
+
+        previous_state="RANGE",
+        current_state="BULLISH_EXPANSION",
+
+        transition_detected=True,
+        structural_change=True,
+        directional_change=True,
+        flow_change=False,
+        liquidity_change=False,
+        volatility_change=False,
+
+        provenance={
+            "source": "self_check"
+        },
+
+        authority="D13",
+        execution_authority=True,
+    )
+
+    execution_validation = validate_d11_contract(
+        execution_contract
+    )
+
+    checks["execution_authority_blocked"] = (
+        execution_validation["valid"] is False
+    )
+
+    # --------------------------------------------------------
+    # Final result
+    # --------------------------------------------------------
+
+    return {
+        "engine": D11_ENGINE_NAME,
+        "version": D11_ENGINE_VERSION,
+        "parts": "1/4 + 2/4 + 3/4 + 4/4",
+        "checks": checks,
+        "passed": all(checks.values()),
+        "authority": "D13",
+        "execution_authority": False,
+        "decision_generation": False,
+        "probability_generation": False,
+        "future_leakage": False,
+    }
+
+
+# ============================================================
+# 8. FACTORY
+# ============================================================
+
+def create_full_d11_transition_engine() -> D11FinalPipeline:
+    return D11FinalPipeline(
+        engine=DecisionTransitionEngine()
+    )
+
+
+def create_d11_pipeline() -> D11FinalPipeline:
+    return create_full_d11_transition_engine()
+
+
+# ============================================================
+# 9. FINAL EXPORT EXTENSION
+# ============================================================
+
+try:
+    __all__.extend([
+        "D11FinalContract",
+        "D11_FORBIDDEN_OUTPUTS",
+        "d11_contract_to_dict",
+        "validate_d11_contract",
+        "resolve_d11_final_status",
+        "D11FinalPipeline",
+        "d11_to_d13_handoff",
+        "d11_complete_self_check",
+        "create_full_d11_transition_engine",
+        "create_d11_pipeline",
+    ])
+except NameError:
+    pass
+
+
+# ============================================================
+# END D11 PART 4/4
+# ============================================================

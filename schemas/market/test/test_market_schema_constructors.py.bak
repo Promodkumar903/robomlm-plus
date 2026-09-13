@@ -1,0 +1,130 @@
+def test_market_snapshot_constructor():
+    from schemas.market.market_snapshot import MarketSnapshot
+
+    obj = MarketSnapshot(symbol="NIFTY")
+
+    assert obj.symbol == "NIFTY"
+
+    if hasattr(obj, "model_dump"):
+        data = obj.model_dump()
+    else:
+        data = obj.__dict__
+
+    assert isinstance(data, dict)
+
+
+def test_market_snapshot_missing_symbol():
+    from schemas.market.market_snapshot import MarketSnapshot
+
+    try:
+        MarketSnapshot()
+        assert False, "MarketSnapshot should require symbol"
+    except TypeError:
+        pass
+
+
+def test_required_market_schema_constructors():
+    from schemas.market.market_cashflow_type import CashflowTypeDefinition
+    from schemas.market.market_data_acknowledgement import MarketDataAcknowledgement
+    from schemas.market.market_data_channel import MarketDataChannel
+    from schemas.market.market_data_channel_event import MarketDataChannelEvent
+    from schemas.market.market_data_channel_message import MarketDataChannelMessage
+    from schemas.market.market_data_channel_message_acknowledgement import MarketDataChannelMessageAcknowledgement
+    from schemas.market.market_data_channel_message_error import MarketDataChannelMessageError
+    from schemas.market.market_data_channel_message_event import MarketDataChannelMessageEvent
+    from schemas.market.market_data_channel_message_retry import MarketDataChannelMessageRetry
+    from schemas.market.market_data_channel_message_retry_policy import MarketDataChannelMessageRetryPolicy
+    from schemas.market.market_data_quality import MarketDataQuality
+    from schemas.market.market_data_source import MarketDataSource
+    from schemas.market.market_data_status import MarketDataStatus
+    from schemas.market.market_data_field import MarketDataField
+    from schemas.market.market_data_packet import MarketDataPacket
+    from schemas.market.market_data_record import MarketDataRecord
+    from schemas.market.market_data_request import MarketDataRequest
+    from schemas.market.market_data_response import MarketDataResponse
+
+    objs = [
+        CashflowTypeDefinition(
+            code="DEPOSIT",
+            name="Deposit",
+            category="FUNDING",
+            direction="IN",
+            balance_effect="INCREASE",
+            description="Test",
+        ),
+        MarketDataAcknowledgement(acknowledgement_id="ACK001"),
+        MarketDataChannel(channel_id="CH001"),
+        MarketDataChannelEvent(
+            event_id="EV001",
+            channel_id="CH001",
+            event_type="CONNECTED",
+        ),
+        MarketDataChannelMessage(
+            message_id="MSG001",
+            channel_id="CH001",
+            message_type="SNAPSHOT",
+        ),
+        MarketDataChannelMessageAcknowledgement(
+            acknowledgement_id="ACK001",
+            message_id="MSG001",
+            channel_id="CH001",
+        ),
+        MarketDataChannelMessageError(
+            error_id="ERR001",
+            message_id="MSG001",
+            channel_id="CH001",
+            error_code="TEST",
+            error_message="TEST ERROR",
+        ),
+        MarketDataChannelMessageEvent(
+            event_id="EV001",
+            message_id="MSG001",
+            channel_id="CH001",
+            event_type="RECEIVED",
+        ),
+        MarketDataChannelMessageRetry(
+            retry_id="RET001",
+            message_id="MSG001",
+            channel_id="CH001",
+        ),
+        MarketDataChannelMessageRetryPolicy(
+            policy_id="POL001",
+        ),
+        MarketDataQuality(
+            source_id="SRC001",
+            quality="GOOD",
+        ),
+        MarketDataSource(
+            source_id="SRC001",
+            source_name="TEST_SOURCE",
+        ),
+        MarketDataStatus(
+            source_id="SRC001",
+            status="ACTIVE",
+        ),
+        MarketDataField(
+            name="price",
+        ),
+        MarketDataPacket(
+            packet_id="PKT001",
+        ),
+        MarketDataRecord(
+            record_id="REC001",
+        ),
+        MarketDataRequest(
+            request_id="REQ001",
+        ),
+        MarketDataResponse(
+            response_id="RESP001",
+        ),
+    ]
+
+    for obj in objs:
+        assert obj is not None
+
+        if hasattr(obj, "model_dump"):
+            data = obj.model_dump()
+        else:
+            data = obj.__dict__
+
+        assert isinstance(data, dict)

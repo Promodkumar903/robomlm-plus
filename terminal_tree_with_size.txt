@@ -1,0 +1,35 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 9889-F6A6
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\terminal
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/06/2026  08:44 PM            79,019 cas_status.py
+09/06/2026  08:25 PM            73,554 decision_outlook.py
+09/06/2026  08:06 PM            68,962 evidence_strip.py
+09/06/2026  08:15 PM            82,958 intelligence_panel.py
+09/06/2026  07:57 PM            77,988 market_context.py
+09/06/2026  08:34 PM            81,460 risk_panel.py
+09/06/2026  08:58 PM            91,843 terminal_service.py
+09/06/2026  09:03 PM            24,336 __init__.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               8 File(s)        580,120 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\terminal\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM            90,677 cas_status.cpython-314.pyc
+09/09/2026  09:29 AM           100,306 decision_outlook.cpython-314.pyc
+09/09/2026  09:29 AM            95,379 evidence_strip.cpython-314.pyc
+09/09/2026  09:29 AM           103,629 intelligence_panel.cpython-314.pyc
+09/09/2026  09:29 AM            84,833 market_context.cpython-314.pyc
+09/09/2026  09:29 AM            93,695 risk_panel.cpython-314.pyc
+09/09/2026  09:29 AM            92,509 terminal_service.cpython-314.pyc
+09/09/2026  09:29 AM            20,894 __init__.cpython-314.pyc
+               8 File(s)        681,922 bytes
+
+     Total Files Listed:
+              16 File(s)      1,262,042 bytes
+               5 Dir(s)  10,552,250,368 bytes free

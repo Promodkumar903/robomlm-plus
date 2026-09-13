@@ -1,0 +1,151 @@
+Folder PATH listing
+Volume serial number is 9889-F6A6
+C:.
++---.env
++---.gitignore
++---.pytest_cache
+|   \---v
+|       \---cache
++---app
+|   +---adapters
+|   |   +---binance
+|   |   +---bybit
+|   |   +---commodity
+|   |   +---dhan
+|   |   +---fx
+|   |   \---kotak
+|   +---admin
+|   |   \---__pycache__
+|   +---api
+|   |   +---v1
+|   |   |   \---__pycache__
+|   |   \---websocket
+|   |       \---__pycache__
+|   +---auth
+|   |   \---__pycache__
+|   +---authorization
+|   |   \---__pycache__
+|   +---autorobimlm
+|   |   +---execution
+|   |   |   \---__pycache__
+|   |   +---kill_switch
+|   |   |   \---__pycache__
+|   |   +---positions
+|   |   |   \---__pycache__
+|   |   +---reconciliation
+|   |   |   \---__pycache__
+|   |   +---risk
+|   |   |   \---__pycache__
+|   |   \---__pycache__
+|   +---core
+|   |   +---config
+|   |   +---constants
+|   |   +---logging
+|   |   |   \---__pycache__
+|   |   +---security
+|   |   |   \---__pycache__
+|   |   \---startup
+|   |       \---__pycache__
+|   +---database
+|   |   +---migrations
+|   |   +---models
+|   |   |   \---__pycache__
+|   |   \---repositories
+|   +---data_quality
+|   +---intelligence
+|   |   +---cas
+|   |   +---decision
+|   |   +---evidence
+|   |   +---memory
+|   |   +---metrics
+|   |   +---opportunity
+|   |   +---research
+|   |   +---robomlm_plus
+|   |   \---__pycache__
+|   +---markets
+|   |   +---contracts
+|   |   +---instruments
+|   |   +---registry
+|   |   \---venues
+|   +---subscription
+|   +---terminal
+|   +---ui
+|   |   +---account
+|   |   +---automation
+|   |   +---buyer
+|   |   +---discovery
+|   |   +---memory
+|   |   +---research
+|   |   \---terminal
+|   +---users
+|   +---v6_bridge
+|   |   \---__pycache__
+|   \---__pycache__
++---docs
+|   +---architecture
+|   +---implementation
+|   +---intelligence
+|   +---operations
+|   \---research
++---legacy
+|   +---v5
+|   \---v6_current
++---registries
++---robomlm_data
+|   +---backups
+|   +---blackbox
+|   |   +---decisions
+|   |   +---evidence
+|   |   +---memory
+|   |   \---outcomes
+|   +---cache
+|   +---exports
+|   \---logs
++---schemas
+|   +---cas
+|   |   +---test
+|   |   |   \---__pycache__
+|   |   \---__pycache__
+|   +---common
+|   |   \---__pycache__
+|   +---contract
+|   |   \---__pycache__
+|   +---decision
+|   |   \---__pycache__
+|   +---evidence
+|   |   \---__pycache__
+|   +---execution
+|   |   \---__pycache__
+|   +---instrument
+|   |   \---__pycache__
+|   +---intelligence
+|   |   \---__pycache__
+|   +---market
+|   |   +---test
+|   |   |   \---__pycache__
+|   |   \---__pycache__
+|   \---risk
++---scripts
++---tests
+|   +---e2e
+|   +---integration
+|   |   +---buyer
+|   |   +---cas
+|   |   +---execution
+|   |   +---intelligence
+|   |   +---scanner
+|   |   \---v6_bridge
+|   +---stress
+|   |   +---data
+|   |   +---execution
+|   |   +---latency
+|   |   +---liquidity
+|   |   +---portfolio
+|   |   \---regime
+|   \---unit
+|       +---adapters
+|       +---cas
+|       +---core
+|       +---intelligence
+|       \---schemas
+\---__pycache__

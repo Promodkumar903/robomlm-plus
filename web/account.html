@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBOMLM — Account</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <div class="brand-name">ROBOMLM</div>
+          <div class="brand-tag">Intelligence OS</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="/terminal"><span class="nav-icon">⌂</span> Terminal</a>
+        <a class="nav-item" href="/discovery"><span class="nav-icon">⌕</span> Discovery</a>
+        <a class="nav-item" href="/memory"><span class="nav-icon">◈</span> Memory</a>
+        <a class="nav-item" href="/research"><span class="nav-icon">⌘</span> Research</a>
+        <a class="nav-item" href="/automation"><span class="nav-icon">⚙</span> Automation</a>
+        <a class="nav-item active" href="/account"><span class="nav-icon">◎</span> Account</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>v0.1 · Presentation Layer</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title"><span class="title-icon">◎</span> Account & Settings</div>
+          <div class="page-sub">Profile · Plan · API Keys · Preferences</div>
+        </div>
+      </div>
+
+      <!-- Profile + Plan -->
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">👤</span> Profile</div>
+          <div id="profile-body"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">💎</span> Subscription Plan</div>
+          <div id="plan-body"></div>
+        </div>
+      </div>
+
+      <!-- API Keys -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">🔑</span> API Keys</div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Exchange</th><th>Status</th><th>Last Used</th><th></th></tr>
+          </thead>
+          <tbody id="keys-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Preferences + Usage -->
+      <div class="grid grid-2">
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">⚙️</span> Preferences</div>
+          <div id="prefs-body"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">📊</span> Usage</div>
+          <div id="usage-body"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/account.js"></script>
+</body>
+</html>

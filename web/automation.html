@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBOMLM — Automation</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <div class="brand-name">ROBOMLM</div>
+          <div class="brand-tag">Intelligence OS</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="/terminal"><span class="nav-icon">⌂</span> Terminal</a>
+        <a class="nav-item" href="/discovery"><span class="nav-icon">⌕</span> Scanner</a>
+        <a class="nav-item" href="/buyer"><span class="nav-icon">🛒</span> Buyer</a>
+        <a class="nav-item" href="/memory"><span class="nav-icon">◈</span> Memory</a>
+        <a class="nav-item" href="/research"><span class="nav-icon">⌘</span> Research</a>
+        <a class="nav-item active" href="/automation"><span class="nav-icon">⚙</span> Automation</a>
+        <a class="nav-item" href="/account"><span class="nav-icon">◎</span> Account</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>v0.1 · Presentation Layer</span>
+      </div>
+    </aside>
+
+    <main class="main main-tight">
+
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title"><span class="title-icon">⚙</span> AUTOROBOMLM</div>
+          <div class="page-sub">Automated bot control · Grade gate · RR 1:2 mandatory</div>
+        </div>
+        <div id="auto-badge" class="state-badge state-stopped">● STOPPED</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">⚙️</span> Configuration</div>
+        <div class="auto-config-grid">
+          <div class="auto-field">
+            <label>Min Grade</label>
+            <select id="cfg-min-grade">
+              <option value="A+">A+ (best)</option>
+              <option value="A">A</option>
+              <option value="B+" selected>B+</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+          <div class="auto-field">
+            <label>Min RR (mandatory)</label>
+            <input type="number" id="cfg-min-rr" value="2.0" step="0.1" min="0.5" />
+          </div>
+          <div class="auto-field">
+            <label>SL %</label>
+            <input type="number" id="cfg-sl" value="1.5" step="0.1" min="0.1" />
+          </div>
+          <div class="auto-field">
+            <label>TP %</label>
+            <input type="number" id="cfg-tp" value="3.0" step="0.1" min="0.1" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">🎮</span> Controls</div>
+        <div class="control-bar">
+          <button class="btn btn-lg" id="btn-start">▶ Start Bot</button>
+          <button class="btn btn-ghost btn-lg" id="btn-pause">⏸ Pause</button>
+          <button class="btn btn-ghost btn-lg" id="btn-stop">⏹ Stop</button>
+          <button class="btn btn-danger btn-lg" id="btn-kill">🚨 Kill Switch</button>
+        </div>
+        <div class="control-stats">
+          <div class="ctrl-stat"><span class="lbl">Status</span><span class="val" id="st-status">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">Min Grade</span><span class="val" id="st-grade">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">Min RR</span><span class="val" id="st-rr">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">SL / TP</span><span class="val" id="st-sltp">—</span></div>
+        </div>
+      </div>
+      <!-- MISSION MODE -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">🎯</span> Mission Mode (Smart Target)</div>
+        <div class="mission-grid">
+          <div class="auto-field">
+            <label>Target Price</label>
+            <input type="number" id="m-target" placeholder="e.g. 72000" step="1" />
+          </div>
+          <div class="auto-field">
+            <label>Capital ($)</label>
+            <input type="number" id="m-capital" value="100000" step="1000" />
+          </div>
+          <div class="auto-field">
+            <label>Allocation %</label>
+            <input type="number" id="m-alloc" value="10" step="1" min="1" max="50" />
+          </div>
+        </div>
+        <div class="mission-actions">
+          <button class="btn btn-lg" id="btn-mission-start">🎯 Launch Mission</button>
+          <button class="btn btn-ghost btn-lg" id="btn-mission-stop">⏹ Abort Mission</button>
+        </div>
+        <div class="mission-status">
+          <div class="ctrl-stat"><span class="lbl">Status</span><span class="val" id="m-status">IDLE</span></div>
+          <div class="ctrl-stat"><span class="lbl">Target</span><span class="val" id="m-tgt">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">Current</span><span class="val" id="m-cur">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">Progress</span><span class="val" id="m-prog">—</span></div>
+          <div class="ctrl-stat"><span class="lbl">Compounded</span><span class="val" id="m-comp">$0.00</span></div>
+        </div>
+      </div>
+
+
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">📋</span> Rules</div>
+        <div class="auto-rules">
+          <div class="auto-rule"><b>1.</b> Sirf min grade aur upar wale trade lenge.</div>
+          <div class="auto-rule"><b>2.</b> RR &lt; Min RR → trade skip (koi CALL/PUT nahi).</div>
+          <div class="auto-rule"><b>3.</b> SL / TP khud apply hoga har trade pe.</div>
+          <div class="auto-rule"><b>4.</b> Kill Switch — turant stop, koi naya trade nahi.</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/static/js/automation.js?v=2"></script>
+</body>
+</html>

@@ -1,0 +1,1230 @@
+"""
+ROBOMLM_PLUS
+Opportunity Intelligence
+Liquidity Filter
+
+Purpose
+-------
+Filter the opportunity universe using observable liquidity conditions.
+
+Pipeline
+--------
+Universe
+   Ã¢â€ â€œ
+Liquidity Filter
+   Ã¢â€ â€œ
+Risk Filter
+   Ã¢â€ â€œ
+Timing Filter
+   Ã¢â€ â€œ
+Ranking / Scanner
+   Ã¢â€ â€œ
+Opportunity Engine
+
+IMPORTANT
+---------
+This module does NOT:
+    - generate BUY/SELL decisions
+    - predict future liquidity
+    - create arbitrary opportunity scores
+    - replace the dedicated LQS / liquidity intelligence engine
+    - use future outcomes
+
+It is an eligibility/filtering layer.
+
+Version
+-------
+OPPORTUNITY-LIQUIDITY-1.0
+"""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
+from enum import Enum
+from math import isfinite
+from typing import Any, Dict, Iterable, List, Mapping, Optional
+
+
+ENGINE_NAME = "LiquidityFilter"
+ENGINE_VERSION = "OPPORTUNITY-LIQUIDITY-1.0"
+
+
+# ============================================================================
+# ENUMS
+# ============================================================================
+
+class LiquidityStatus(str, Enum):
+    PASS = "PASS"
+    REVIEW = "REVIEW"
+    REJECT = "REJECT"
+    UNKNOWN = "UNKNOWN"
+
+
+class LiquidityCondition(str, Enum):
+    HEALTHY = "HEALTHY"
+    ADEQUATE = "ADEQUATE"
+    THIN = "THIN"
+    POOR = "POOR"
+    UNKNOWN = "UNKNOWN"
+
+
+# ============================================================================
+# DATA CONTRACTS
+# ============================================================================
+
+@dataclass(frozen=True)
+class LiquiditySnapshot:
+    """
+    Point-in-time liquidity observations.
+
+    All values are observations, not predictions.
+    """
+
+    instrument_id: str
+    symbol: str
+
+    timestamp: Optional[str] = None
+
+    # Market observations
+    price: Optional[float] = None
+
+    bid: Optional[float] = None
+    ask: Optional[float] = None
+
+    bid_size: Optional[float] = None
+    ask_size: Optional[float] = None
+
+    volume: Optional[float] = None
+    average_volume: Optional[float] = None
+
+    turnover: Optional[float] = None
+    average_turnover: Optional[float] = None
+
+    # Optional externally calculated liquidity intelligence.
+    # This is consumed, not reinvented.
+    lqs: Optional[float] = None
+
+    # Additional observable fields.
+    order_book_depth: Optional[float] = None
+    spread_bps: Optional[float] = None
+
+    market_id: Optional[str] = None
+
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class LiquidityFilterDecision:
+    instrument_id: str
+    symbol: str
+
+    status: str
+    condition: str
+
+    reasons: List[str] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)
+
+    spread_bps: Optional[float] = None
+    volume_ratio: Optional[float] = None
+    turnover_ratio: Optional[float] = None
+    book_imbalance: Optional[float] = None
+
+    lqs: Optional[float] = None
+
+    market_id: Optional[str] = None
+    timestamp: Optional[str] = None
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class LiquidityFilterResult:
+    status: str
+    as_of: Optional[str]
+
+    passed: List[LiquidityFilterDecision] = field(default_factory=list)
+    review: List[LiquidityFilterDecision] = field(default_factory=list)
+    rejected: List[LiquidityFilterDecision] = field(default_factory=list)
+
+    total_input: int = 0
+    total_passed: int = 0
+    total_review: int = 0
+    total_rejected: int = 0
+
+    provenance: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class LiquidityPolicy:
+    """
+    Filtering policy.
+
+    Thresholds are deliberately conservative and observable.
+
+    LQS, when supplied by the dedicated metrics layer, is preferred
+    over reconstructing a proprietary liquidity score here.
+    """
+
+    # If an authoritative LQS is available.
+    minimum_lqs: Optional[float] = None
+    review_lqs: Optional[float] = None
+
+    # Spread controls.
+    max_spread_bps: Optional[float] = None
+    review_spread_bps: Optional[float] = None
+
+    # Relative activity controls.
+    minimum_volume_ratio: Optional[float] = None
+    review_volume_ratio: Optional[float] = None
+
+    minimum_turnover_ratio: Optional[float] = None
+    review_turnover_ratio: Optional[float] = None
+
+    # Order-book controls.
+    minimum_book_depth: Optional[float] = None
+
+    # Missing-data behavior.
+    reject_missing_spread: bool = False
+    reject_missing_volume: bool = False
+    reject_missing_lqs: bool = False
+
+    # Identity protection.
+    require_market_match: bool = True
+
+    # Point-in-time protection.
+    reject_future_data: bool = True
+
+
+# ============================================================================
+# ENGINE
+# ============================================================================
+
+class LiquidityFilter:
+    """
+    Liquidity eligibility filter.
+
+    The filter uses observable liquidity fields and/or an externally
+    calculated LQS.
+
+    It does not fabricate missing observations.
+    """
+
+    name = ENGINE_NAME
+    version = ENGINE_VERSION
+
+    def __init__(
+        self,
+        policy: Optional[LiquidityPolicy] = None,
+    ) -> None:
+        self.policy = policy or LiquidityPolicy()
+
+    # ------------------------------------------------------------------------
+    # PUBLIC API
+    # ------------------------------------------------------------------------
+
+    def evaluate(
+        self,
+        snapshot: Any,
+        *,
+        market_id: Optional[str] = None,
+        as_of: Optional[str] = None,
+    ) -> LiquidityFilterDecision:
+        """
+        Evaluate one instrument.
+        """
+
+        data = self.normalize(snapshot)
+
+        reasons: List[str] = []
+        warnings: List[str] = []
+
+        spread_bps = self._calculate_spread_bps(data)
+
+        volume_ratio = self._ratio(
+            data.volume,
+            data.average_volume,
+        )
+
+        turnover_ratio = self._ratio(
+            data.turnover,
+            data.average_turnover,
+        )
+
+        book_imbalance = self._book_imbalance(data)
+
+        # ------------------------------------------------------------
+        # Identity gate
+        # ------------------------------------------------------------
+
+        if not data.instrument_id:
+            reasons.append("MISSING_INSTRUMENT_ID")
+
+        if not data.symbol:
+            reasons.append("MISSING_SYMBOL")
+
+        if (
+            self.policy.require_market_match
+            and market_id is not None
+        ):
+            if data.market_id is None:
+                reasons.append("MISSING_MARKET_ID")
+            elif str(data.market_id) != str(market_id):
+                reasons.append("MARKET_ID_MISMATCH")
+
+        # ------------------------------------------------------------
+        # Future-data gate
+        # ------------------------------------------------------------
+
+        if (
+            self.policy.reject_future_data
+            and data.timestamp
+            and as_of
+        ):
+            if self._is_future(data.timestamp, as_of):
+                reasons.append("FUTURE_DATA")
+
+        # ------------------------------------------------------------
+        # LQS
+        # ------------------------------------------------------------
+
+        if data.lqs is None:
+            if self.policy.reject_missing_lqs:
+                reasons.append("LQS_MISSING")
+            else:
+                warnings.append("LQS_NOT_AVAILABLE")
+
+        else:
+            if not self._valid_number(data.lqs):
+                reasons.append("INVALID_LQS")
+
+            elif self.policy.minimum_lqs is not None:
+                if data.lqs < self.policy.minimum_lqs:
+                    reasons.append("LQS_BELOW_MINIMUM")
+
+            if (
+                self.policy.review_lqs is not None
+                and data.lqs < self.policy.review_lqs
+            ):
+                warnings.append("LQS_REQUIRES_REVIEW")
+
+        # ------------------------------------------------------------
+        # Spread
+        # ------------------------------------------------------------
+
+        if spread_bps is None:
+            if self.policy.reject_missing_spread:
+                reasons.append("SPREAD_MISSING")
+            else:
+                warnings.append("SPREAD_NOT_AVAILABLE")
+
+        else:
+            if (
+                self.policy.max_spread_bps is not None
+                and spread_bps > self.policy.max_spread_bps
+            ):
+                reasons.append("SPREAD_TOO_WIDE")
+
+            if (
+                self.policy.review_spread_bps is not None
+                and spread_bps > self.policy.review_spread_bps
+            ):
+                warnings.append("WIDE_SPREAD_REVIEW")
+
+        # ------------------------------------------------------------
+        # Volume
+        # ------------------------------------------------------------
+
+        if volume_ratio is None:
+            if self.policy.reject_missing_volume:
+                reasons.append("VOLUME_RATIO_MISSING")
+            else:
+                warnings.append("VOLUME_RATIO_NOT_AVAILABLE")
+
+        else:
+            if (
+                self.policy.minimum_volume_ratio is not None
+                and volume_ratio < self.policy.minimum_volume_ratio
+            ):
+                reasons.append("LOW_RELATIVE_VOLUME")
+
+            if (
+                self.policy.review_volume_ratio is not None
+                and volume_ratio < self.policy.review_volume_ratio
+            ):
+                warnings.append("LOW_VOLUME_REVIEW")
+
+        # ------------------------------------------------------------
+        # Turnover
+        # ------------------------------------------------------------
+
+        if turnover_ratio is not None:
+
+            if (
+                self.policy.minimum_turnover_ratio is not None
+                and turnover_ratio < self.policy.minimum_turnover_ratio
+            ):
+                reasons.append("LOW_RELATIVE_TURNOVER")
+
+            if (
+                self.policy.review_turnover_ratio is not None
+                and turnover_ratio < self.policy.review_turnover_ratio
+            ):
+                warnings.append("LOW_TURNOVER_REVIEW")
+
+        # ------------------------------------------------------------
+        # Order-book depth
+        # ------------------------------------------------------------
+
+        if self.policy.minimum_book_depth is not None:
+
+            if data.order_book_depth is None:
+                warnings.append("ORDER_BOOK_DEPTH_NOT_AVAILABLE")
+
+            elif (
+                data.order_book_depth
+                < self.policy.minimum_book_depth
+            ):
+                reasons.append("INSUFFICIENT_BOOK_DEPTH")
+
+        # ------------------------------------------------------------
+        # Final classification
+        # ------------------------------------------------------------
+
+        if reasons:
+            status = LiquidityStatus.REJECT.value
+
+        elif warnings:
+            status = LiquidityStatus.REVIEW.value
+
+        else:
+            status = LiquidityStatus.PASS.value
+
+        condition = self._condition(
+            status=status,
+            lqs=data.lqs,
+            spread_bps=spread_bps,
+            volume_ratio=volume_ratio,
+        )
+
+        return LiquidityFilterDecision(
+            instrument_id=data.instrument_id,
+            symbol=data.symbol,
+            status=status,
+            condition=condition,
+            reasons=reasons,
+            warnings=warnings,
+            spread_bps=spread_bps,
+            volume_ratio=volume_ratio,
+            turnover_ratio=turnover_ratio,
+            book_imbalance=book_imbalance,
+            lqs=data.lqs,
+            market_id=data.market_id,
+            timestamp=data.timestamp,
+            provenance={
+                "engine": self.name,
+                "engine_version": self.version,
+                "market_id": market_id,
+                "as_of": as_of,
+                "future_data_used": False,
+                "lqs_source": (
+                    "EXTERNAL_LQS"
+                    if data.lqs is not None
+                    else "NOT_AVAILABLE"
+                ),
+            },
+        )
+
+    def filter(
+        self,
+        snapshots: Iterable[Any],
+        *,
+        market_id: Optional[str] = None,
+        as_of: Optional[str] = None,
+    ) -> LiquidityFilterResult:
+        """
+        Evaluate a collection of instruments.
+        """
+
+        passed: List[LiquidityFilterDecision] = []
+        review: List[LiquidityFilterDecision] = []
+        rejected: List[LiquidityFilterDecision] = []
+
+        snapshots_list = list(snapshots or [])
+
+        for snapshot in snapshots_list:
+
+            decision = self.evaluate(
+                snapshot,
+                market_id=market_id,
+                as_of=as_of,
+            )
+
+            if decision.status == LiquidityStatus.PASS.value:
+                passed.append(decision)
+
+            elif decision.status == LiquidityStatus.REVIEW.value:
+                review.append(decision)
+
+            else:
+                rejected.append(decision)
+
+        if passed:
+            overall_status = "READY"
+        elif review:
+            overall_status = "REVIEW_ONLY"
+        else:
+            overall_status = "EMPTY"
+
+        return LiquidityFilterResult(
+            status=overall_status,
+            as_of=as_of,
+            passed=passed,
+            review=review,
+            rejected=rejected,
+            total_input=len(snapshots_list),
+            total_passed=len(passed),
+            total_review=len(review),
+            total_rejected=len(rejected),
+            provenance={
+                "engine": self.name,
+                "engine_version": self.version,
+                "market_id": market_id,
+                "as_of": as_of,
+                "future_data_used": False,
+            },
+        )
+
+    def apply(
+        self,
+        snapshots: Iterable[Any],
+        *,
+        market_id: Optional[str] = None,
+        as_of: Optional[str] = None,
+        include_review: bool = False,
+    ) -> List[LiquidityFilterDecision]:
+        """
+        Convenience API.
+
+        By default only PASS records are returned.
+
+        include_review=True additionally returns REVIEW records.
+        REJECT records are never returned by this method.
+        """
+
+        result = self.filter(
+            snapshots,
+            market_id=market_id,
+            as_of=as_of,
+        )
+
+        if include_review:
+            return result.passed + result.review
+
+        return result.passed
+
+    # ------------------------------------------------------------------------
+    # NORMALIZATION
+    # ------------------------------------------------------------------------
+
+    def normalize(self, snapshot: Any) -> LiquiditySnapshot:
+        """
+        Normalize dictionary/object input into LiquiditySnapshot.
+        """
+
+        if isinstance(snapshot, LiquiditySnapshot):
+            return snapshot
+
+        raw = self._to_mapping(snapshot)
+
+        instrument_id = self._first(
+            raw,
+            "instrument_id",
+            "instrumentId",
+            "security_id",
+            "securityId",
+            "id",
+            "token",
+        )
+
+        symbol = self._first(
+            raw,
+            "symbol",
+            "ticker",
+            "trading_symbol",
+            "tradingSymbol",
+        )
+
+        timestamp = self._first(
+            raw,
+            "timestamp",
+            "time",
+            "as_of",
+            "source_timestamp",
+        )
+
+        metadata = dict(raw)
+
+        known = {
+            "instrument_id",
+            "instrumentId",
+            "security_id",
+            "securityId",
+            "id",
+            "token",
+            "symbol",
+            "ticker",
+            "trading_symbol",
+            "tradingSymbol",
+            "timestamp",
+            "time",
+            "as_of",
+            "source_timestamp",
+        }
+
+        for key in known:
+            metadata.pop(key, None)
+
+        return LiquiditySnapshot(
+            instrument_id=str(instrument_id or ""),
+            symbol=str(symbol or ""),
+            timestamp=(
+                str(timestamp)
+                if timestamp is not None
+                else None
+            ),
+            price=self._float(
+                self._first(raw, "price", "last_price", "lastPrice")
+            ),
+            bid=self._float(
+                self._first(raw, "bid", "bid_price", "bidPrice")
+            ),
+            ask=self._float(
+                self._first(raw, "ask", "ask_price", "askPrice")
+            ),
+            bid_size=self._float(
+                self._first(
+                    raw,
+                    "bid_size",
+                    "bidSize",
+                    "bid_qty",
+                    "bidQty",
+                    "bid_quantity",
+                )
+            ),
+            ask_size=self._float(
+                self._first(
+                    raw,
+                    "ask_size",
+                    "askSize",
+                    "ask_qty",
+                    "askQty",
+                    "ask_quantity",
+                )
+            ),
+            volume=self._float(
+                self._first(
+                    raw,
+                    "volume",
+                    "vol",
+                    "total_volume",
+                    "totalVolume",
+                )
+            ),
+            average_volume=self._float(
+                self._first(
+                    raw,
+                    "average_volume",
+                    "avg_volume",
+                    "avgVolume",
+                    "volume_average",
+                )
+            ),
+            turnover=self._float(
+                self._first(
+                    raw,
+                    "turnover",
+                    "value_traded",
+                    "valueTraded",
+                )
+            ),
+            average_turnover=self._float(
+                self._first(
+                    raw,
+                    "average_turnover",
+                    "avg_turnover",
+                    "avgTurnover",
+                )
+            ),
+            lqs=self._float(
+                self._first(
+                    raw,
+                    "lqs",
+                    "LQS",
+                    "liquidity_score",
+                    "liquidityScore",
+                )
+            ),
+            order_book_depth=self._float(
+                self._first(
+                    raw,
+                    "order_book_depth",
+                    "orderBookDepth",
+                    "book_depth",
+                    "bookDepth",
+                )
+            ),
+            spread_bps=self._float(
+                self._first(
+                    raw,
+                    "spread_bps",
+                    "spreadBps",
+                )
+            ),
+            market_id=(
+                str(
+                    self._first(
+                        raw,
+                        "market_id",
+                        "marketId",
+                        "market",
+                        "segment",
+                    )
+                )
+                if self._first(
+                    raw,
+                    "market_id",
+                    "marketId",
+                    "market",
+                    "segment",
+                )
+                is not None
+                else None
+            ),
+            metadata=metadata,
+        )
+
+    # ------------------------------------------------------------------------
+    # LIQUIDITY CALCULATIONS
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def _calculate_spread_bps(
+        snapshot: LiquiditySnapshot,
+    ) -> Optional[float]:
+        """
+        Calculate bid/ask spread in basis points.
+
+        spread_bps = ((ask - bid) / midpoint) * 10,000
+        """
+
+        if snapshot.spread_bps is not None:
+            if snapshot.spread_bps < 0:
+                return None
+
+            return snapshot.spread_bps
+
+        if snapshot.bid is None or snapshot.ask is None:
+            return None
+
+        if snapshot.bid <= 0 or snapshot.ask <= 0:
+            return None
+
+        if snapshot.ask < snapshot.bid:
+            return None
+
+        midpoint = (snapshot.bid + snapshot.ask) / 2.0
+
+        if midpoint <= 0:
+            return None
+
+        return (
+            (snapshot.ask - snapshot.bid)
+            / midpoint
+            * 10_000.0
+        )
+
+    @staticmethod
+    def _book_imbalance(
+        snapshot: LiquiditySnapshot,
+    ) -> Optional[float]:
+        """
+        Order-book imbalance:
+
+            (bid_size - ask_size)
+            ---------------------
+            (bid_size + ask_size)
+
+        Range:
+            -1 to +1
+
+        This is descriptive only. It is NOT interpreted as direction.
+        """
+
+        bid = snapshot.bid_size
+        ask = snapshot.ask_size
+
+        if bid is None or ask is None:
+            return None
+
+        if bid < 0 or ask < 0:
+            return None
+
+        denominator = bid + ask
+
+        if denominator <= 0:
+            return None
+
+        return (bid - ask) / denominator
+
+    @staticmethod
+    def _ratio(
+        current: Optional[float],
+        average: Optional[float],
+    ) -> Optional[float]:
+        """
+        current / average
+
+        Returns None when the comparison is unavailable.
+        """
+
+        if current is None or average is None:
+            return None
+
+        if current < 0 or average <= 0:
+            return None
+
+        return current / average
+
+    # ------------------------------------------------------------------------
+    # CONDITION CLASSIFICATION
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def _condition(
+        *,
+        status: str,
+        lqs: Optional[float],
+        spread_bps: Optional[float],
+        volume_ratio: Optional[float],
+    ) -> str:
+
+        if status == LiquidityStatus.REJECT.value:
+            return LiquidityCondition.POOR.value
+
+        # Prefer authoritative LQS when available.
+        if lqs is not None:
+
+            if lqs >= 80:
+                return LiquidityCondition.HEALTHY.value
+
+            if lqs >= 60:
+                return LiquidityCondition.ADEQUATE.value
+
+            if lqs >= 40:
+                return LiquidityCondition.THIN.value
+
+            return LiquidityCondition.POOR.value
+
+        # Without LQS, use only observable descriptive evidence.
+        healthy_signals = 0
+        weak_signals = 0
+
+        if spread_bps is not None:
+            if spread_bps <= 5:
+                healthy_signals += 1
+            elif spread_bps > 25:
+                weak_signals += 1
+
+        if volume_ratio is not None:
+            if volume_ratio >= 1.0:
+                healthy_signals += 1
+            elif volume_ratio < 0.5:
+                weak_signals += 1
+
+        if healthy_signals >= 2:
+            return LiquidityCondition.HEALTHY.value
+
+        if healthy_signals == 1 and weak_signals == 0:
+            return LiquidityCondition.ADEQUATE.value
+
+        if weak_signals > 0:
+            return LiquidityCondition.THIN.value
+
+        return LiquidityCondition.UNKNOWN.value
+
+    # ------------------------------------------------------------------------
+    # TIME / VALIDATION HELPERS
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def _is_future(
+        timestamp: str,
+        as_of: str,
+    ) -> bool:
+        """
+        Compare ISO-compatible timestamps.
+
+        Invalid timestamps are not treated as future data.
+        They remain observable as malformed input rather than
+        being silently rewritten.
+        """
+
+        ts = LiquidityFilter._parse_timestamp(timestamp)
+        ref = LiquidityFilter._parse_timestamp(as_of)
+
+        if ts is None or ref is None:
+            return False
+
+        return ts > ref
+
+    @staticmethod
+    def _parse_timestamp(value: Any):
+        from datetime import datetime, timezone
+
+        if value is None:
+            return None
+
+        if isinstance(value, datetime):
+            dt = value
+        else:
+            text = str(value).strip()
+
+            if not text:
+                return None
+
+            text = text.replace("Z", "+00:00")
+
+            try:
+                dt = datetime.fromisoformat(text)
+            except ValueError:
+                return None
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        return dt.astimezone(timezone.utc)
+
+    # ------------------------------------------------------------------------
+    # GENERIC HELPERS
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def _to_mapping(value: Any) -> Dict[str, Any]:
+
+        if value is None:
+            return {}
+
+        if isinstance(value, Mapping):
+            return dict(value)
+
+        if hasattr(value, "__dict__"):
+            return dict(vars(value))
+
+        try:
+            return asdict(value)
+        except (TypeError, ValueError):
+            return {}
+
+    @staticmethod
+    def _first(
+        mapping: Mapping[str, Any],
+        *keys: str,
+    ) -> Any:
+
+        for key in keys:
+            if key in mapping and mapping[key] is not None:
+                return mapping[key]
+
+        return None
+
+    @staticmethod
+    def _float(value: Any) -> Optional[float]:
+
+        if value is None or value == "":
+            return None
+
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            return None
+
+        if not isfinite(number):
+            return None
+
+        return number
+
+    @staticmethod
+    def _valid_number(value: Any) -> bool:
+
+        try:
+            return isfinite(float(value))
+        except (TypeError, ValueError):
+            return False
+
+    # ------------------------------------------------------------------------
+    # SERIALIZATION
+    # ------------------------------------------------------------------------
+
+    @staticmethod
+    def decision_to_dict(
+        decision: LiquidityFilterDecision,
+    ) -> Dict[str, Any]:
+        return asdict(decision)
+
+    @staticmethod
+    def result_to_dict(
+        result: LiquidityFilterResult,
+    ) -> Dict[str, Any]:
+
+        return {
+            "status": result.status,
+            "as_of": result.as_of,
+            "passed": [
+                asdict(item)
+                for item in result.passed
+            ],
+            "review": [
+                asdict(item)
+                for item in result.review
+            ],
+            "rejected": [
+                asdict(item)
+                for item in result.rejected
+            ],
+            "total_input": result.total_input,
+            "total_passed": result.total_passed,
+            "total_review": result.total_review,
+            "total_rejected": result.total_rejected,
+            "provenance": dict(result.provenance),
+        }
+
+
+# ============================================================================
+# FUNCTIONAL API
+# ============================================================================
+
+def filter_liquidity(
+    snapshots: Iterable[Any],
+    *,
+    market_id: Optional[str] = None,
+    as_of: Optional[str] = None,
+    policy: Optional[LiquidityPolicy] = None,
+) -> LiquidityFilterResult:
+    """
+    Functional convenience wrapper.
+    """
+
+    engine = LiquidityFilter(policy=policy)
+
+    return engine.filter(
+        snapshots,
+        market_id=market_id,
+        as_of=as_of,
+    )
+
+
+# ============================================================================
+# SELF TESTS
+# ============================================================================
+
+def _self_test() -> None:
+    """
+    Deterministic local tests.
+
+    No API/network dependency.
+    """
+
+    engine = LiquidityFilter(
+        LiquidityPolicy(
+            minimum_lqs=60,
+            review_lqs=70,
+            max_spread_bps=30,
+            review_spread_bps=15,
+            minimum_volume_ratio=0.50,
+            review_volume_ratio=0.80,
+            reject_future_data=True,
+        )
+    )
+
+    # ------------------------------------------------------------------
+    # 1. Healthy instrument
+    # ------------------------------------------------------------------
+
+    healthy = engine.evaluate(
+        {
+            "instrument_id": "NIFTY",
+            "symbol": "NIFTY",
+            "market_id": "NSE",
+            "timestamp": "2026-09-05T09:30:00+00:00",
+            "bid": 24999,
+            "ask": 25001,
+            "volume": 1000000,
+            "average_volume": 800000,
+            "lqs": 85,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert healthy.status == "PASS"
+    assert healthy.lqs == 85
+    assert healthy.spread_bps is not None
+    assert healthy.volume_ratio == 1.25
+
+    # ------------------------------------------------------------------
+    # 2. Wide spread
+    # ------------------------------------------------------------------
+
+    wide = engine.evaluate(
+        {
+            "instrument_id": "THIN",
+            "symbol": "THIN",
+            "market_id": "NSE",
+            "timestamp": "2026-09-05T09:30:00+00:00",
+            "bid": 100,
+            "ask": 102,
+            "volume": 1000,
+            "average_volume": 1000,
+            "lqs": 75,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert wide.status == "REJECT"
+    assert "SPREAD_TOO_WIDE" in wide.reasons
+
+    # ------------------------------------------------------------------
+    # 3. Low relative volume
+    # ------------------------------------------------------------------
+
+    low_volume = engine.evaluate(
+        {
+            "instrument_id": "LOWVOL",
+            "symbol": "LOWVOL",
+            "market_id": "NSE",
+            "timestamp": "2026-09-05T09:30:00+00:00",
+            "bid": 100,
+            "ask": 100.01,
+            "volume": 200,
+            "average_volume": 1000,
+            "lqs": 75,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert low_volume.status == "REJECT"
+    assert "LOW_RELATIVE_VOLUME" in low_volume.reasons
+
+    # ------------------------------------------------------------------
+    # 4. Wrong market identity
+    # ------------------------------------------------------------------
+
+    wrong_market = engine.evaluate(
+        {
+            "instrument_id": "BTCUSDT",
+            "symbol": "BTCUSDT",
+            "market_id": "BINANCE",
+            "timestamp": "2026-09-05T09:30:00+00:00",
+            "bid": 100,
+            "ask": 100.01,
+            "lqs": 90,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert wrong_market.status == "REJECT"
+    assert "MARKET_ID_MISMATCH" in wrong_market.reasons
+
+    # ------------------------------------------------------------------
+    # 5. Future data
+    # ------------------------------------------------------------------
+
+    future = engine.evaluate(
+        {
+            "instrument_id": "FUTURE",
+            "symbol": "FUTURE",
+            "market_id": "NSE",
+            "timestamp": "2026-09-05T10:00:00+00:00",
+            "bid": 100,
+            "ask": 100.01,
+            "lqs": 90,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert future.status == "REJECT"
+    assert "FUTURE_DATA" in future.reasons
+
+    # ------------------------------------------------------------------
+    # 6. Book imbalance calculation
+    # ------------------------------------------------------------------
+
+    imbalance = engine.evaluate(
+        {
+            "instrument_id": "BOOK",
+            "symbol": "BOOK",
+            "market_id": "NSE",
+            "timestamp": "2026-09-05T09:30:00+00:00",
+            "bid": 100,
+            "ask": 100.01,
+            "bid_size": 600,
+            "ask_size": 400,
+            "volume": 1000,
+            "average_volume": 1000,
+            "lqs": 80,
+        },
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert imbalance.status == "PASS"
+    assert imbalance.book_imbalance == 0.2
+
+    # ------------------------------------------------------------------
+    # 7. Collection filter
+    # ------------------------------------------------------------------
+
+    result = engine.filter(
+        [
+            {
+                "instrument_id": "A",
+                "symbol": "A",
+                "market_id": "NSE",
+                "timestamp": "2026-09-05T09:30:00+00:00",
+                "bid": 100,
+                "ask": 100.01,
+                "volume": 1000,
+                "average_volume": 800,
+                "lqs": 90,
+            },
+            {
+                "instrument_id": "B",
+                "symbol": "B",
+                "market_id": "NSE",
+                "timestamp": "2026-09-05T09:30:00+00:00",
+                "bid": 100,
+                "ask": 100.01,
+                "volume": 100,
+                "average_volume": 1000,
+                "lqs": 30,
+            },
+        ],
+        market_id="NSE",
+        as_of="2026-09-05T09:31:00+00:00",
+    )
+
+    assert result.total_input == 2
+    assert result.total_passed == 1
+    assert result.total_rejected == 1
+
+    print(
+        f"{ENGINE_NAME} {ENGINE_VERSION}: SELF-TEST PASS"
+    )
+
+
+if __name__ == "__main__":
+    _self_test()

@@ -1,0 +1,116 @@
+Sorry: IndentationError: expected an indented block after class definition on line 8 (adapter_base.py, line 9)  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\10_decision_market_state - Copy.py", line 3421
+    \u2502
+    ^
+SyntaxError: invalid character '\u2502' (U+2502)
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\decision\12_decision_future_scenario - Copy.py", line 3
+    Decision Layer — D12: Future / Scenario
+                   ^
+SyntaxError: invalid character '—' (U+2014)
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\evidence\evidence_confidence.py", line 3
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\lqs.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\mts.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\pfs.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\metrics\tps.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+Sorry: IndentationError: unexpected indent (favorites_engine.py, line 281)  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\liquidity_filter.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\opportunity_explainer.py", line 607
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\intelligence\opportunity\backup\liquidity_filter.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\buyer_page.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\cas_view.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\contract_selector.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\decision_view.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\instrument_selector.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\intelligence_view.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\market_selector.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\plus_view.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\risk_view.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_preview.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\strategy_selector.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\breakout_engine.py", line 1990
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\confirmation_engine.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\thesis_engine.py", line 571
+    Bilkul sir. Aapke Part 1 ke exact continuation mein Thesis Engine — Part 2 de raha hoon. Isme state classification ke baad trigger determination, conviction, failure risk, reasons/warnings, measurement construction aur final evaluate() flow complete hoga. D13 final authority rahega; Thesis Engine trade issue nahi karega.
+                                                                      ^
+SyntaxError: invalid character '—' (U+2014)
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\memory_page.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\research_page.py", line 586
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research\__init__.py", line 1
+    ```python
+    ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\terminal_page.py", line 1417
+    interaction:
+                ^
+SyntaxError: invalid syntax
+  File "C:\Users\Administrator\ROBOMLM_PLUS\schemas\market\market_data_quality.py", line 398
+    ]s
+     ^
+SyntaxError: invalid syntax

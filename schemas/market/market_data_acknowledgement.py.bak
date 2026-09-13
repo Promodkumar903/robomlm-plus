@@ -1,0 +1,153 @@
+from future import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from types import MappingProxyType
+from typing import Any, Mapping, Optional
+
+MARKET_DATA_ACKNOWLEDGEMENT_VERSION = "1.0.0"
+MARKET_DATA_ACKNOWLEDGEMENT_SCHEMA = "MARKET_DATA_ACKNOWLEDGEMENT"
+
+def _utc_now() -> datetime:
+return datetime.now(timezone.utc)
+
+@dataclass(frozen=True)
+class MarketDataAcknowledgement:
+"""
+Immutable acknowledgement record for market-data communication.
+"""
+
+```
+acknowledgement_id: str
+request_id: Optional[str] = None
+packet_id: Optional[str] = None
+message_id: Optional[str] = None
+
+acknowledged: bool = False
+status: str = "PENDING"
+
+source: Optional[str] = None
+destination: Optional[str] = None
+
+received_at: Optional[datetime] = None
+acknowledged_at: Optional[datetime] = None
+
+error_code: Optional[str] = None
+error_message: Optional[str] = None
+
+metadata: Mapping[str, Any] = field(default_factory=dict)
+
+def __post_init__(self) -> None:
+    if not self.acknowledgement_id:
+        raise ValueError("acknowledgement_id is required.")
+
+    if self.received_at is None:
+        object.__setattr__(self, "received_at", _utc_now())
+
+    if not isinstance(self.metadata, Mapping):
+        raise TypeError("metadata must be a mapping.")
+
+    object.__setattr__(
+        self,
+        "metadata",
+        MappingProxyType(dict(self.metadata)),
+    )
+
+def to_dict(self) -> dict[str, Any]:
+    return {
+        "acknowledgement_id": self.acknowledgement_id,
+        "request_id": self.request_id,
+        "packet_id": self.packet_id,
+        "message_id": self.message_id,
+        "acknowledged": self.acknowledged,
+        "status": self.status,
+        "source": self.source,
+        "destination": self.destination,
+        "received_at": self.received_at,
+        "acknowledged_at": self.acknowledged_at,
+        "error_code": self.error_code,
+        "error_message": self.error_message,
+        "metadata": dict(self.metadata),
+    }
+
+def is_successful(self) -> bool:
+    return self.acknowledged and self.status.upper() in {
+        "ACKNOWLEDGED",
+        "SUCCESS",
+        "OK",
+    }
+
+def is_failed(self) -> bool:
+    return self.status.upper() in {
+        "FAILED",
+        "ERROR",
+        "REJECTED",
+    }
+
+def is_pending(self) -> bool:
+    return self.status.upper() == "PENDING"
+```
+
+def create_market_data_acknowledgement(
+acknowledgement_id: str,
+*,
+request_id: Optional[str] = None,
+packet_id: Optional[str] = None,
+message_id: Optional[str] = None,
+acknowledged: bool = False,
+status: str = "PENDING",
+source: Optional[str] = None,
+destination: Optional[str] = None,
+received_at: Optional[datetime] = None,
+acknowledged_at: Optional[datetime] = None,
+error_code: Optional[str] = None,
+error_message: Optional[str] = None,
+metadata: Optional[Mapping[str, Any]] = None,
+) -> MarketDataAcknowledgement:
+"""
+Factory for creating a market-data acknowledgement record.
+"""
+
+```
+return MarketDataAcknowledgement(
+    acknowledgement_id=acknowledgement_id,
+    request_id=request_id,
+    packet_id=packet_id,
+    message_id=message_id,
+    acknowledged=acknowledged,
+    status=status,
+    source=source,
+    destination=destination,
+    received_at=received_at,
+    acknowledged_at=acknowledged_at,
+    error_code=error_code,
+    error_message=error_message,
+    metadata=dict(metadata or {}),
+)
+```
+
+def market_data_acknowledgement_health() -> dict[str, Any]:
+"""
+Return schema health information.
+"""
+
+```
+return {
+    "schema": MARKET_DATA_ACKNOWLEDGEMENT_SCHEMA,
+    "version": MARKET_DATA_ACKNOWLEDGEMENT_VERSION,
+    "status": "ready",
+    "immutable": True,
+    "decision_logic": False,
+    "execution_logic": False,
+    "broker_dependency": False,
+    "v7_dependency": False,
+}
+```
+
+**all** = [
+"MARKET_DATA_ACKNOWLEDGEMENT_VERSION",
+"MARKET_DATA_ACKNOWLEDGEMENT_SCHEMA",
+"MarketDataAcknowledgement",
+"create_market_data_acknowledgement",
+"market_data_acknowledgement_health",
+]

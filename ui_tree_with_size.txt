@@ -1,0 +1,263 @@
+ Volume in drive C has no label.
+ Volume Serial Number is 9889-F6A6
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/09/2026  09:19 AM    <DIR>          account
+09/06/2026  09:58 PM            80,905 app.py
+09/09/2026  09:19 AM    <DIR>          automation
+09/09/2026  09:19 AM    <DIR>          buyer
+09/11/2026  08:39 AM    <DIR>          discovery
+09/09/2026  09:19 AM    <DIR>          memory
+09/03/2026  08:22 AM    <DIR>          research
+09/06/2026  10:10 PM            77,551 router.py
+09/09/2026  09:19 AM    <DIR>          terminal
+09/03/2026  08:19 AM                 0 __init__.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               3 File(s)        158,456 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/06/2026  10:25 PM            90,340 account_page.py
+09/06/2026  10:42 PM            97,841 billing_page.py
+09/06/2026  11:06 PM           104,057 notification_page.py
+09/06/2026  11:17 PM            98,415 settings_page.py
+09/06/2026  11:19 PM               522 __init__.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               5 File(s)        391,175 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\account\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM            91,631 account_page.cpython-314.pyc
+09/09/2026  09:29 AM           102,213 billing_page.cpython-314.pyc
+09/09/2026  09:29 AM           106,392 notification_page.cpython-314.pyc
+09/09/2026  09:29 AM            99,707 settings_page.cpython-314.pyc
+09/09/2026  09:29 AM               505 __init__.cpython-314.pyc
+               5 File(s)        400,448 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/06/2026  11:28 PM            59,344 automation_page.py
+09/06/2026  11:29 PM               164 __init__.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               2 File(s)         59,508 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\automation\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM            61,684 automation_page.cpython-314.pyc
+09/09/2026  09:29 AM               281 __init__.cpython-314.pyc
+               2 File(s)         61,965 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/08/2026  03:33 AM            29,797 buyer_page.py
+09/08/2026  03:50 AM             8,883 cas_view.py
+09/08/2026  03:38 AM             8,054 contract_selector.py
+09/08/2026  03:44 AM             6,403 decision_view.py
+09/08/2026  03:37 AM             6,514 instrument_selector.py
+09/08/2026  03:44 AM             7,569 intelligence_view.py
+09/08/2026  03:36 AM             7,867 market_selector.py
+09/08/2026  03:50 AM             8,615 plus_view.py
+09/08/2026  03:45 AM             6,446 risk_view.py
+09/08/2026  03:40 AM             8,035 strategy_preview.py
+09/08/2026  03:39 AM             9,254 strategy_selector.py
+09/03/2026  08:19 AM                 0 __init__.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+              12 File(s)        107,437 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\buyer\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM               159 __init__.cpython-314.pyc
+               1 File(s)            159 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery
+
+09/11/2026  08:39 AM    <DIR>          .
+09/11/2026  08:39 AM    <DIR>          ..
+09/06/2026  11:50 PM            76,256 discovery_page.py
+09/11/2026  08:46 AM    <DIR>          engines
+09/07/2026  12:42 AM            75,888 favorites.py
+09/09/2026  09:19 AM    <DIR>          future
+09/09/2026  09:19 AM    <DIR>          models
+09/09/2026  09:19 AM    <DIR>          scanners
+09/07/2026  12:00 AM            57,249 universal_scanner.py
+09/11/2026  08:40 AM             1,247 __init__.py
+09/07/2026  01:49 AM             1,139 __init__.py.bak_scanner_imports
+09/11/2026  08:40 AM    <DIR>          __pycache__
+               5 File(s)        211,779 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines
+
+09/11/2026  08:46 AM    <DIR>          .
+09/11/2026  08:46 AM    <DIR>          ..
+09/07/2026  11:59 AM           103,044 accumulation_engine.py
+09/07/2026  01:04 PM           146,322 boundary_engine.py
+09/07/2026  01:48 PM            75,209 breakout_engine.py
+09/07/2026  02:08 PM           131,341 confirmation_engine.py
+09/11/2026  08:46 AM           142,838 distribution_engine.py
+09/07/2026  12:47 PM           142,417 distribution_engine.py.bak_authority
+09/11/2026  08:44 AM           142,830 distribution_engine.py.bak_guessing_key
+09/11/2026  08:41 AM           142,398 distribution_engine.py.bak_integrity_registry
+09/11/2026  08:37 AM           142,438 distribution_engine.py.bak_registry_name
+09/07/2026  02:19 PM            60,815 opportunity_engine.py
+09/07/2026  05:31 PM           123,168 regime_engine.py
+09/07/2026  08:04 PM            77,082 relationship_engine.py
+09/07/2026  11:48 AM            99,587 structure_engine.py
+09/11/2026  08:46 AM    <DIR>          __pycache__
+              13 File(s)      1,529,489 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\engines\__pycache__
+
+09/11/2026  08:46 AM    <DIR>          .
+09/11/2026  08:46 AM    <DIR>          ..
+09/09/2026  09:29 AM            95,745 accumulation_engine.cpython-314.pyc
+09/09/2026  09:29 AM           131,810 boundary_engine.cpython-314.pyc
+09/11/2026  08:46 AM           124,818 distribution_engine.cpython-314.pyc
+09/09/2026  09:29 AM            40,263 opportunity_engine.cpython-314.pyc
+09/09/2026  09:29 AM           108,514 regime_engine.cpython-314.pyc
+09/09/2026  09:29 AM            72,639 relationship_engine.cpython-314.pyc
+09/09/2026  09:29 AM            94,477 structure_engine.cpython-314.pyc
+               7 File(s)        668,266 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/08/2026  12:13 AM           120,206 future_rank_engine.py
+09/08/2026  12:50 AM           145,964 growth_projection_engine.py
+09/08/2026  01:42 AM            81,006 holdability_engine.py
+09/07/2026  11:27 AM                 0 pullback_engine.py
+09/08/2026  03:00 AM           160,130 thesis_engine.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               5 File(s)        507,306 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\future\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM           128,477 future_rank_engine.cpython-314.pyc
+09/09/2026  09:29 AM           141,648 growth_projection_engine.cpython-314.pyc
+09/09/2026  09:29 AM            76,367 holdability_engine.cpython-314.pyc
+09/09/2026  09:29 AM               177 pullback_engine.cpython-314.pyc
+               4 File(s)        346,669 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/07/2026  11:53 PM           115,116 future_models.py
+09/07/2026  11:36 PM           112,586 opportunity_models.py
+09/07/2026  09:45 PM            87,518 scanner_models.py
+09/09/2026  09:29 AM    <DIR>          __pycache__
+               3 File(s)        315,220 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\models\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM           136,725 future_models.cpython-314.pyc
+09/09/2026  09:29 AM           134,337 opportunity_models.cpython-314.pyc
+09/09/2026  09:29 AM            95,244 scanner_models.cpython-314.pyc
+               3 File(s)        366,306 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/07/2026  01:09 AM            98,934 commodity_scanner.py
+09/07/2026  01:25 AM           100,548 crypto_scanner.py
+09/07/2026  12:33 AM            69,286 equity_scanner.py
+09/07/2026  01:47 AM           102,143 fx_scanner.py
+09/07/2026  12:57 AM            90,250 index_scanner.py
+09/07/2026  12:14 AM            64,651 stock_scanner.py
+09/09/2026  09:30 AM    <DIR>          __pycache__
+               6 File(s)        525,812 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\scanners\__pycache__
+
+09/09/2026  09:30 AM    <DIR>          .
+09/09/2026  09:30 AM    <DIR>          ..
+09/09/2026  09:29 AM           100,897 commodity_scanner.cpython-314.pyc
+09/09/2026  09:30 AM           101,984 crypto_scanner.cpython-314.pyc
+09/09/2026  09:30 AM            83,822 equity_scanner.cpython-314.pyc
+09/09/2026  09:30 AM           100,978 fx_scanner.cpython-314.pyc
+09/09/2026  09:30 AM            85,453 index_scanner.cpython-314.pyc
+09/09/2026  09:30 AM            79,699 stock_scanner.cpython-314.pyc
+               6 File(s)        552,833 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\discovery\__pycache__
+
+09/11/2026  08:40 AM    <DIR>          .
+09/11/2026  08:40 AM    <DIR>          ..
+09/09/2026  09:29 AM            92,076 discovery_page.cpython-314.pyc
+09/09/2026  09:29 AM            91,004 favorites.cpython-314.pyc
+09/09/2026  09:29 AM            74,026 universal_scanner.cpython-314.pyc
+09/11/2026  08:40 AM               902 __init__.cpython-314.pyc
+               4 File(s)        258,008 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/08/2026  03:22 AM           132,032 memory_page.py
+09/03/2026  08:19 AM                 0 __init__.py
+09/09/2026  09:30 AM    <DIR>          __pycache__
+               2 File(s)        132,032 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\memory\__pycache__
+
+09/09/2026  09:30 AM    <DIR>          .
+09/09/2026  09:30 AM    <DIR>          ..
+09/09/2026  09:30 AM               160 __init__.cpython-314.pyc
+               1 File(s)            160 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\research
+
+09/03/2026  08:22 AM    <DIR>          .
+09/03/2026  08:22 AM    <DIR>          ..
+09/08/2026  03:15 AM           127,580 research_page.py
+09/08/2026  03:16 AM             3,057 __init__.py
+               2 File(s)        130,637 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal
+
+09/09/2026  09:19 AM    <DIR>          .
+09/09/2026  09:19 AM    <DIR>          ..
+09/06/2026  11:38 PM            49,724 terminal_page.py
+09/03/2026  08:19 AM                 0 __init__.py
+09/09/2026  09:30 AM    <DIR>          __pycache__
+               2 File(s)         49,724 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\terminal\__pycache__
+
+09/09/2026  09:30 AM    <DIR>          .
+09/09/2026  09:30 AM    <DIR>          ..
+09/09/2026  09:30 AM               162 __init__.cpython-314.pyc
+               1 File(s)            162 bytes
+
+ Directory of C:\Users\Administrator\ROBOMLM_PLUS\app\ui\__pycache__
+
+09/09/2026  09:29 AM    <DIR>          .
+09/09/2026  09:29 AM    <DIR>          ..
+09/09/2026  09:29 AM            91,255 app.cpython-314.pyc
+09/09/2026  09:29 AM            86,599 router.cpython-314.pyc
+09/09/2026  09:29 AM               153 __init__.cpython-314.pyc
+               3 File(s)        178,007 bytes
+
+     Total Files Listed:
+              97 File(s)      6,951,558 bytes
+              68 Dir(s)  10,552,254,464 bytes free

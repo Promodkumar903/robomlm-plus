@@ -1,0 +1,2516 @@
+# ============================================================
+# reconciliation.py
+# PART 1 / 5
+# Foundation + Contracts + References + Request Validation
+# ============================================================
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Mapping, Optional
+from uuid import uuid4
+
+
+# ============================================================
+# ENGINE IDENTITY
+# ============================================================
+
+RECONCILIATION_ENGINE = "ROBOMLM_PLUS_RECONCILIATION"
+RECONCILIATION_VERSION = "1.0"
+
+
+# ============================================================
+# CORE ENUMS
+# ============================================================
+
+class ReconciliationStatus(str, Enum):
+    READY = "READY"
+    RECONCILING = "RECONCILING"
+    MATCHED = "MATCHED"
+    WARNING = "WARNING"
+    MISMATCH = "MISMATCH"
+    CRITICAL = "CRITICAL"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+class ReconciliationState(str, Enum):
+    MATCHED = "MATCHED"
+    PARTIAL_MATCH = "PARTIAL_MATCH"
+    MISMATCH = "MISMATCH"
+    UNKNOWN = "UNKNOWN"
+
+
+class ReconciliationHealth(str, Enum):
+    HEALTHY = "HEALTHY"
+    CAUTION = "CAUTION"
+    AT_RISK = "AT_RISK"
+    CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
+
+
+class ReconciliationDisposition(str, Enum):
+    ACCEPT = "ACCEPT"
+    REVIEW = "REVIEW"
+    PROTECT = "PROTECT"
+    BLOCK = "BLOCK"
+    UNKNOWN = "UNKNOWN"
+
+
+class ReconciliationContractStatus(str, Enum):
+    VALID = "VALID"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# REQUEST CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationRequest:
+    """
+    Input contract for the ROBOMLM_PLUS reconciliation layer.
+
+    Reconciliation compares expected state against actual state.
+
+    It MUST NOT:
+    - create an order
+    - execute an order
+    - modify a position
+    - create authorization
+    - override D13
+    - override Risk
+    - invent missing state
+    - calculate trading parameters
+    """
+
+    expected_state: Any
+    actual_state: Any
+
+    position_monitor: Any = None
+    protection_state: Any = None
+    risk_state: Any = None
+    decision_state: Any = None
+    account_state: Any = None
+    execution_state: Any = None
+
+    metadata: Mapping[str, Any] = field(default_factory=dict)
+
+    request_id: str = field(
+        default_factory=lambda: str(uuid4())
+    )
+
+    timestamp: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    def validate(self) -> "ReconciliationContractValidation":
+        errors = []
+
+        if self.expected_state is None:
+            errors.append("expected_state is required")
+
+        if self.actual_state is None:
+            errors.append("actual_state is required")
+
+        if not self.request_id:
+            errors.append("request_id is required")
+
+        if not isinstance(self.metadata, Mapping):
+            errors.append("metadata must be a Mapping")
+
+        return ReconciliationContractValidation(
+            status=(
+                ReconciliationContractStatus.VALID
+                if not errors
+                else ReconciliationContractStatus.INVALID
+            ),
+            errors=tuple(errors),
+        )
+
+
+# ============================================================
+# EXPECTED STATE REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationExpectedReference:
+    """
+    Normalized reference for the state that the system expects.
+    """
+
+    state_id: Optional[str]
+    instrument: Optional[str]
+    side: Optional[str]
+    position_state: Optional[str]
+    quantity: Optional[float]
+    entry_price: Optional[float]
+    current_price: Optional[float]
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+    leverage: Optional[float]
+    margin: Optional[float]
+    source: str = "EXPECTED_STATE"
+    raw_state: Any = None
+
+
+# ============================================================
+# ACTUAL STATE REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationActualReference:
+    """
+    Normalized reference for the externally observed actual state.
+    """
+
+    state_id: Optional[str]
+    instrument: Optional[str]
+    side: Optional[str]
+    position_state: Optional[str]
+    quantity: Optional[float]
+    entry_price: Optional[float]
+    current_price: Optional[float]
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+    leverage: Optional[float]
+    margin: Optional[float]
+    source: str = "ACTUAL_STATE"
+    raw_state: Any = None
+
+
+# ============================================================
+# POSITION MONITOR REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationMonitorReference:
+    monitor_id: Optional[str]
+    status: Optional[str]
+    health: Optional[str]
+    consistency: Optional[str]
+    disposition: Optional[str]
+    action_state: Optional[str]
+    raw_result: Any = None
+    source: str = "POSITION_MONITOR"
+
+
+# ============================================================
+# PROTECTION REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationProtectionReference:
+    protection_id: Optional[str]
+    status: Optional[str]
+    protection_state: Optional[str]
+    health: Optional[str]
+    disposition: Optional[str]
+    stop_loss: Optional[float]
+    take_profit: Optional[float]
+    raw_result: Any = None
+    source: str = "PROTECTION"
+
+
+# ============================================================
+# RISK REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationRiskReference:
+    risk_id: Optional[str]
+    status: Optional[str]
+    risk_score: Optional[float]
+    exposure: Optional[float]
+    severity: Optional[str]
+    raw_result: Any = None
+    source: str = "RISK"
+
+
+# ============================================================
+# DECISION REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationDecisionReference:
+    decision_id: Optional[str]
+    direction: Optional[str]
+    status: Optional[str]
+    confidence: Optional[float]
+    strength: Optional[float]
+    raw_decision: Any = None
+    source: str = "D13"
+
+
+# ============================================================
+# ACCOUNT REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationAccountReference:
+    account_id: Optional[str]
+    balance: Optional[float]
+    equity: Optional[float]
+    available_margin: Optional[float]
+    currency: Optional[str]
+    raw_account: Any = None
+    source: str = "ACCOUNT"
+
+
+# ============================================================
+# EXECUTION REFERENCE
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationExecutionReference:
+    execution_id: Optional[str]
+    status: Optional[str]
+    order_id: Optional[str]
+    fill_status: Optional[str]
+    filled_quantity: Optional[float]
+    average_price: Optional[float]
+    venue: Optional[str]
+    raw_execution: Any = None
+    source: str = "EXECUTION"
+
+
+# ============================================================
+# CONTRACT VALIDATION
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationContractValidation:
+    status: ReconciliationContractStatus
+    errors: tuple[str, ...] = ()
+
+    @property
+    def is_valid(self) -> bool:
+        return self.status == ReconciliationContractStatus.VALID
+
+
+# ============================================================
+# SAFE VALUE READER
+# ============================================================
+
+def _rr_read_value(
+    source: Any,
+    *names: str,
+    default: Any = None,
+) -> Any:
+    """
+    Read an explicitly supplied field from an object or mapping.
+
+    No inference or calculation is performed.
+    """
+    if source is None:
+        return default
+
+    if isinstance(source, Mapping):
+        for name in names:
+            if name in source:
+                return source[name]
+        return default
+
+    for name in names:
+        try:
+            value = getattr(source, name)
+        except AttributeError:
+            continue
+
+        if value is not None:
+            return value
+
+    return default
+
+
+def _rr_text(
+    source: Any,
+    *names: str,
+    default: Optional[str] = None,
+) -> Optional[str]:
+    value = _rr_read_value(
+        source,
+        *names,
+        default=default,
+    )
+
+    if value is None:
+        return default
+
+    return str(value)
+
+
+def _rr_float(
+    source: Any,
+    *names: str,
+    default: Optional[float] = None,
+) -> Optional[float]:
+    value = _rr_read_value(
+        source,
+        *names,
+        default=default,
+    )
+
+    if value is None:
+        return default
+
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+# ============================================================
+# EXPECTED STATE ADAPTER
+# ============================================================
+
+def build_reconciliation_expected_reference(
+    expected_state: Any,
+) -> ReconciliationExpectedReference:
+    """
+    Build normalized expected-state reference.
+
+    Values are read only when explicitly supplied.
+    """
+
+    return ReconciliationExpectedReference(
+        state_id=_rr_text(
+            expected_state,
+            "state_id",
+            "id",
+            "position_id",
+        ),
+        instrument=_rr_text(
+            expected_state,
+            "instrument",
+            "symbol",
+            "ticker",
+        ),
+        side=_rr_text(
+            expected_state,
+            "side",
+            "position_side",
+        ),
+        position_state=_rr_text(
+            expected_state,
+            "position_state",
+            "state",
+            "status",
+        ),
+        quantity=_rr_float(
+            expected_state,
+            "quantity",
+            "qty",
+            "size",
+        ),
+        entry_price=_rr_float(
+            expected_state,
+            "entry_price",
+            "entry",
+        ),
+        current_price=_rr_float(
+            expected_state,
+            "current_price",
+            "mark_price",
+            "price",
+        ),
+        stop_loss=_rr_float(
+            expected_state,
+            "stop_loss",
+            "sl",
+        ),
+        take_profit=_rr_float(
+            expected_state,
+            "take_profit",
+            "tp",
+            "target",
+        ),
+        leverage=_rr_float(
+            expected_state,
+            "leverage",
+        ),
+        margin=_rr_float(
+            expected_state,
+            "margin",
+        ),
+        raw_state=expected_state,
+    )
+
+
+# ============================================================
+# ACTUAL STATE ADAPTER
+# ============================================================
+
+def build_reconciliation_actual_reference(
+    actual_state: Any,
+) -> ReconciliationActualReference:
+    """
+    Build normalized actual-state reference.
+
+    Actual state should represent observed state from the
+    relevant account/execution/position source.
+    """
+
+    return ReconciliationActualReference(
+        state_id=_rr_text(
+            actual_state,
+            "state_id",
+            "id",
+            "position_id",
+        ),
+        instrument=_rr_text(
+            actual_state,
+            "instrument",
+            "symbol",
+            "ticker",
+        ),
+        side=_rr_text(
+            actual_state,
+            "side",
+            "position_side",
+        ),
+        position_state=_rr_text(
+            actual_state,
+            "position_state",
+            "state",
+            "status",
+        ),
+        quantity=_rr_float(
+            actual_state,
+            "quantity",
+            "qty",
+            "size",
+        ),
+        entry_price=_rr_float(
+            actual_state,
+            "entry_price",
+            "entry",
+        ),
+        current_price=_rr_float(
+            actual_state,
+            "current_price",
+            "mark_price",
+            "price",
+        ),
+        stop_loss=_rr_float(
+            actual_state,
+            "stop_loss",
+            "sl",
+        ),
+        take_profit=_rr_float(
+            actual_state,
+            "take_profit",
+            "tp",
+            "target",
+        ),
+        leverage=_rr_float(
+            actual_state,
+            "leverage",
+        ),
+        margin=_rr_float(
+            actual_state,
+            "margin",
+        ),
+        raw_state=actual_state,
+    )
+
+
+# ============================================================
+# POSITION MONITOR ADAPTER
+# ============================================================
+
+def build_reconciliation_monitor_reference(
+    monitor: Any,
+) -> ReconciliationMonitorReference:
+    return ReconciliationMonitorReference(
+        monitor_id=_rr_text(
+            monitor,
+            "monitor_id",
+            "result_id",
+        ),
+        status=_rr_text(
+            monitor,
+            "status",
+        ),
+        health=_rr_text(
+            monitor,
+            "health",
+        ),
+        consistency=_rr_text(
+            monitor,
+            "consistency",
+        ),
+        disposition=_rr_text(
+            monitor,
+            "disposition",
+        ),
+        action_state=_rr_text(
+            monitor,
+            "action_state",
+        ),
+        raw_result=monitor,
+    )
+
+
+# ============================================================
+# PROTECTION ADAPTER
+# ============================================================
+
+def build_reconciliation_protection_reference(
+    protection: Any,
+) -> ReconciliationProtectionReference:
+    return ReconciliationProtectionReference(
+        protection_id=_rr_text(
+            protection,
+            "protection_id",
+            "result_id",
+        ),
+        status=_rr_text(
+            protection,
+            "status",
+        ),
+        protection_state=_rr_text(
+            protection,
+            "protection_state",
+        ),
+        health=_rr_text(
+            protection,
+            "health",
+        ),
+        disposition=_rr_text(
+            protection,
+            "disposition",
+        ),
+        stop_loss=_rr_float(
+            protection,
+            "stop_loss",
+            "sl",
+        ),
+        take_profit=_rr_float(
+            protection,
+            "take_profit",
+            "tp",
+        ),
+        raw_result=protection,
+    )
+
+
+# ============================================================
+# RISK ADAPTER
+# ============================================================
+
+def build_reconciliation_risk_reference(
+    risk: Any,
+) -> ReconciliationRiskReference:
+    return ReconciliationRiskReference(
+        risk_id=_rr_text(
+            risk,
+            "risk_id",
+            "result_id",
+        ),
+        status=_rr_text(
+            risk,
+            "status",
+        ),
+        risk_score=_rr_float(
+            risk,
+            "risk_score",
+            "score",
+        ),
+        exposure=_rr_float(
+            risk,
+            "exposure",
+        ),
+        severity=_rr_text(
+            risk,
+            "severity",
+        ),
+        raw_result=risk,
+    )
+
+
+# ============================================================
+# DECISION ADAPTER
+# ============================================================
+
+def build_reconciliation_decision_reference(
+    decision: Any,
+) -> ReconciliationDecisionReference:
+    return ReconciliationDecisionReference(
+        decision_id=_rr_text(
+            decision,
+            "decision_id",
+            "result_id",
+        ),
+        direction=_rr_text(
+            decision,
+            "direction",
+            "decision",
+            "verdict",
+        ),
+        status=_rr_text(
+            decision,
+            "status",
+        ),
+        confidence=_rr_float(
+            decision,
+            "confidence",
+        ),
+        strength=_rr_float(
+            decision,
+            "strength",
+        ),
+        raw_decision=decision,
+    )
+
+
+# ============================================================
+# ACCOUNT ADAPTER
+# ============================================================
+
+def build_reconciliation_account_reference(
+    account: Any,
+) -> ReconciliationAccountReference:
+    return ReconciliationAccountReference(
+        account_id=_rr_text(
+            account,
+            "account_id",
+            "id",
+        ),
+        balance=_rr_float(
+            account,
+            "balance",
+        ),
+        equity=_rr_float(
+            account,
+            "equity",
+        ),
+        available_margin=_rr_float(
+            account,
+            "available_margin",
+            "free_margin",
+        ),
+        currency=_rr_text(
+            account,
+            "currency",
+        ),
+        raw_account=account,
+    )
+
+
+# ============================================================
+# EXECUTION ADAPTER
+# ============================================================
+
+def build_reconciliation_execution_reference(
+    execution: Any,
+) -> ReconciliationExecutionReference:
+    return ReconciliationExecutionReference(
+        execution_id=_rr_text(
+            execution,
+            "execution_id",
+            "result_id",
+        ),
+        status=_rr_text(
+            execution,
+            "status",
+        ),
+        order_id=_rr_text(
+            execution,
+            "order_id",
+        ),
+        fill_status=_rr_text(
+            execution,
+            "fill_status",
+            "execution_status",
+        ),
+        filled_quantity=_rr_float(
+            execution,
+            "filled_quantity",
+            "filled_qty",
+        ),
+        average_price=_rr_float(
+            execution,
+            "average_price",
+            "avg_price",
+        ),
+        venue=_rr_text(
+            execution,
+            "venue",
+            "exchange",
+            "broker",
+        ),
+        raw_execution=execution,
+    )
+
+
+# ============================================================
+# REQUEST VALIDATION HELPER
+# ============================================================
+
+def validate_reconciliation_request(
+    request: ReconciliationRequest,
+) -> ReconciliationContractValidation:
+    if request is None:
+        return ReconciliationContractValidation(
+            status=ReconciliationContractStatus.INVALID,
+            errors=("request is None",),
+        )
+
+    return request.validate()
+# ============================================================
+# reconciliation.py
+# PART 2 / 5
+# Intelligence + Comparison + Assessment
+# ============================================================
+
+class ReconciliationConsistency(str, Enum):
+    CONSISTENT = "CONSISTENT"
+    CONFLICTING = "CONFLICTING"
+    INSUFFICIENT = "INSUFFICIENT"
+
+
+class ReconciliationDataState(str, Enum):
+    COMPLETE = "COMPLETE"
+    PARTIAL = "PARTIAL"
+    MISSING = "MISSING"
+
+
+class ReconciliationMismatchType(str, Enum):
+    NONE = "NONE"
+    IDENTITY = "IDENTITY"
+    POSITION_STATE = "POSITION_STATE"
+    SIDE = "SIDE"
+    QUANTITY = "QUANTITY"
+    ENTRY_PRICE = "ENTRY_PRICE"
+    CURRENT_PRICE = "CURRENT_PRICE"
+    STOP_LOSS = "STOP_LOSS"
+    TAKE_PROFIT = "TAKE_PROFIT"
+    LEVERAGE = "LEVERAGE"
+    MARGIN = "MARGIN"
+    EXECUTION = "EXECUTION"
+    MULTIPLE = "MULTIPLE"
+    UNKNOWN = "UNKNOWN"
+
+
+@dataclass(frozen=True)
+class ReconciliationIntelligence:
+    consistency: ReconciliationConsistency
+    data_state: ReconciliationDataState
+    reconciliation_state: ReconciliationState
+    health: ReconciliationHealth
+    disposition: ReconciliationDisposition
+
+    mismatch_type: ReconciliationMismatchType
+    mismatches: tuple[str, ...]
+
+    expected_instrument: Optional[str]
+    actual_instrument: Optional[str]
+    expected_position_state: Optional[str]
+    actual_position_state: Optional[str]
+    expected_quantity: Optional[float]
+    actual_quantity: Optional[float]
+    expected_entry_price: Optional[float]
+    actual_entry_price: Optional[float]
+    expected_current_price: Optional[float]
+    actual_current_price: Optional[float]
+
+    rationale: str
+    warnings: tuple[str, ...] = ()
+    source: str = RECONCILIATION_ENGINE
+
+
+@dataclass(frozen=True)
+class ReconciliationRequirements:
+    expected_available: bool
+    actual_available: bool
+
+    expected_instrument_available: bool
+    actual_instrument_available: bool
+
+    expected_position_state_available: bool
+    actual_position_state_available: bool
+
+    expected_quantity_available: bool
+    actual_quantity_available: bool
+
+    expected_entry_price_available: bool
+    actual_entry_price_available: bool
+
+    expected_current_price_available: bool
+    actual_current_price_available: bool
+
+    expected_protection_available: bool
+    actual_protection_available: bool
+
+    expected_leverage_available: bool
+    actual_leverage_available: bool
+
+    expected_margin_available: bool
+    actual_margin_available: bool
+
+    monitor_available: bool
+    risk_context_available: bool
+    decision_context_available: bool
+    account_context_available: bool
+    execution_context_available: bool
+
+    identity_consistent: bool = False
+    position_state_consistent: bool = False
+    side_consistent: bool = False
+
+
+@dataclass(frozen=True)
+class ReconciliationAssessment:
+    intelligence: ReconciliationIntelligence
+    requirements: ReconciliationRequirements
+
+    expected: ReconciliationExpectedReference
+    actual: ReconciliationActualReference
+
+    monitor: Optional[ReconciliationMonitorReference] = None
+    protection: Optional[ReconciliationProtectionReference] = None
+    risk: Optional[ReconciliationRiskReference] = None
+    decision: Optional[ReconciliationDecisionReference] = None
+    account: Optional[ReconciliationAccountReference] = None
+    execution: Optional[ReconciliationExecutionReference] = None
+
+    rationale: str = ""
+    warnings: tuple[str, ...] = ()
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def _rr_normalized_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+
+    text = str(value).strip()
+
+    return text.upper() if text else None
+
+
+def _rr_status_is_blocking(value: Any) -> bool:
+    return _rr_normalized_text(value) in {
+        "BLOCKED",
+        "DENIED",
+        "REJECTED",
+        "FAILED",
+        "INVALID",
+        "UNSAFE",
+        "CRITICAL",
+        "HALTED",
+        "STOPPED",
+    }
+
+
+def _rr_status_is_unknown(value: Any) -> bool:
+    return _rr_normalized_text(value) in {
+        None,
+        "",
+        "UNKNOWN",
+        "UNSPECIFIED",
+        "N/A",
+        "NA",
+        "NONE",
+        "NULL",
+    }
+
+
+def _rr_numeric_equal(
+    expected: Optional[float],
+    actual: Optional[float],
+) -> bool:
+    if expected is None or actual is None:
+        return False
+
+    return expected == actual
+
+
+# ============================================================
+# REQUIREMENTS
+# ============================================================
+
+def evaluate_reconciliation_requirements(
+    expected: ReconciliationExpectedReference,
+    actual: ReconciliationActualReference,
+    monitor: Optional[ReconciliationMonitorReference] = None,
+    protection: Optional[ReconciliationProtectionReference] = None,
+    risk: Optional[ReconciliationRiskReference] = None,
+    decision: Optional[ReconciliationDecisionReference] = None,
+    account: Optional[ReconciliationAccountReference] = None,
+    execution: Optional[ReconciliationExecutionReference] = None,
+) -> ReconciliationRequirements:
+
+    identity_consistent = (
+        expected.instrument is not None
+        and actual.instrument is not None
+        and expected.instrument == actual.instrument
+    )
+
+    position_state_consistent = (
+        expected.position_state is not None
+        and actual.position_state is not None
+        and _rr_normalized_text(expected.position_state)
+        == _rr_normalized_text(actual.position_state)
+    )
+
+    side_consistent = (
+        expected.side is not None
+        and actual.side is not None
+        and _rr_normalized_text(expected.side)
+        == _rr_normalized_text(actual.side)
+    )
+
+    return ReconciliationRequirements(
+        expected_available=expected is not None,
+        actual_available=actual is not None,
+
+        expected_instrument_available=expected.instrument is not None,
+        actual_instrument_available=actual.instrument is not None,
+
+        expected_position_state_available=(
+            expected.position_state is not None
+        ),
+        actual_position_state_available=(
+            actual.position_state is not None
+        ),
+
+        expected_quantity_available=expected.quantity is not None,
+        actual_quantity_available=actual.quantity is not None,
+
+        expected_entry_price_available=(
+            expected.entry_price is not None
+        ),
+        actual_entry_price_available=(
+            actual.entry_price is not None
+        ),
+
+        expected_current_price_available=(
+            expected.current_price is not None
+        ),
+        actual_current_price_available=(
+            actual.current_price is not None
+        ),
+
+        expected_protection_available=(
+            expected.stop_loss is not None
+            or expected.take_profit is not None
+        ),
+        actual_protection_available=(
+            actual.stop_loss is not None
+            or actual.take_profit is not None
+        ),
+
+        expected_leverage_available=expected.leverage is not None,
+        actual_leverage_available=actual.leverage is not None,
+
+        expected_margin_available=expected.margin is not None,
+        actual_margin_available=actual.margin is not None,
+
+        monitor_available=monitor is not None,
+        risk_context_available=risk is not None,
+        decision_context_available=decision is not None,
+        account_context_available=account is not None,
+        execution_context_available=execution is not None,
+
+        identity_consistent=identity_consistent,
+        position_state_consistent=position_state_consistent,
+        side_consistent=side_consistent,
+    )
+
+
+# ============================================================
+# DATA STATE
+# ============================================================
+
+def evaluate_reconciliation_data_state(
+    requirements: ReconciliationRequirements,
+) -> ReconciliationDataState:
+
+    if not (
+        requirements.expected_available
+        and requirements.actual_available
+    ):
+        return ReconciliationDataState.MISSING
+
+    critical = (
+        requirements.expected_instrument_available
+        and requirements.actual_instrument_available
+        and requirements.expected_position_state_available
+        and requirements.actual_position_state_available
+    )
+
+    if not critical:
+        return ReconciliationDataState.PARTIAL
+
+    comparison_ready = (
+        requirements.expected_quantity_available
+        and requirements.actual_quantity_available
+        and requirements.expected_current_price_available
+        and requirements.actual_current_price_available
+    )
+
+    if not comparison_ready:
+        return ReconciliationDataState.PARTIAL
+
+    return ReconciliationDataState.COMPLETE
+
+
+# ============================================================
+# MISMATCH DETECTION
+# ============================================================
+
+def evaluate_reconciliation_mismatches(
+    expected: ReconciliationExpectedReference,
+    actual: ReconciliationActualReference,
+) -> tuple[
+    ReconciliationConsistency,
+    ReconciliationMismatchType,
+    tuple[str, ...],
+]:
+
+    mismatches = []
+
+    if (
+        expected.instrument is not None
+        and actual.instrument is not None
+        and expected.instrument != actual.instrument
+    ):
+        mismatches.append("instrument")
+
+    if (
+        expected.position_state is not None
+        and actual.position_state is not None
+        and _rr_normalized_text(expected.position_state)
+        != _rr_normalized_text(actual.position_state)
+    ):
+        mismatches.append("position_state")
+
+    if (
+        expected.side is not None
+        and actual.side is not None
+        and _rr_normalized_text(expected.side)
+        != _rr_normalized_text(actual.side)
+    ):
+        mismatches.append("side")
+
+    if (
+        expected.quantity is not None
+        and actual.quantity is not None
+        and not _rr_numeric_equal(
+            expected.quantity,
+            actual.quantity,
+        )
+    ):
+        mismatches.append("quantity")
+
+    if (
+        expected.entry_price is not None
+        and actual.entry_price is not None
+        and not _rr_numeric_equal(
+            expected.entry_price,
+            actual.entry_price,
+        )
+    ):
+        mismatches.append("entry_price")
+
+    # Current price is intentionally NOT treated as a mismatch
+    # merely because market price changed.
+
+    if (
+        expected.stop_loss is not None
+        and actual.stop_loss is not None
+        and not _rr_numeric_equal(
+            expected.stop_loss,
+            actual.stop_loss,
+        )
+    ):
+        mismatches.append("stop_loss")
+
+    if (
+        expected.take_profit is not None
+        and actual.take_profit is not None
+        and not _rr_numeric_equal(
+            expected.take_profit,
+            actual.take_profit,
+        )
+    ):
+        mismatches.append("take_profit")
+
+    if (
+        expected.leverage is not None
+        and actual.leverage is not None
+        and not _rr_numeric_equal(
+            expected.leverage,
+            actual.leverage,
+        )
+    ):
+        mismatches.append("leverage")
+
+    if (
+        expected.margin is not None
+        and actual.margin is not None
+        and not _rr_numeric_equal(
+            expected.margin,
+            actual.margin,
+        )
+    ):
+        mismatches.append("margin")
+
+    if not mismatches:
+        return (
+            ReconciliationConsistency.CONSISTENT,
+            ReconciliationMismatchType.NONE,
+            (),
+        )
+
+    if len(mismatches) > 1:
+        return (
+            ReconciliationConsistency.CONFLICTING,
+            ReconciliationMismatchType.MULTIPLE,
+            tuple(mismatches),
+        )
+
+    mismatch_map = {
+        "instrument": ReconciliationMismatchType.IDENTITY,
+        "position_state": ReconciliationMismatchType.POSITION_STATE,
+        "side": ReconciliationMismatchType.SIDE,
+        "quantity": ReconciliationMismatchType.QUANTITY,
+        "entry_price": ReconciliationMismatchType.ENTRY_PRICE,
+        "stop_loss": ReconciliationMismatchType.STOP_LOSS,
+        "take_profit": ReconciliationMismatchType.TAKE_PROFIT,
+        "leverage": ReconciliationMismatchType.LEVERAGE,
+        "margin": ReconciliationMismatchType.MARGIN,
+    }
+
+    return (
+        ReconciliationConsistency.CONFLICTING,
+        mismatch_map.get(
+            mismatches[0],
+            ReconciliationMismatchType.UNKNOWN,
+        ),
+        tuple(mismatches),
+    )
+
+
+# ============================================================
+# STATE + HEALTH + DISPOSITION
+# ============================================================
+
+def evaluate_reconciliation_state(
+    consistency: ReconciliationConsistency,
+    data_state: ReconciliationDataState,
+) -> ReconciliationState:
+
+    if data_state == ReconciliationDataState.MISSING:
+        return ReconciliationState.UNKNOWN
+
+    if consistency == ReconciliationConsistency.CONFLICTING:
+        return ReconciliationState.MISMATCH
+
+    if data_state == ReconciliationDataState.PARTIAL:
+        return ReconciliationState.PARTIAL_MATCH
+
+    if consistency == ReconciliationConsistency.CONSISTENT:
+        return ReconciliationState.MATCHED
+
+    return ReconciliationState.UNKNOWN
+
+
+def evaluate_reconciliation_health(
+    consistency: ReconciliationConsistency,
+    data_state: ReconciliationDataState,
+    risk: Optional[ReconciliationRiskReference] = None,
+    monitor: Optional[ReconciliationMonitorReference] = None,
+) -> ReconciliationHealth:
+
+    if data_state == ReconciliationDataState.MISSING:
+        return ReconciliationHealth.UNKNOWN
+
+    if consistency == ReconciliationConsistency.CONFLICTING:
+        return ReconciliationHealth.CRITICAL
+
+    if monitor is not None:
+        if _rr_status_is_blocking(monitor.status):
+            return ReconciliationHealth.CRITICAL
+
+        if _rr_normalized_text(monitor.health) in {
+            "CRITICAL",
+            "AT_RISK",
+        }:
+            return ReconciliationHealth.AT_RISK
+
+    if risk is not None:
+        if _rr_status_is_blocking(risk.status):
+            return ReconciliationHealth.CRITICAL
+
+        severity = _rr_normalized_text(risk.severity)
+
+        if severity == "CRITICAL":
+            return ReconciliationHealth.CRITICAL
+
+        if severity == "HIGH":
+            return ReconciliationHealth.AT_RISK
+
+    if data_state == ReconciliationDataState.PARTIAL:
+        return ReconciliationHealth.CAUTION
+
+    return ReconciliationHealth.HEALTHY
+
+
+def evaluate_reconciliation_disposition(
+    state: ReconciliationState,
+    health: ReconciliationHealth,
+) -> ReconciliationDisposition:
+
+    if state == ReconciliationState.MISMATCH:
+        return ReconciliationDisposition.BLOCK
+
+    if health == ReconciliationHealth.CRITICAL:
+        return ReconciliationDisposition.BLOCK
+
+    if health == ReconciliationHealth.AT_RISK:
+        return ReconciliationDisposition.PROTECT
+
+    if (
+        state == ReconciliationState.PARTIAL_MATCH
+        or health == ReconciliationHealth.CAUTION
+    ):
+        return ReconciliationDisposition.REVIEW
+
+    if state == ReconciliationState.MATCHED:
+        return ReconciliationDisposition.ACCEPT
+
+    return ReconciliationDisposition.UNKNOWN
+# ============================================================
+# reconciliation.py
+# PART 3 / 5
+# Result + Contract + Forward Safety
+# ============================================================
+
+
+# ============================================================
+# ACTION / CONTRACT STATES
+# ============================================================
+
+class ReconciliationActionState(str, Enum):
+    NONE = "NONE"
+    REVIEW = "REVIEW"
+    PROTECT = "PROTECT"
+    BLOCK = "BLOCK"
+
+
+class ReconciliationContractState(str, Enum):
+    VALID = "VALID"
+    INCOMPLETE = "INCOMPLETE"
+    BLOCKED = "BLOCKED"
+    INVALID = "INVALID"
+
+
+# ============================================================
+# RECONCILIATION RESULT
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationResult:
+    request_id: str
+    result_id: str
+
+    status: ReconciliationStatus
+    reconciliation_state: ReconciliationState
+    health: ReconciliationHealth
+    consistency: ReconciliationConsistency
+    data_state: ReconciliationDataState
+    disposition: ReconciliationDisposition
+    action_state: ReconciliationActionState
+
+    mismatch_type: ReconciliationMismatchType
+    mismatches: tuple[str, ...]
+
+    expected: ReconciliationExpectedReference
+    actual: ReconciliationActualReference
+
+    monitor: Optional[ReconciliationMonitorReference] = None
+    protection: Optional[ReconciliationProtectionReference] = None
+    risk: Optional[ReconciliationRiskReference] = None
+    decision: Optional[ReconciliationDecisionReference] = None
+    account: Optional[ReconciliationAccountReference] = None
+    execution: Optional[ReconciliationExecutionReference] = None
+
+    rationale: str = ""
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return (
+            bool(self.request_id)
+            and bool(self.result_id)
+            and self.status != ReconciliationStatus.INVALID
+            and self.expected is not None
+            and self.actual is not None
+        )
+
+    @property
+    def requires_review(self) -> bool:
+        return (
+            self.disposition
+            == ReconciliationDisposition.REVIEW
+        )
+
+    @property
+    def requires_protection(self) -> bool:
+        return (
+            self.disposition
+            == ReconciliationDisposition.PROTECT
+        )
+
+    @property
+    def requires_block(self) -> bool:
+        return (
+            self.disposition
+            == ReconciliationDisposition.BLOCK
+        )
+
+
+# ============================================================
+# RECONCILIATION CONTRACT
+# ============================================================
+
+@dataclass(frozen=True)
+class ReconciliationContract:
+    reconciliation_id: str
+    request_id: str
+
+    state: ReconciliationContractState
+    result: ReconciliationResult
+
+    action_state: ReconciliationActionState
+
+    rationale: str = ""
+    warnings: tuple[str, ...] = ()
+
+    created_at: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+
+    @property
+    def is_valid(self) -> bool:
+        return (
+            bool(self.reconciliation_id)
+            and bool(self.request_id)
+            and self.result is not None
+            and self.result.is_valid
+            and self.state == ReconciliationContractState.VALID
+        )
+
+    @property
+    def is_action_request(self) -> bool:
+        """
+        Reconciliation is observational / control intelligence.
+        It never becomes an execution action request.
+        """
+        return False
+
+
+# ============================================================
+# ACTION STATE
+# ============================================================
+
+def _rr_action_state(
+    intelligence: ReconciliationIntelligence,
+) -> ReconciliationActionState:
+
+    if intelligence.disposition == ReconciliationDisposition.BLOCK:
+        return ReconciliationActionState.BLOCK
+
+    if intelligence.disposition == ReconciliationDisposition.PROTECT:
+        return ReconciliationActionState.PROTECT
+
+    if intelligence.disposition == ReconciliationDisposition.REVIEW:
+        return ReconciliationActionState.REVIEW
+
+    return ReconciliationActionState.NONE
+
+
+# ============================================================
+# RESULT STATUS
+# ============================================================
+
+def _rr_result_status(
+    intelligence: ReconciliationIntelligence,
+) -> ReconciliationStatus:
+
+    if (
+        intelligence.data_state
+        == ReconciliationDataState.MISSING
+    ):
+        return ReconciliationStatus.INVALID
+
+    if (
+        intelligence.health
+        == ReconciliationHealth.CRITICAL
+    ):
+        return ReconciliationStatus.CRITICAL
+
+    if (
+        intelligence.reconciliation_state
+        == ReconciliationState.MISMATCH
+    ):
+        return ReconciliationStatus.MISMATCH
+
+    if (
+        intelligence.reconciliation_state
+        == ReconciliationState.PARTIAL_MATCH
+    ):
+        return ReconciliationStatus.WARNING
+
+    if (
+        intelligence.reconciliation_state
+        == ReconciliationState.MATCHED
+    ):
+        return ReconciliationStatus.MATCHED
+
+    return ReconciliationStatus.WARNING
+
+
+# ============================================================
+# BUILD RESULT
+# ============================================================
+
+def build_reconciliation_assessment(
+    request: ReconciliationRequest,
+) -> ReconciliationAssessment:
+    """Build normalized reconciliation assessment from the request."""
+
+    expected = build_reconciliation_expected_reference(request.expected_state)
+    actual = build_reconciliation_actual_reference(request.actual_state)
+
+    monitor = build_reconciliation_monitor_reference(request.position_monitor) if request.position_monitor is not None else None
+    protection = build_reconciliation_protection_reference(request.protection_state) if request.protection_state is not None else None
+    risk = build_reconciliation_risk_reference(request.risk_state) if request.risk_state is not None else None
+    decision = build_reconciliation_decision_reference(request.decision_state) if request.decision_state is not None else None
+    account = build_reconciliation_account_reference(request.account_state) if request.account_state is not None else None
+    execution = build_reconciliation_execution_reference(request.execution_state) if request.execution_state is not None else None
+
+    requirements = evaluate_reconciliation_requirements(
+        expected=expected,
+        actual=actual,
+        monitor=monitor,
+        protection=protection,
+        risk=risk,
+        decision=decision,
+        account=account,
+        execution=execution,
+    )
+
+    consistency, mismatch_type, mismatches = evaluate_reconciliation_mismatches(expected, actual)
+    data_state = evaluate_reconciliation_data_state(requirements)
+    reconciliation_state = evaluate_reconciliation_state(consistency, data_state)
+    health = evaluate_reconciliation_health(consistency, data_state, risk=risk, monitor=monitor)
+    disposition = evaluate_reconciliation_disposition(reconciliation_state, health)
+
+    if not mismatches:
+        rationale = "Expected and actual states are consistent."
+    else:
+        rationale = "Reconciliation mismatch detected: " + ", ".join(mismatches) + "."
+
+    warnings = ("reconciliation data is partial",) if data_state == ReconciliationDataState.PARTIAL else ()
+
+    intelligence = ReconciliationIntelligence(
+        consistency=consistency,
+        data_state=data_state,
+        reconciliation_state=reconciliation_state,
+        health=health,
+        disposition=disposition,
+        mismatch_type=mismatch_type,
+        mismatches=mismatches,
+        expected_instrument=expected.instrument,
+        actual_instrument=actual.instrument,
+        expected_position_state=expected.position_state,
+        actual_position_state=actual.position_state,
+        expected_quantity=expected.quantity,
+        actual_quantity=actual.quantity,
+        expected_entry_price=expected.entry_price,
+        actual_entry_price=actual.entry_price,
+        expected_current_price=expected.current_price,
+        actual_current_price=actual.current_price,
+        rationale=rationale,
+        warnings=warnings,
+        source=RECONCILIATION_ENGINE,
+    )
+
+    return ReconciliationAssessment(
+        intelligence=intelligence,
+        requirements=requirements,
+        expected=expected,
+        actual=actual,
+        monitor=monitor,
+        protection=protection,
+        risk=risk,
+        decision=decision,
+        account=account,
+        execution=execution,
+        rationale=rationale,
+        warnings=warnings,
+    )
+
+def build_reconciliation_result(
+    request: ReconciliationRequest,
+    assessment: ReconciliationAssessment,
+) -> ReconciliationResult:
+
+    intelligence = assessment.intelligence
+
+    warnings = list(assessment.warnings)
+
+    if intelligence.requires_block if hasattr(
+        intelligence,
+        "requires_block",
+    ) else False:
+        warnings.append(
+            "reconciliation requires blocking"
+        )
+
+    if intelligence.mismatches:
+        warnings.append(
+            "mismatch detected; no corrective action is created"
+        )
+
+    return ReconciliationResult(
+        request_id=request.request_id,
+        result_id=str(uuid4()),
+
+        status=_rr_result_status(intelligence),
+        reconciliation_state=intelligence.reconciliation_state,
+        health=intelligence.health,
+        consistency=intelligence.consistency,
+        data_state=intelligence.data_state,
+        disposition=intelligence.disposition,
+        action_state=_rr_action_state(intelligence),
+
+        mismatch_type=intelligence.mismatch_type,
+        mismatches=intelligence.mismatches,
+
+        expected=assessment.expected,
+        actual=assessment.actual,
+
+        monitor=assessment.monitor,
+        protection=assessment.protection,
+        risk=assessment.risk,
+        decision=assessment.decision,
+        account=assessment.account,
+        execution=assessment.execution,
+
+        rationale=intelligence.rationale,
+        warnings=tuple(warnings),
+    )
+
+
+# ============================================================
+# CONTRACT STATE
+# ============================================================
+
+def _rr_contract_state(
+    result: ReconciliationResult,
+) -> ReconciliationContractState:
+
+    if result is None or not result.is_valid:
+        return ReconciliationContractState.INVALID
+
+    if (
+        result.data_state
+        == ReconciliationDataState.MISSING
+    ):
+        return ReconciliationContractState.INCOMPLETE
+
+    if (
+        result.consistency
+        == ReconciliationConsistency.CONFLICTING
+        or result.requires_block
+    ):
+        return ReconciliationContractState.BLOCKED
+
+    if (
+        result.data_state
+        == ReconciliationDataState.PARTIAL
+    ):
+        return ReconciliationContractState.INCOMPLETE
+
+    return ReconciliationContractState.VALID
+
+
+# ============================================================
+# BUILD CONTRACT
+# ============================================================
+
+def build_reconciliation_contract(
+    request: ReconciliationRequest,
+    result: ReconciliationResult,
+) -> ReconciliationContract:
+
+    state = _rr_contract_state(result)
+
+    warnings = list(result.warnings)
+
+    if state == ReconciliationContractState.BLOCKED:
+        warnings.append(
+            "reconciliation contract is blocked"
+        )
+
+    if state == ReconciliationContractState.INCOMPLETE:
+        warnings.append(
+            "reconciliation contract is incomplete"
+        )
+
+    return ReconciliationContract(
+        reconciliation_id=str(uuid4()),
+        request_id=request.request_id,
+        state=state,
+        result=result,
+        action_state=result.action_state,
+        rationale=result.rationale,
+        warnings=tuple(warnings),
+    )
+
+
+# ============================================================
+# SAFE-FORWARD GATE
+# ============================================================
+
+def is_reconciliation_safe_to_forward(
+    contract: ReconciliationContract,
+) -> bool:
+    """
+    Determines whether the reconciliation result may be
+    consumed by a downstream control layer.
+
+    This function NEVER:
+    - creates an order
+    - creates an execution action
+    - creates authorization
+    - corrects a position
+    - modifies account state
+    """
+
+    if contract is None:
+        return False
+
+    if not contract.is_valid:
+        return False
+
+    if contract.is_action_request:
+        return False
+
+    result = contract.result
+
+    if result is None or not result.is_valid:
+        return False
+
+    if (
+        result.consistency
+        == ReconciliationConsistency.CONFLICTING
+    ):
+        return False
+
+    if result.requires_block:
+        return False
+
+    if (
+        contract.state
+        != ReconciliationContractState.VALID
+    ):
+        return False
+
+    return True
+
+
+# ============================================================
+# RESULT VALIDATION
+# ============================================================
+
+def validate_reconciliation_result(
+    result: ReconciliationResult,
+) -> dict:
+
+    errors = []
+    warnings = []
+
+    if result is None:
+        return {
+            "valid": False,
+            "errors": ["result is None"],
+            "warnings": [],
+        }
+
+    if not result.request_id:
+        errors.append("missing request_id")
+
+    if not result.result_id:
+        errors.append("missing result_id")
+
+    if result.expected is None:
+        errors.append("missing expected reference")
+
+    if result.actual is None:
+        errors.append("missing actual reference")
+
+    if result.status == ReconciliationStatus.INVALID:
+        errors.append("result status is INVALID")
+
+    if result.consistency == ReconciliationConsistency.CONFLICTING:
+        warnings.append(
+            "conflicting expected-versus-actual state detected"
+        )
+
+    if result.requires_block:
+        warnings.append(
+            "result requires downstream blocking"
+        )
+
+    return {
+        "valid": not errors,
+        "errors": errors,
+        "warnings": warnings,
+        "requires_review": result.requires_review,
+        "requires_protection": result.requires_protection,
+        "requires_block": result.requires_block,
+        "action_created": False,
+        "execution_authorized": False,
+    }
+# ============================================================
+# RECONCILIATION.PY — PART 4/5
+# ENGINE + ORCHESTRATION + PUBLIC API
+# ============================================================
+
+class ReconciliationEngine:
+    """
+    ROBOMLM PLUS Reconciliation Engine.
+
+    Role:
+        Expected State ↔ Actual State reconciliation.
+
+    Authority:
+        - Observes and reconciles state.
+        - Does NOT execute corrections.
+        - Does NOT create orders.
+        - Does NOT create authorization.
+        - Does NOT override D13.
+        - Does NOT override Risk.
+        - Does NOT calculate trading parameters.
+    """
+
+    ENGINE_NAME = RECONCILIATION_ENGINE
+    ENGINE_VERSION = RECONCILIATION_VERSION
+
+    def validate_request(
+        self,
+        request: ReconciliationRequest,
+    ) -> ReconciliationContractValidation:
+        return validate_reconciliation_request(request)
+
+    def _invalid_contract(
+        self,
+        request: ReconciliationRequest,
+        errors: tuple[str, ...],
+    ) -> ReconciliationContract:
+        now = datetime.now(timezone.utc)
+
+        intelligence = ReconciliationIntelligence(
+            consistency=ReconciliationConsistency.INSUFFICIENT,
+            data_state=ReconciliationDataState.MISSING,
+            reconciliation_state=ReconciliationState.UNKNOWN,
+            health=ReconciliationHealth.UNKNOWN,
+            disposition=ReconciliationDisposition.UNKNOWN,
+            mismatch_type=ReconciliationMismatchType.UNKNOWN,
+            mismatches=(),
+            expected_instrument=None,
+            actual_instrument=None,
+            expected_position_state=None,
+            actual_position_state=None,
+            expected_quantity=None,
+            actual_quantity=None,
+            expected_entry_price=None,
+            actual_entry_price=None,
+            expected_current_price=None,
+            actual_current_price=None,
+            rationale="Invalid reconciliation request.",
+            warnings=tuple(errors),
+            source=self.ENGINE_NAME,
+        )
+
+        assessment = ReconciliationAssessment(
+            intelligence=intelligence,
+            requirements=ReconciliationRequirements(
+                expected_available=False,
+                actual_available=False,
+                expected_instrument_available=False,
+                actual_instrument_available=False,
+                expected_position_state_available=False,
+                actual_position_state_available=False,
+                expected_quantity_available=False,
+                actual_quantity_available=False,
+                expected_entry_price_available=False,
+                actual_entry_price_available=False,
+                expected_current_price_available=False,
+                actual_current_price_available=False,
+                expected_protection_available=False,
+                actual_protection_available=False,
+                expected_leverage_available=False,
+                actual_leverage_available=False,
+                expected_margin_available=False,
+                actual_margin_available=False,
+                monitor_available=False,
+                risk_context_available=False,
+                decision_context_available=False,
+                account_context_available=False,
+                execution_context_available=False,
+                identity_consistent=False,
+                position_state_consistent=False,
+                side_consistent=False,
+            ),
+            expected=None,
+            actual=None,
+            monitor=None,
+            protection=None,
+            risk=None,
+            decision=None,
+            account=None,
+            execution=None,
+            rationale="Reconciliation request validation failed.",
+            warnings=tuple(errors),
+        )
+
+        result = build_reconciliation_result(
+            request=request,
+            assessment=assessment,
+        )
+
+        return ReconciliationContract(
+            reconciliation_id=str(uuid4()),
+            request_id=request.request_id,
+            state=ReconciliationContractState.INVALID,
+            result=result,
+            action_state=ReconciliationActionState.NONE,
+            rationale="Invalid reconciliation contract.",
+            warnings=tuple(errors),
+            created_at=now,
+        )
+
+    def process(
+        self,
+        request: ReconciliationRequest,
+    ) -> ReconciliationContract:
+        try:
+            validation = self.validate_request(request)
+
+            if not validation.is_valid:
+                return self._invalid_contract(
+                    request,
+                    validation.errors,
+                )
+
+            assessment = build_reconciliation_assessment(request)
+
+            result = build_reconciliation_result(
+                request=request,
+                assessment=assessment,
+            )
+
+            result_validation = validate_reconciliation_result(result)
+
+            if not result_validation.is_valid:
+                return self._invalid_contract(
+                    request,
+                    result_validation.errors,
+                )
+
+            return build_reconciliation_contract(
+                request=request,
+                result=result,
+            )
+
+        except Exception as exc:
+            return self._invalid_contract(
+                request,
+                (f"Reconciliation processing failure: {exc}",),
+            )
+
+    def evaluate(
+        self,
+        request: ReconciliationRequest,
+    ) -> ReconciliationContract:
+        return self.process(request)
+
+    def is_ready_for_downstream(
+        self,
+        contract: ReconciliationContract,
+    ) -> bool:
+        return is_reconciliation_safe_to_forward(contract)
+
+    def is_reconciled(
+        self,
+        contract: ReconciliationContract,
+    ) -> bool:
+        if not contract or not contract.is_valid:
+            return False
+
+        return (
+            contract.result.reconciliation_state
+            == ReconciliationState.MATCHED
+        )
+
+    def requires_review(
+        self,
+        contract: ReconciliationContract,
+    ) -> bool:
+        if not contract or not contract.is_valid:
+            return True
+
+        return contract.result.requires_review
+
+    def requires_protection(
+        self,
+        contract: ReconciliationContract,
+    ) -> bool:
+        if not contract or not contract.is_valid:
+            return False
+
+        return contract.result.requires_protection
+
+    def requires_block(
+        self,
+        contract: ReconciliationContract,
+    ) -> bool:
+        if not contract or not contract.is_valid:
+            return True
+
+        return contract.result.requires_block
+
+    def audit_summary(
+        self,
+        contract: Optional[ReconciliationContract] = None,
+    ) -> dict[str, Any]:
+        if contract is None:
+            return {
+                "engine": self.ENGINE_NAME,
+                "version": self.ENGINE_VERSION,
+                "status": "READY",
+                "contract_valid": False,
+                "reconciled": False,
+                "requires_review": False,
+                "requires_protection": False,
+                "requires_block": False,
+                "safe_for_downstream": False,
+                "execution_created": False,
+                "order_created": False,
+                "authorization_created": False,
+                "position_modified": False,
+                "d13_overridden": False,
+                "risk_overridden": False,
+            }
+
+        return {
+            "engine": self.ENGINE_NAME,
+            "version": self.ENGINE_VERSION,
+            "status": contract.result.status.value,
+            "contract_state": contract.state.value,
+            "result_valid": contract.result.is_valid,
+            "contract_valid": contract.is_valid,
+            "reconciliation_state": (
+                contract.result.reconciliation_state.value
+            ),
+            "health": contract.result.health.value,
+            "consistency": contract.result.consistency.value,
+            "data_state": contract.result.data_state.value,
+            "disposition": contract.result.disposition.value,
+            "action_state": contract.action_state.value,
+            "mismatch_type": contract.result.mismatch_type.value,
+            "reconciled": self.is_reconciled(contract),
+            "requires_review": self.requires_review(contract),
+            "requires_protection": self.requires_protection(contract),
+            "requires_block": self.requires_block(contract),
+            "safe_for_downstream": (
+                self.is_ready_for_downstream(contract)
+            ),
+
+            # Hard safety invariants.
+            "execution_created": False,
+            "order_created": False,
+            "authorization_created": False,
+            "position_modified": False,
+            "correction_created": False,
+            "trading_parameter_calculated": False,
+            "d13_overridden": False,
+            "risk_overridden": False,
+            "cas_overridden": False,
+        }
+
+
+# ============================================================
+# PUBLIC ENGINE INSTANCE
+# ============================================================
+
+reconciliation_engine = ReconciliationEngine()
+
+
+# ============================================================
+# PUBLIC FUNCTIONS
+# ============================================================
+
+def reconcile(
+    request: ReconciliationRequest,
+) -> ReconciliationContract:
+    return reconciliation_engine.process(request)
+
+
+def evaluate_reconciliation(
+    request: ReconciliationRequest,
+) -> ReconciliationContract:
+    return reconciliation_engine.evaluate(request)
+
+
+def reconciliation_ready(
+    contract: ReconciliationContract,
+) -> bool:
+    return reconciliation_engine.is_ready_for_downstream(contract)
+
+
+def reconciliation_is_matched(
+    contract: ReconciliationContract,
+) -> bool:
+    return reconciliation_engine.is_reconciled(contract)
+
+
+def reconciliation_requires_review(
+    contract: ReconciliationContract,
+) -> bool:
+    return reconciliation_engine.requires_review(contract)
+
+
+def reconciliation_requires_protection(
+    contract: ReconciliationContract,
+) -> bool:
+    return reconciliation_engine.requires_protection(contract)
+
+
+def reconciliation_requires_block(
+    contract: ReconciliationContract,
+) -> bool:
+    return reconciliation_engine.requires_block(contract)
+
+
+def reconciliation_audit(
+    contract: Optional[ReconciliationContract] = None,
+) -> dict[str, Any]:
+    return reconciliation_engine.audit_summary(contract)
+
+
+def reconciliation_health_check() -> dict[str, Any]:
+    return {
+        "engine": RECONCILIATION_ENGINE,
+        "version": RECONCILIATION_VERSION,
+        "status": "READY",
+        "contract_first": True,
+        "expected_vs_actual": True,
+        "execution_enabled": False,
+        "order_creation_enabled": False,
+        "authorization_creation_enabled": False,
+        "position_modification_enabled": False,
+        "parameter_calculation_enabled": False,
+        "d13_override_enabled": False,
+        "risk_override_enabled": False,
+    }
+
+
+def get_reconciliation_engine_info() -> dict[str, Any]:
+    return {
+        "engine": RECONCILIATION_ENGINE,
+        "version": RECONCILIATION_VERSION,
+        "role": "EXPECTED_STATE_ACTUAL_STATE_RECONCILIATION",
+        "authority": "RECONCILIATION_OBSERVATION_AND_CONTROL_SIGNAL",
+        "creates_execution": False,
+        "creates_orders": False,
+        "creates_authorization": False,
+        "modifies_positions": False,
+        "calculates_parameters": False,
+        "overrides_d13": False,
+        "overrides_risk": False,
+        "fail_closed": True,
+    }
+
+
+# Compatibility alias.
+Reconciliation = ReconciliationEngine
+# ============================================================
+# RECONCILIATION.PY — PART 5/5
+# SERIALIZATION + FINAL VALIDATION + INTEGRITY + EXPORTS
+# ============================================================
+
+def _rr_enum_value(value: Any) -> Any:
+    """Return enum value without breaking raw scalar values."""
+    if isinstance(value, Enum):
+        return value.value
+    return value
+
+
+def _rr_safe_dict(value: Any) -> dict[str, Any]:
+    """Safely convert a mapping/dataclass-like object to a dictionary."""
+    if value is None:
+        return {}
+
+    if isinstance(value, Mapping):
+        return dict(value)
+
+    if hasattr(value, "to_dict") and callable(value.to_dict):
+        try:
+            result = value.to_dict()
+            return dict(result) if isinstance(result, Mapping) else {}
+        except Exception:
+            return {}
+
+    if hasattr(value, "__dict__"):
+        try:
+            return dict(value.__dict__)
+        except Exception:
+            return {}
+
+    return {}
+
+
+def reconciliation_to_dict(
+    contract: ReconciliationContract,
+) -> dict[str, Any]:
+    """
+    Stable read-only serialization envelope.
+
+    Serialization must never create an action, authorization,
+    execution request, correction, or position modification.
+    """
+    if contract is None:
+        return {
+            "engine": RECONCILIATION_ENGINE,
+            "version": RECONCILIATION_VERSION,
+            "valid": False,
+            "contract": None,
+        }
+
+    result = contract.result
+
+    return {
+        "engine": RECONCILIATION_ENGINE,
+        "version": RECONCILIATION_VERSION,
+        "contract": {
+            "reconciliation_id": contract.reconciliation_id,
+            "request_id": contract.request_id,
+            "state": _rr_enum_value(contract.state),
+            "action_state": _rr_enum_value(contract.action_state),
+            "is_valid": contract.is_valid,
+            "is_action_request": contract.is_action_request,
+            "rationale": contract.rationale,
+            "warnings": list(contract.warnings),
+            "created_at": contract.created_at.isoformat(),
+        },
+        "result": {
+            "result_id": result.result_id,
+            "request_id": result.request_id,
+            "status": _rr_enum_value(result.status),
+            "reconciliation_state": (
+                _rr_enum_value(result.reconciliation_state)
+            ),
+            "health": _rr_enum_value(result.health),
+            "consistency": _rr_enum_value(result.consistency),
+            "data_state": _rr_enum_value(result.data_state),
+            "disposition": _rr_enum_value(result.disposition),
+            "action_state": _rr_enum_value(result.action_state),
+            "mismatch_type": _rr_enum_value(result.mismatch_type),
+            "mismatches": list(result.mismatches),
+            "rationale": result.rationale,
+            "warnings": list(result.warnings),
+            "created_at": result.created_at.isoformat(),
+            "is_valid": result.is_valid,
+            "requires_review": result.requires_review,
+            "requires_protection": result.requires_protection,
+            "requires_block": result.requires_block,
+        },
+        "references": {
+            "expected": _rr_safe_dict(result.expected),
+            "actual": _rr_safe_dict(result.actual),
+            "monitor": _rr_safe_dict(result.monitor),
+            "protection": _rr_safe_dict(result.protection),
+            "risk": _rr_safe_dict(result.risk),
+            "decision": _rr_safe_dict(result.decision),
+            "account": _rr_safe_dict(result.account),
+            "execution": _rr_safe_dict(result.execution),
+        },
+        "integrity": {
+            "execution_created": False,
+            "order_created": False,
+            "authorization_created": False,
+            "position_modified": False,
+            "correction_created": False,
+            "trading_parameter_calculated": False,
+            "d13_overridden": False,
+            "risk_overridden": False,
+            "cas_overridden": False,
+        },
+    }
+
+
+def validate_reconciliation_contract(
+    contract: ReconciliationContract,
+) -> ReconciliationContractValidation:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    if contract is None:
+        return ReconciliationContractValidation(
+            status=ReconciliationContractStatus.INVALID,
+            errors=("Contract is None.",),
+        )
+
+    if not contract.reconciliation_id:
+        errors.append("Missing reconciliation_id.")
+
+    if not contract.request_id:
+        errors.append("Missing request_id.")
+
+    if contract.result is None:
+        errors.append("Missing reconciliation result.")
+    else:
+        if contract.result.request_id != contract.request_id:
+            errors.append("Contract/result request_id mismatch.")
+
+        result_validation = validate_reconciliation_result(
+            contract.result
+        )
+
+        if not result_validation.is_valid:
+            errors.extend(result_validation.errors)
+
+        warnings.extend(result_validation.warnings)
+
+    if contract.is_action_request:
+        errors.append(
+            "Reconciliation contract cannot be an action request."
+        )
+
+    if contract.state == ReconciliationContractState.INVALID:
+        errors.append("Contract state is INVALID.")
+
+    if (
+        contract.state == ReconciliationContractState.BLOCKED
+        and contract.action_state != ReconciliationActionState.BLOCK
+    ):
+        errors.append(
+            "BLOCKED contract must expose BLOCK action state."
+        )
+
+    if contract.result is not None:
+        if (
+            contract.result.consistency
+            == ReconciliationConsistency.CONFLICTING
+            and contract.state != ReconciliationContractState.BLOCKED
+        ):
+            errors.append(
+                "Conflicting reconciliation must be BLOCKED."
+            )
+
+        if contract.result.requires_block:
+            if contract.state != ReconciliationContractState.BLOCKED:
+                errors.append(
+                    "Blocking reconciliation must use BLOCKED state."
+                )
+
+        if contract.result.reconciliation_state == (
+            ReconciliationState.MATCHED
+        ):
+            if contract.action_state != ReconciliationActionState.NONE:
+                errors.append(
+                    "MATCHED reconciliation cannot expose a control action."
+                )
+
+    return ReconciliationContractValidation(
+        status=(
+            ReconciliationContractStatus.VALID
+            if not errors
+            else ReconciliationContractStatus.INVALID
+        ),
+        errors=tuple(errors),
+    )
+
+
+def reconciliation_integrity_check(
+    contract: Optional[ReconciliationContract] = None,
+) -> dict[str, Any]:
+    if contract is None:
+        return {
+            "engine": RECONCILIATION_ENGINE,
+            "version": RECONCILIATION_VERSION,
+            "contract_valid": False,
+            "result_valid": False,
+            "integrity_valid": False,
+            "safe_for_downstream": False,
+            "execution_created": False,
+            "order_created": False,
+            "authorization_created": False,
+            "position_modified": False,
+            "correction_created": False,
+            "d13_overridden": False,
+            "risk_overridden": False,
+            "cas_overridden": False,
+        }
+
+    validation = validate_reconciliation_contract(contract)
+    safe = is_reconciliation_safe_to_forward(contract)
+
+    return {
+        "engine": RECONCILIATION_ENGINE,
+        "version": RECONCILIATION_VERSION,
+        "contract_valid": contract.is_valid,
+        "result_valid": contract.result.is_valid,
+        "validation_status": validation.status.value,
+        "errors": list(validation.errors),
+        "warnings": list(validation.warnings),
+        "reconciliation_state": (
+            contract.result.reconciliation_state.value
+        ),
+        "consistency": contract.result.consistency.value,
+        "health": contract.result.health.value,
+        "disposition": contract.result.disposition.value,
+        "safe_for_downstream": safe,
+        "integrity_valid": bool(
+            contract.is_valid
+            and validation.is_valid
+            and not contract.is_action_request
+        ),
+
+        # Immutable safety invariants.
+        "execution_created": False,
+        "order_created": False,
+        "authorization_created": False,
+        "position_modified": False,
+        "correction_created": False,
+        "trading_parameter_calculated": False,
+        "d13_overridden": False,
+        "risk_overridden": False,
+        "cas_overridden": False,
+    }
+
+
+def verify_reconciliation_integrity(
+    contract: ReconciliationContract,
+) -> bool:
+    audit = reconciliation_integrity_check(contract)
+    return bool(audit.get("integrity_valid", False))
+
+
+def run_reconciliation_health_check() -> dict[str, Any]:
+    return reconciliation_health_check()
+
+
+# ============================================================
+# PUBLIC EXPORTS
+# ============================================================
+
+__all__ = [
+    # Constants
+    "RECONCILIATION_ENGINE",
+    "RECONCILIATION_VERSION",
+
+    # Core enums
+    "ReconciliationStatus",
+    "ReconciliationState",
+    "ReconciliationHealth",
+    "ReconciliationDisposition",
+    "ReconciliationContractStatus",
+
+    # Intelligence enums
+    "ReconciliationConsistency",
+    "ReconciliationDataState",
+    "ReconciliationMismatchType",
+
+    # Action / contract enums
+    "ReconciliationActionState",
+    "ReconciliationContractState",
+
+    # Request
+    "ReconciliationRequest",
+
+    # References
+    "ReconciliationExpectedReference",
+    "ReconciliationActualReference",
+    "ReconciliationMonitorReference",
+    "ReconciliationProtectionReference",
+    "ReconciliationRiskReference",
+    "ReconciliationDecisionReference",
+    "ReconciliationAccountReference",
+    "ReconciliationExecutionReference",
+
+    # Validation
+    "ReconciliationContractValidation",
+
+    # Intelligence / assessment
+    "ReconciliationIntelligence",
+    "ReconciliationRequirements",
+    "ReconciliationAssessment",
+
+    # Result / contract
+    "ReconciliationResult",
+    "ReconciliationContract",
+
+    # Builders / evaluators
+    "build_reconciliation_expected_reference",
+    "build_reconciliation_actual_reference",
+    "build_reconciliation_monitor_reference",
+    "build_reconciliation_protection_reference",
+    "build_reconciliation_risk_reference",
+    "build_reconciliation_decision_reference",
+    "build_reconciliation_account_reference",
+    "build_reconciliation_execution_reference",
+    "validate_reconciliation_request",
+    "evaluate_reconciliation_requirements",
+    "evaluate_reconciliation_data_state",
+    "evaluate_reconciliation_mismatches",
+    "evaluate_reconciliation_state",
+    "evaluate_reconciliation_health",
+    "evaluate_reconciliation_disposition",
+    "build_reconciliation_intelligence",
+    "build_reconciliation_assessment",
+    "build_reconciliation_result",
+    "build_reconciliation_contract",
+    "is_reconciliation_safe_to_forward",
+    "validate_reconciliation_result",
+    "validate_reconciliation_contract",
+
+    # Engine
+    "ReconciliationEngine",
+    "reconciliation_engine",
+    "Reconciliation",
+
+    # Public API
+    "reconcile",
+    "evaluate_reconciliation",
+    "reconciliation_ready",
+    "reconciliation_is_matched",
+    "reconciliation_requires_review",
+    "reconciliation_requires_protection",
+    "reconciliation_requires_block",
+    "reconciliation_audit",
+    "reconciliation_health_check",
+    "run_reconciliation_health_check",
+    "get_reconciliation_engine_info",
+
+    # Serialization / integrity
+    "reconciliation_to_dict",
+    "reconciliation_integrity_check",
+    "verify_reconciliation_integrity",
+]

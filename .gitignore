@@ -1,0 +1,14 @@
+__pycache__/ 
+*.pyc 
+.pytest_cache/ 
+.venv/ 
+venv/ 
+env/ 
+*.log 
+logs/ 
+logs/ 
+.env.* 
+data/cache/ 
+data/logs/ 
+.env 
+_QUARANTINE_ZERO_BYTE/ 

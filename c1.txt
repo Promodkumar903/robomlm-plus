@@ -1,0 +1,472 @@
+1:"""
+2:ROBOMLM PLUS
+3:Contract Identity
+4:
+5:Canonical identity model for market contracts.
+6:
+7:A contract is kept distinct from the underlying instrument. This
+8:module is identity-focused and performs no market-data, broker,
+9:exchange, or execution operations.
+10:"""
+11:
+12:from __future__ import annotations
+13:
+14:from dataclasses import dataclass, field
+15:from datetime import date, datetime
+16:from typing import Any, Mapping, Optional
+17:
+18:
+19:class ContractIdentityError(Exception):
+20:    """Base exception for contract-identity failures."""
+21:
+22:
+23:class ContractIdentityValidationError(ContractIdentityError):
+24:    """Raised when contract identity data is invalid."""
+25:
+26:
+27:@dataclass(frozen=True)
+28:class ContractIdentity:
+29:    """
+30:    Canonical identity of a tradable market contract.
+31:
+32:    The identity fields deliberately separate:
+33:    - market
+34:    - instrument
+35:    - venue
+36:    - contract
+37:    - expiry
+38:    - strike
+39:    - option type
+40:    - contract type
+41:    """
+42:
+43:    market: str
+44:    instrument: str
+45:    venue: str
+46:    contract: str
+47:
+48:    contract_type: Optional[str] = None
+49:    expiry: Optional[date] = None
+50:    strike: Optional[float] = None
+51:    option_type: Optional[str] = None
+52:    currency: Optional[str] = None
+53:    multiplier: Optional[float] = None
+54:
+55:    metadata: Mapping[str, Any] = field(default_factory=dict)
+56:
+57:    def __post_init__(self) -> None:
+58:        market = _required_text(self.market, "market")
+59:        instrument = _required_text(
+60:            self.instrument,
+61:            "instrument",
+62:        )
+63:        venue = _required_text(self.venue, "venue")
+64:        contract = _required_text(
+65:            self.contract,
+66:            "contract",
+67:        )
+68:
+69:        object.__setattr__(self, "market", market)
+70:        object.__setattr__(self, "instrument", instrument)
+71:        object.__setattr__(self, "venue", venue)
+72:        object.__setattr__(self, "contract", contract)
+73:
+74:        if self.contract_type is not None:
+75:            object.__setattr__(
+76:                self,
+77:                "contract_type",
+78:                _optional_text(self.contract_type),
+79:            )
+80:
+81:        if self.currency is not None:
+82:            object.__setattr__(
+83:                self,
+84:                "currency",
+85:                _optional_text(self.currency),
+86:            )
+87:
+88:        if self.expiry is not None:
+89:            object.__setattr__(
+90:                self,
+91:                "expiry",
+92:                _normalize_date(self.expiry),
+93:            )
+94:
+95:        if self.strike is not None:
+96:            strike = _finite_number(
+97:                self.strike,
+98:                "strike",
+99:            )
+100:
+101:            if strike < 0:
+102:                raise ContractIdentityValidationError(
+103:                    "strike cannot be negative"
+104:                )
+105:
+106:            object.__setattr__(
+107:                self,
+108:                "strike",
+109:                strike,
+110:            )
+111:
+112:        if self.option_type is not None:
+113:            option_type = _optional_text(
+114:                self.option_type
+115:            )
+116:
+117:            if option_type is not None:
+118:                option_type = option_type.upper()
+119:
+120:            object.__setattr__(
+121:                self,
+122:                "option_type",
+123:                option_type,
+124:            )
+125:
+126:        if self.multiplier is not None:
+127:            multiplier = _finite_number(
+128:                self.multiplier,
+129:                "multiplier",
+130:            )
+131:
+132:            if multiplier <= 0:
+133:                raise ContractIdentityValidationError(
+134:                    "multiplier must be greater than zero"
+135:                )
+136:
+137:            object.__setattr__(
+138:                self,
+139:                "multiplier",
+140:                multiplier,
+141:            )
+142:
+143:        object.__setattr__(
+144:            self,
+145:            "metadata",
+146:            dict(self.metadata or {}),
+147:        )
+148:
+149:        self._validate_contract_structure()
+150:
+151:    def _validate_contract_structure(self) -> None:
+152:        """Validate relationships between contract identity fields."""
+153:        option_type = self.option_type
+154:
+155:        if option_type is not None:
+156:            allowed = {
+157:                "CE",
+158:                "PE",
+159:                "CALL",
+160:                "PUT",
+161:            }
+162:
+163:            if option_type not in allowed:
+164:                raise ContractIdentityValidationError(
+165:                    f"Unsupported option_type: {self.option_type}"
+166:                )
+167:
+168:            if self.strike is None:
+169:                raise ContractIdentityValidationError(
+170:                    "strike is required for option contracts"
+171:                )
+172:
+173:            if self.expiry is None:
+174:                raise ContractIdentityValidationError(
+175:                    "expiry is required for option contracts"
+176:                )
+177:
+178:    @property
+179:    def identity_key(self) -> str:
+180:        """
+181:        Return the deterministic canonical identity key.
+182:
+183:        Expiry, strike and option type are included when present.
+184:        """
+185:        parts = [
+186:            self.market,
+187:            self.instrument,
+188:            self.venue,
+189:            self.contract,
+190:        ]
+191:
+192:        if self.expiry is not None:
+193:            parts.append(self.expiry.isoformat())
+194:
+195:        if self.strike is not None:
+196:            parts.append(_format_number(self.strike))
+197:
+198:        if self.option_type is not None:
+199:            parts.append(self.option_type)
+200:
+201:        return "|".join(
+202:            _normalize_key_part(part)
+203:            for part in parts
+204:        )
+205:
+206:    @property
+207:    def is_derivative(self) -> bool:
+208:        """Return whether the contract has derivative identity."""
+209:        return any(
+210:            value is not None
+211:            for value in (
+212:                self.expiry,
+213:                self.strike,
+214:                self.option_type,
+215:            )
+216:        )
+217:
+218:    @property
+219:    def is_option(self) -> bool:
+220:        """Return whether the contract is an option."""
+221:        return self.option_type is not None
+222:
+223:    @property
+224:    def is_expired(self) -> bool:
+225:        """Return whether the contract expiry date has passed."""
+226:        if self.expiry is None:
+227:            return False
+228:
+229:        return self.expiry < date.today()
+230:
+231:    def same_contract(
+232:        self,
+233:        other: "ContractIdentity",
+234:    ) -> bool:
+235:        """Compare two complete contract identities."""
+236:        if not isinstance(other, ContractIdentity):
+237:            return False
+238:
+239:        return self.identity_key == other.identity_key
+240:
+241:    def with_metadata(
+242:        self,
+243:        **metadata: Any,
+244:    ) -> "ContractIdentity":
+245:        """Return a copy with merged metadata."""
+246:        merged = dict(self.metadata)
+247:        merged.update(metadata)
+248:
+249:        return ContractIdentity(
+250:            market=self.market,
+251:            instrument=self.instrument,
+252:            venue=self.venue,
+253:            contract=self.contract,
+254:            contract_type=self.contract_type,
+255:            expiry=self.expiry,
+256:            strike=self.strike,
+257:            option_type=self.option_type,
+258:            currency=self.currency,
+259:            multiplier=self.multiplier,
+260:            metadata=merged,
+261:        )
+262:
+263:    def to_dict(self) -> dict[str, Any]:
+264:        """Return a serializable representation."""
+265:        return {
+266:            "market": self.market,
+267:            "instrument": self.instrument,
+268:            "venue": self.venue,
+269:            "contract": self.contract,
+270:            "contract_type": self.contract_type,
+271:            "expiry": (
+272:                self.expiry.isoformat()
+273:                if self.expiry is not None
+274:                else None
+275:            ),
+276:            "strike": self.strike,
+277:            "option_type": self.option_type,
+278:            "currency": self.currency,
+279:            "multiplier": self.multiplier,
+280:            "identity_key": self.identity_key,
+281:            "is_derivative": self.is_derivative,
+282:            "is_option": self.is_option,
+283:            "is_expired": self.is_expired,
+284:            "metadata": dict(self.metadata),
+285:        }
+286:
+287:    @classmethod
+288:    def from_mapping(
+289:        cls,
+290:        value: Mapping[str, Any],
+291:    ) -> "ContractIdentity":
+292:        """Create contract identity from a mapping."""
+293:        if not isinstance(value, Mapping):
+294:            raise ContractIdentityValidationError(
+295:                "value must be a mapping"
+296:            )
+297:
+298:        return cls(
+299:            market=value.get("market", ""),
+300:            instrument=value.get("instrument", ""),
+301:            venue=value.get("venue", ""),
+302:            contract=value.get("contract", ""),
+303:            contract_type=value.get("contract_type"),
+304:            expiry=_parse_optional_date(
+305:                value.get("expiry")
+306:            ),
+307:            strike=value.get("strike"),
+308:            option_type=value.get("option_type"),
+309:            currency=value.get("currency"),
+310:            multiplier=value.get("multiplier"),
+311:            metadata=dict(
+312:                value.get("metadata") or {}
+313:            ),
+314:        )
+315:
+316:
+317:def _required_text(
+318:    value: Any,
+319:    field_name: str,
+320:) -> str:
+321:    """Validate a required textual field."""
+322:    text = str(value).strip()
+323:
+324:    if not text:
+325:        raise ContractIdentityValidationError(
+326:            f"{field_name} is required"
+327:        )
+328:
+329:    return text
+330:
+331:
+332:def _optional_text(value: Any) -> Optional[str]:
+333:    """Normalize an optional text value."""
+334:    if value is None:
+335:        return None
+336:
+337:    text = str(value).strip()
+338:
+339:    return text or None
+340:
+341:
+342:def _finite_number(
+343:    value: Any,
+344:    field_name: str,
+345:) -> float:
+346:    """Validate and normalize a finite numeric value."""
+347:    try:
+348:        number = float(value)
+349:    except (TypeError, ValueError) as exc:
+350:        raise ContractIdentityValidationError(
+351:            f"{field_name} must be numeric"
+352:        ) from exc
+353:
+354:    if number != number:
+355:        raise ContractIdentityValidationError(
+356:            f"{field_name} cannot be NaN"
+357:        )
+358:
+359:    if number in (
+360:        float("inf"),
+361:        float("-inf"),
+362:    ):
+363:        raise ContractIdentityValidationError(
+364:            f"{field_name} must be finite"
+365:        )
+366:
+367:    return number
+368:
+369:
+370:def _normalize_date(value: date) -> date:
+371:    """Validate a date object."""
+372:    if isinstance(value, datetime):
+373:        return value.date()
+374:
+375:    if not isinstance(value, date):
+376:        raise ContractIdentityValidationError(
+377:            "expiry must be a date"
+378:        )
+379:
+380:    return value
+381:
+382:
+383:def _parse_optional_date(
+384:    value: Any,
+385:) -> Optional[date]:
+386:    """Parse an optional date or ISO date string."""
+387:    if value is None:
+388:        return None
+389:
+390:    if isinstance(value, date):
+391:        return _normalize_date(value)
+392:
+393:    if isinstance(value, str):
+394:        text = value.strip()
+395:
+396:        if not text:
+397:            return None
+398:
+399:        try:
+400:            return date.fromisoformat(text)
+401:        except ValueError as exc:
+402:            raise ContractIdentityValidationError(
+403:                "Invalid expiry date"
+404:            ) from exc
+405:
+406:    raise ContractIdentityValidationError(
+407:        "expiry must be a date, ISO date string, or None"
+408:    )
+409:
+410:
+411:def _normalize_key_part(value: Any) -> str:
+412:    """Normalize one identity-key component."""
+413:    return str(value).strip().upper()
+414:
+415:
+416:def _format_number(value: float) -> str:
+417:    """Produce a stable compact representation of a number."""
+418:    if value.is_integer():
+419:        return str(int(value))
+420:
+421:    return format(value, ".15g")
+422:
+423:
+424:def create_contract_identity(
+425:    *,
+426:    market: str,
+427:    instrument: str,
+428:    venue: str,
+429:    contract: str,
+430:    contract_type: Optional[str] = None,
+431:    expiry: Optional[date] = None,
+432:    strike: Optional[float] = None,
+433:    option_type: Optional[str] = None,
+434:    currency: Optional[str] = None,
+435:    multiplier: Optional[float] = None,
+436:    metadata: Optional[Mapping[str, Any]] = None,
+437:) -> ContractIdentity:
+438:    """Convenience factory for ContractIdentity."""
+439:    return ContractIdentity(
+440:        market=market,
+441:        instrument=instrument,
+442:        venue=venue,
+443:        contract=contract,
+444:        contract_type=contract_type,
+445:        expiry=expiry,
+446:        strike=strike,
+447:        option_type=option_type,
+448:        currency=currency,
+449:        multiplier=multiplier,
+450:        metadata=dict(metadata or {}),
+451:    )
+452:
+453:
+454:def contract_identity_key(
+455:    contract: ContractIdentity,
+456:) -> str:
+457:    """Return the canonical identity key for a contract."""
+458:    if not isinstance(contract, ContractIdentity):
+459:        raise ContractIdentityValidationError(
+460:            "contract must be a ContractIdentity"
+461:        )
+462:
+463:    return contract.identity_key
+464:
+465:
+466:__all__ = [
+467:    "ContractIdentityError",
+468:    "ContractIdentityValidationError",
+469:    "ContractIdentity",
+470:    "create_contract_identity",
+471:    "contract_identity_key",
+472:]

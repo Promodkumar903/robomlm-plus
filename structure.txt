@@ -1,0 +1,509 @@
+Folder PATH listing
+Volume serial number is 9889-F6A6
+C:.
+³   main.py
+³   README.md.txt
+³   requirements.txt
+³   structure.txt
+³   
+ÃÄÄÄ.env
+³       __init__.py
+³       
+ÃÄÄÄ.gitignore
+³       __init__.py
+³       
+ÃÄÄÄapp
+³   ³   __init__.py
+³   ³   
+³   ÃÄÄÄadapters
+³   ³   ³   adapter_base.py
+³   ³   ³   __init__.py
+³   ³   ³   
+³   ³   ÃÄÄÄbinance
+³   ³   ³       binance_client.py
+³   ³   ³       binance_market_data.py
+³   ³   ³       binance_orders.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄbybit
+³   ³   ³       bybit_client.py
+³   ³   ³       bybit_market_data.py
+³   ³   ³       bybit_orders.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄcommodity
+³   ³   ³       commodity_market_data.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄdhan
+³   ³   ³       dhan_client.py
+³   ³   ³       dhan_market_data.py
+³   ³   ³       dhan_orders.py
+³   ³   ³       dhan_positions.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄfx
+³   ³   ³       fx_market_data.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÀÄÄÄkotak
+³   ³           kotak_client.py
+³   ³           kotak_market_data.py
+³   ³           __init__.py
+³   ³           
+³   ÃÄÄÄadmin
+³   ³       admin_service.py
+³   ³       deployment_admin.py
+³   ³       experiment_admin.py
+³   ³       research_admin.py
+³   ³       rollback_admin.py
+³   ³       stress_test_admin.py
+³   ³       validation_admin.py
+³   ³       version_admin.py
+³   ³       __init__.py
+³   ³       
+³   ÃÄÄÄauth
+³   ³       auth_service.py
+³   ³       login_service.py
+³   ³       password_service.py
+³   ³       signup_service.py
+³   ³       token_service.py
+³   ³       __init__.py
+³   ³       
+³   ÃÄÄÄauthorization
+³   ³       access_control.py
+³   ³       entitlement_gate.py
+³   ³       permission_service.py
+³   ³       __init__.py
+³   ³       
+³   ÃÄÄÄcore
+³   ³   ³   __init__.py
+³   ³   ³   
+³   ³   ÃÄÄÄconfig
+³   ³   ³       config_loader.py
+³   ³   ³       environment.py
+³   ³   ³       settings.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄconstants
+³   ³   ³       app_constants.py
+³   ³   ³       market_constants.py
+³   ³   ³       permission_constants.py
+³   ³   ³       status_constants.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄlogging
+³   ³   ³       application_logger.py
+³   ³   ³       audit_logger.py
+³   ³   ³       blackbox_logger.py
+³   ³   ³       logger.py
+³   ³   ³       system_logger.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄsecurity
+³   ³   ³       hashing.py
+³   ³   ³       secrets.py
+³   ³   ³       security_utils.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÀÄÄÄstartup
+³   ³           dependency_check.py
+³   ³           folder_manager.py
+³   ³           shutdown.py
+³   ³           startup_checks.py
+³   ³           __init__.py
+³   ³           
+³   ÃÄÄÄdatabase
+³   ³   ÃÄÄÄmigrations
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄmodels
+³   ³   ³       audit_model.py
+³   ³   ³       decision_model.py
+³   ³   ³       evidence_model.py
+³   ³   ³       market_model.py
+³   ³   ³       subscription_model.py
+³   ³   ³       trade_model.py
+³   ³   ³       user_model.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÀÄÄÄrepositories
+³   ³           decision_repository.py
+³   ³           evidence_repository.py
+³   ³           trade_repository.py
+³   ³           user_repository.py
+³   ³           __init__.py
+³   ³           
+³   ÃÄÄÄdata_quality
+³   ³       completeness_check.py
+³   ³       consistency_check.py
+³   ³       data_quality_engine.py
+³   ³       freshness_check.py
+³   ³       latency_check.py
+³   ³       source_health.py
+³   ³       __init__.py
+³   ³       
+³   ÃÄÄÄintelligence
+³   ³   ³   commitment_engine.py
+³   ³   ³   confidence_engine.py
+³   ³   ³   decision_orchestrator.py
+³   ³   ³   evidence_orchestrator.py
+³   ³   ³   intelligence_orchestrator.py
+³   ³   ³   magnitude_engine.py
+³   ³   ³   market_context.py
+³   ³   ³   opportunity_intelligence.py
+³   ³   ³   regime_intelligence.py
+³   ³   ³   relationship_intelligence.py
+³   ³   ³   strategy_intelligence.py
+³   ³   ³   timing_intelligence.py
+³   ³   ³   verdict_engine.py
+³   ³   ³   __init__.py
+³   ³   ³   
+³   ³   ÃÄÄÄautorobimlm
+³   ³   ³   ³   automation_engine.py
+³   ³   ³   ³   mode_manager.py
+³   ³   ³   ³   strategy_runner.py
+³   ³   ³   ³   __init__.py
+³   ³   ³   ³   
+³   ³   ³   ÃÄÄÄapi
+³   ³   ³   ³   ÃÄÄÄv1
+³   ³   ³   ³   ³       account_api.py
+³   ³   ³   ³   ³       admin_api.py
+³   ³   ³   ³   ³       auth_api.py
+³   ³   ³   ³   ³       automation_api.py
+³   ³   ³   ³   ³       buyer_api.py
+³   ³   ³   ³   ³       discovery_api.py
+³   ³   ³   ³   ³       memory_api.py
+³   ³   ³   ³   ³       research_api.py
+³   ³   ³   ³   ³       terminal_api.py
+³   ³   ³   ³   ³       __init__.py
+³   ³   ³   ³   ³       
+³   ³   ³   ³   ÀÄÄÄwebsocket
+³   ³   ³   ³           market_stream.py
+³   ³   ³   ³           __init__.py
+³   ³   ³   ³           
+³   ³   ³   ÃÄÄÄexecution
+³   ³   ³   ³       execution_manager.py
+³   ³   ³   ³       order_manager.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÃÄÄÄkill_switch
+³   ³   ³   ³       kill_switch.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÃÄÄÄpositions
+³   ³   ³   ³       position_manager.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÃÄÄÄreconciliation
+³   ³   ³   ³       reconciliation_engine.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÃÄÄÄrisk
+³   ³   ³   ³       automation_risk.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÃÄÄÄterminal
+³   ³   ³   ³       cas_status.py
+³   ³   ³   ³       decision_outlook.py
+³   ³   ³   ³       evidence_strip.py
+³   ³   ³   ³       intelligence_panel.py
+³   ³   ³   ³       market_context.py
+³   ³   ³   ³       risk_panel.py
+³   ³   ³   ³       terminal_service.py
+³   ³   ³   ³       __init__.py
+³   ³   ³   ³       
+³   ³   ³   ÀÄÄÄui
+³   ³   ³       ³   app.py
+³   ³   ³       ³   router.py
+³   ³   ³       ³   __init__.py
+³   ³   ³       ³   
+³   ³   ³       ÃÄÄÄaccount
+³   ³   ³       ³       account_page.py
+³   ³   ³       ³       billing_page.py
+³   ³   ³       ³       notification_page.py
+³   ³   ³       ³       settings_page.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÃÄÄÄautomation
+³   ³   ³       ³       automation_page.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÃÄÄÄbuyer
+³   ³   ³       ³       buyer_page.py
+³   ³   ³       ³       cas_view.py
+³   ³   ³       ³       contract_selector.py
+³   ³   ³       ³       decision_view.py
+³   ³   ³       ³       instrument_selector.py
+³   ³   ³       ³       intelligence_view.py
+³   ³   ³       ³       market_selector.py
+³   ³   ³       ³       plus_view.py
+³   ³   ³       ³       risk_view.py
+³   ³   ³       ³       strategy_preview.py
+³   ³   ³       ³       strategy_selector.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÃÄÄÄdiscovery
+³   ³   ³       ³       commodity_scanner.py
+³   ³   ³       ³       crypto_scanner.py
+³   ³   ³       ³       discovery_page.py
+³   ³   ³       ³       favorites.py
+³   ³   ³       ³       fx_scanner.py
+³   ³   ³       ³       index_scanner.py
+³   ³   ³       ³       stock_scanner.py
+³   ³   ³       ³       universal_scanner.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÃÄÄÄmemory
+³   ³   ³       ³       memory_page.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÃÄÄÄresearch
+³   ³   ³       ³       research_page.py
+³   ³   ³       ³       __init__.py
+³   ³   ³       ³       
+³   ³   ³       ÀÄÄÄterminal
+³   ³   ³               terminal_page.py
+³   ³   ³               __init__.py
+³   ³   ³               
+³   ³   ÃÄÄÄcas
+³   ³   ³       cas_audit.py
+³   ³   ³       cas_orchestrator.py
+³   ³   ³       compliance_gate.py
+³   ³   ³       execution_safety_gate.py
+³   ³   ³       exposure_gate.py
+³   ³   ³       position_gate.py
+³   ³   ³       restriction_engine.py
+³   ³   ³       risk_gate.py
+³   ³   ³       suitability_gate.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄdecision
+³   ³   ³       decision_explainer.py
+³   ³   ³       decision_state.py
+³   ³   ³       opportunity_ranker.py
+³   ³   ³       timing_engine.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄevidence
+³   ³   ³       ace.py
+³   ³   ³       dar.py
+³   ³   ³       dcs.py
+³   ³   ³       evidence_confidence.py
+³   ³   ³       evidence_conflict.py
+³   ³   ³       evidence_engine_base.py
+³   ³   ³       evidence_normalizer.py
+³   ³   ³       evidence_package.py
+³   ³   ³       mbc.py
+³   ³   ³       mdil.py
+³   ³   ³       mkn.py
+³   ³   ³       msdl.py
+³   ³   ³       ned.py
+³   ³   ³       oxe.py
+³   ³   ³       source_reliability.py
+³   ³   ³       tv.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄmemory
+³   ³   ³       decision_memory.py
+³   ³   ³       evidence_memory.py
+³   ³   ³       market_memory.py
+³   ³   ³       memory_retrieval.py
+³   ³   ³       memory_service.py
+³   ³   ³       outcome_memory.py
+³   ³   ³       pattern_memory.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄmetrics
+³   ³   ³       eqe.py
+³   ³   ³       lqs.py
+³   ³   ³       mcs.py
+³   ³   ³       mct.py
+³   ³   ³       mts.py
+³   ³   ³       pfs.py
+³   ³   ³       rds.py
+³   ³   ³       tps.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄopportunity
+³   ³   ³       favorites_engine.py
+³   ³   ³       intraday_engine.py
+³   ³   ³       liquidity_filter.py
+³   ³   ³       opportunity_engine.py
+³   ³   ³       opportunity_explainer.py
+³   ³   ³       ranking_engine.py
+³   ³   ³       risk_filter.py
+³   ³   ³       scanner_engine.py
+³   ³   ³       timing_engine.py
+³   ³   ³       top10_engine.py
+³   ³   ³       universe_engine.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄresearch
+³   ³   ³       candidate_manager.py
+³   ³   ³       dataset.py
+³   ³   ³       deployment_manager.py
+³   ³   ³       experiment.py
+³   ³   ³       hypothesis.py
+³   ³   ³       research_service.py
+³   ³   ³       stress_testing.py
+³   ³   ³       validation.py
+³   ³   ³       version_manager.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÀÄÄÄrobomlm_plus
+³   ³           advanced_decision.py
+³   ³           emergency_control.py
+³   ³           execution_preparation.py
+³   ³           halt_controller.py
+³   ³           plus_orchestrator.py
+³   ³           position_monitor.py
+³   ³           protection.py
+³   ³           reconciliation.py
+³   ³           __init__.py
+³   ³           
+³   ÃÄÄÄmarkets
+³   ³   ³   market_service.py
+³   ³   ³   market_session.py
+³   ³   ³   market_state.py
+³   ³   ³   __init__.py
+³   ³   ³   
+³   ³   ÃÄÄÄcontracts
+³   ³   ³       contract_identity.py
+³   ³   ³       contract_registry.py
+³   ³   ³       contract_service.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄinstruments
+³   ³   ³       instrument_identity.py
+³   ³   ³       instrument_registry.py
+³   ³   ³       instrument_service.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÃÄÄÄregistry
+³   ³   ³       market_registry.py
+³   ³   ³       registry_loader.py
+³   ³   ³       venue_registry.py
+³   ³   ³       __init__.py
+³   ³   ³       
+³   ³   ÀÄÄÄvenues
+³   ³           venue_service.py
+³   ³           __init__.py
+³   ³           
+³   ÃÄÄÄsubscription
+³   ³       entitlement_service.py
+³   ³       plan_service.py
+³   ³       subscription_service.py
+³   ³       __init__.py
+³   ³       
+³   ÃÄÄÄusers
+³   ³       profile_service.py
+³   ³       user_service.py
+³   ³       __init__.py
+³   ³       
+³   ÀÄÄÄv6_bridge
+³           v6_blackbox_bridge.py
+³           v6_bridge.py
+³           v6_compatibility.py
+³           v6_loader.py
+³           v6_mapper.py
+³           v6_normalizer.py
+³           __init__.py
+³           
+ÃÄÄÄdocs
+³   ÃÄÄÄarchitecture
+³   ÃÄÄÄimplementation
+³   ÃÄÄÄintelligence
+³   ÃÄÄÄoperations
+³   ÀÄÄÄresearch
+ÃÄÄÄlegacy
+³   ÃÄÄÄv5
+³   ÀÄÄÄv6_current
+ÃÄÄÄregistries
+³       engine_registry.py
+³       feature_registry.py
+³       permission_registry.py
+³       plan_registry.py
+³       strategy_registry.py
+³       version_registry.py
+³       
+ÃÄÄÄrobomlm_data
+³   ÃÄÄÄbackups
+³   ÃÄÄÄblackbox
+³   ³   ÃÄÄÄdecisions
+³   ³   ÃÄÄÄevidence
+³   ³   ÃÄÄÄmemory
+³   ³   ÀÄÄÄoutcomes
+³   ÃÄÄÄcache
+³   ÃÄÄÄexports
+³   ÀÄÄÄlogs
+ÃÄÄÄschemas
+³   ÃÄÄÄcas
+³   ³       cas_result.py
+³   ³       
+³   ÃÄÄÄcommon
+³   ³       identifiers.py
+³   ³       request_context.py
+³   ³       version.py
+³   ³       
+³   ÃÄÄÄcontract
+³   ³       contract_schema.py
+³   ³       
+³   ÃÄÄÄdecision
+³   ³       decision_result.py
+³   ³       
+³   ÃÄÄÄevidence
+³   ³       evidence_item.py
+³   ³       evidence_package.py
+³   ³       
+³   ÃÄÄÄexecution
+³   ³       authorized_action.py
+³   ³       execution_result.py
+³   ³       
+³   ÃÄÄÄinstrument
+³   ³       instrument_schema.py
+³   ³       
+³   ÃÄÄÄintelligence
+³   ³       intelligence_result.py
+³   ³       
+³   ÃÄÄÄmarket
+³   ³       data_quality.py
+³   ³       market_snapshot.py
+³   ³       market_state.py
+³   ³       
+³   ÀÄÄÄrisk
+³           risk_result.py
+³           
+ÃÄÄÄscripts
+³       adapter_test.py
+³       blackbox_check.py
+³       deployment_check.py
+³       health_check.py
+³       integration_test.py
+³       market_data_test.py
+³       registry_check.py
+³       startup_check.py
+³       v6_bridge_test.py
+³       
+ÀÄÄÄtests
+    ÃÄÄÄe2e
+    ÃÄÄÄintegration
+    ³   ÃÄÄÄbuyer
+    ³   ÃÄÄÄcas
+    ³   ÃÄÄÄexecution
+    ³   ÃÄÄÄintelligence
+    ³   ÃÄÄÄscanner
+    ³   ÀÄÄÄv6_bridge
+    ÃÄÄÄstress
+    ³   ÃÄÄÄdata
+    ³   ÃÄÄÄexecution
+    ³   ÃÄÄÄlatency
+    ³   ÃÄÄÄliquidity
+    ³   ÃÄÄÄportfolio
+    ³   ÀÄÄÄregime
+    ÀÄÄÄunit
+        ÃÄÄÄadapters
+        ÃÄÄÄcas
+        ÃÄÄÄcore
+        ÃÄÄÄintelligence
+        ÀÄÄÄschemas

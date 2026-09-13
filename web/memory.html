@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROBOMLM — Memory</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div class="brand-text">
+          <div class="brand-name">ROBOMLM</div>
+          <div class="brand-tag">Intelligence OS</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <div class="nav-label">Workspace</div>
+        <a class="nav-item" href="/terminal"><span class="nav-icon">⌂</span> Terminal</a>
+        <a class="nav-item" href="/discovery"><span class="nav-icon">⌕</span> Discovery</a>
+        <a class="nav-item active" href="/memory"><span class="nav-icon">◈</span> Memory</a>
+        <a class="nav-item" href="/research"><span class="nav-icon">⌘</span> Research</a>
+        <a class="nav-item" href="/automation"><span class="nav-icon">⚙</span> Automation</a>
+        <a class="nav-item" href="/account"><span class="nav-icon">◎</span> Account</a>
+      </nav>
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <span>v0.1 · Presentation Layer</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title"><span class="title-icon">◈</span> Market Memory</div>
+          <div class="page-sub">Black Box Recorder · Trades · Decisions · Learning Journal</div>
+        </div>
+      </div>
+
+      <div class="tabs" id="memory-tabs">
+        <div class="tab active" data-t="trades">Trades</div>
+        <div class="tab" data-t="decisions">Decision Lifecycle</div>
+        <div class="tab" data-t="journal">Learning Journal</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" id="view-title"><span class="ct-icon">📊</span> Trade History</div>
+        <div id="view-body"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/static/js/memory.js"></script>
+</body>
+</html>

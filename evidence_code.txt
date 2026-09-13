@@ -1,0 +1,848 @@
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
+from __future__ import annotations
+
+from dataclasses import dataclass, asdict
+from typing import Any
+import json
+
+
+@dataclass(frozen=True)
+class EvidenceSummary:
+    total_events: int
+    successful_events: int
+    failed_events: int
+    event_types: tuple[str, ...]
+
+
+class EvidenceAggregator:
+    def summarize(self, events: list[Any]) -> EvidenceSummary:
+        total = len(events)
+        successful = 0
+        failed = 0
+        event_types: list[str] = []
+
+        for event in events:
+            if hasattr(event, "event_type"):
+                event_type = str(event.event_type)
+            elif isinstance(event, dict):
+                event_type = str(event.get("event_type", "unknown"))
+            else:
+                event_type = "unknown"
+
+            event_types.append(event_type)
+
+            status = (
+                event.get("status")
+                if isinstance(event, dict)
+                else getattr(event, "status", None)
+            )
+            status = str(status).lower() if status is not None else ""
+
+            if status in {"success", "succeeded", "passed", "ok"}:
+                successful += 1
+            elif status in {"failure", "failed", "error", "rejected"}:
+                failed += 1
+
+        return EvidenceSummary(
+            total_events=total,
+            successful_events=successful,
+            failed_events=failed,
+            event_types=tuple(event_types),
+        )
+
+    def to_json_safe(self, summary: EvidenceSummary) -> dict[str, Any]:
+        return json.loads(json.dumps(asdict(summary)))
