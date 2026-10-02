@@ -1,0 +1,220 @@
+"""
+ROBOMLM_PLUS - AutoROBOMLM Account Manager
+
+Tracks cash balance, deposits, withdrawals, ledger.
+Persists to JSON.
+"""
+
+from __future__ import annotations
+from dataclasses import dataclass, field, asdict
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from threading import RLock
+from typing import Any, Optional
+from uuid import uuid4
+import json
+
+
+ACCOUNT_ENGINE = "AutoROBOMLM_AccountManager"
+ACCOUNT_VERSION = "1.0"
+
+
+class LedgerKind(str, Enum):
+    DEPOSIT = "DEPOSIT"
+    WITHDRAWAL = "WITHDRAWAL"
+    REALIZED_PNL = "REALIZED_PNL"
+    FEE = "FEE"
+
+
+@dataclass
+class LedgerEntry:
+    entry_id: str
+    kind: str
+    amount: float
+    balance_after: float
+    note: str = ""
+    created_at: str = ""
+
+    def to_dict(self):
+        return asdict(self)
+
+
+class AccountManager:
+    def __init__(
+        self,
+        *,
+        initial_balance: float = 100000.0,
+        persist_path: Optional[Path] = None,
+    ):
+        if initial_balance < 0:
+            raise ValueError("initial_balance must be >= 0")
+
+        self._lock = RLock()
+        self._persist_path = persist_path
+        self._balance = float(initial_balance)
+        self._ledger: list[LedgerEntry] = []
+        self._deposits_total = float(initial_balance)
+        self._withdrawals_total = 0.0
+        self._realized_pnl_total = 0.0
+
+        if persist_path and persist_path.exists():
+            self._load()
+
+    # ------------------------------------------------------------------
+    # Core operations
+    # ------------------------------------------------------------------
+
+    def deposit(
+        self, amount: float, note: str = ""
+    ) -> LedgerEntry:
+        if amount <= 0:
+            raise ValueError("deposit amount must be > 0")
+
+        with self._lock:
+            self._balance += float(amount)
+            self._deposits_total += float(amount)
+            entry = self._record(
+                LedgerKind.DEPOSIT, float(amount), note
+            )
+            self._save()
+            return entry
+
+    def withdraw(
+        self, amount: float, note: str = ""
+    ) -> LedgerEntry:
+        if amount <= 0:
+            raise ValueError("withdrawal amount must be > 0")
+        with self._lock:
+            if amount > self._balance:
+                raise ValueError(
+                    f"insufficient balance: {self._balance} < {amount}"
+                )
+            self._balance -= float(amount)
+            self._withdrawals_total += float(amount)
+            entry = self._record(
+                LedgerKind.WITHDRAWAL, -float(amount), note
+            )
+            self._save()
+            return entry
+
+    def record_realized_pnl(
+        self, pnl: float, note: str = ""
+    ) -> LedgerEntry:
+        with self._lock:
+            self._balance += float(pnl)
+            self._realized_pnl_total += float(pnl)
+            entry = self._record(
+                LedgerKind.REALIZED_PNL, float(pnl), note
+            )
+            self._save()
+            return entry
+
+    # ------------------------------------------------------------------
+    # Queries
+    # ------------------------------------------------------------------
+
+    def balance(self) -> float:
+        with self._lock:
+            return self._balance
+
+    def ledger(self, limit: int = 100) -> list[dict]:
+        with self._lock:
+            entries = self._ledger[-limit:]
+            return [e.to_dict() for e in entries]
+
+    def summary(self) -> dict:
+        with self._lock:
+            return {
+                "engine": ACCOUNT_ENGINE,
+                "version": ACCOUNT_VERSION,
+                "balance": round(self._balance, 4),
+                "deposits_total": round(self._deposits_total, 4),
+                "withdrawals_total": round(self._withdrawals_total, 4),
+                "realized_pnl_total": round(
+                    self._realized_pnl_total, 4
+                ),
+                "ledger_count": len(self._ledger),
+            }
+
+    # ------------------------------------------------------------------
+    # Internal
+    # ------------------------------------------------------------------
+
+    def _record(
+        self,
+        kind: LedgerKind,
+        amount: float,
+        note: str,
+    ) -> LedgerEntry:
+        entry = LedgerEntry(
+            entry_id=str(uuid4()),
+            kind=kind.value,
+            amount=round(float(amount), 6),
+            balance_after=round(self._balance, 6),
+            note=str(note),
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        self._ledger.append(entry)
+        return entry
+
+    def _save(self):
+        if not self._persist_path:
+            return
+        try:
+            self._persist_path.parent.mkdir(
+                parents=True, exist_ok=True
+            )
+            payload = {
+                "balance": self._balance,
+                "deposits_total": self._deposits_total,
+                "withdrawals_total": self._withdrawals_total,
+                "realized_pnl_total": self._realized_pnl_total,
+                "ledger": [e.to_dict() for e in self._ledger],
+            }
+            self._persist_path.write_text(
+                json.dumps(payload, indent=2),
+                encoding="utf-8",
+            )
+        except Exception:
+            pass
+
+    def _load(self):
+        try:
+            data = json.loads(
+                self._persist_path.read_text(encoding="utf-8")
+            )
+            self._balance = float(data.get("balance", 0.0))
+            self._deposits_total = float(
+                data.get("deposits_total", 0.0)
+            )
+            self._withdrawals_total = float(
+                data.get("withdrawals_total", 0.0)
+            )
+            self._realized_pnl_total = float(
+                data.get("realized_pnl_total", 0.0)
+            )
+            for e in data.get("ledger", []):
+                self._ledger.append(
+                    LedgerEntry(
+                        entry_id=e.get("entry_id", ""),
+                        kind=e.get("kind", ""),
+                        amount=float(e.get("amount", 0.0)),
+                        balance_after=float(
+                            e.get("balance_after", 0.0)
+                        ),
+                        note=e.get("note", ""),
+                        created_at=e.get("created_at", ""),
+                    )
+                )
+        except Exception:
+            pass
+
+
+__all__ = [
+    "ACCOUNT_ENGINE",
+    "ACCOUNT_VERSION",
+    "LedgerKind",
+    "LedgerEntry",
+    "AccountManager",
+]

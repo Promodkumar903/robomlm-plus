@@ -81,8 +81,14 @@ class EvidenceConfidenceResult:
     warnings: tuple[str, ...] = ()
 
     def is_valid(self) -> bool:
+        if self.status == ConfidenceStatus.INSUFFICIENT:
+            return True
+
         return (
-            self.status == ConfidenceStatus.VALID
+            self.status in (
+                ConfidenceStatus.VALID,
+                ConfidenceStatus.PARTIAL,
+            )
             and self.weight is not None
             and 0.0 <= self.weight <= 1.0
         )
@@ -402,13 +408,12 @@ class EvidenceConfidenceEngine:
         self,
         items: Iterable[EvidenceItem],
         *,
-        prior_weight: float,
+        prior_weight: float | None = None,
         observations: int | None = None,
-        parameters: EvidenceConfidenceParameters,
+        parameters: EvidenceConfidenceParameters | None = None,
         evaluation_time: datetime | None = None,
     ) -> EvidenceConfidenceResult:
         """
-        Calculate evidence weight from canonical EvidenceItem objects.
 
         Important:
         EvidenceItem.confidence is treated as an already supplied
@@ -481,6 +486,7 @@ class EvidenceConfidenceEngine:
                 observations or len(materialized),
                 0,
             )
+
 
         result = self.calculate(
             prior_weight=prior_weight,

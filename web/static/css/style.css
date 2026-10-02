@@ -2003,3 +2003,428 @@ button.btn[disabled] {
   border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
+/* ================================================================
+   BUYER
+   ================================================================ */
+
+.buyer-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+@media (max-width: 900px) {
+  .buyer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.buyer-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+/* ================================================================
+   ACCOUNT — Compact Layout
+   ================================================================ */
+
+/* ---------- TOP BAR ---------- */
+.acct-topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; margin-bottom: 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  gap: 12px;
+}
+.acct-topbar-left { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.acct-topbar-right { display: flex; gap: 10px; align-items: center; }
+
+.acct-topbar-label {
+  font-size: 10px; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 1px;
+}
+.acct-topbar-balance {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 15px; color: #4ade80;
+}
+
+.acct-mode-btn, .acct-cur-btn {
+  background: var(--bg-3); color: var(--text);
+  border: 1px solid var(--border-2); border-radius: 5px;
+  padding: 6px 12px; font-size: 11px;
+  font-family: var(--font-mono); font-weight: 600;
+  cursor: pointer; letter-spacing: .3px;
+  transition: all .15s;
+}
+.acct-mode-btn:hover, .acct-cur-btn:hover { border-color: var(--accent); }
+.acct-mode-btn.live { background: rgba(239,68,68,.15); color: #f87171; border-color: rgba(239,68,68,.4); }
+.acct-mode-btn.paper { background: rgba(34,197,94,.12); color: #4ade80; border-color: rgba(34,197,94,.35); }
+
+/* ---------- CAPITAL STRIP ---------- */
+.acct-strip {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin-bottom: 14px;
+}
+@media (max-width: 900px) { .acct-strip { grid-template-columns: 1fr 1fr; } }
+
+.acct-box {
+  background: var(--bg-2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 14px;
+}
+.acct-box-lbl {
+  font-size: 9.5px; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-weight: 600; margin-bottom: 5px;
+}
+.acct-box-val {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 16px; color: var(--text);
+  line-height: 1.2;
+}
+.acct-box-val.acct-green { color: #4ade80; }
+.acct-box-val.acct-red { color: #f87171; }
+
+/* ---------- BOTTOM GRID — Charts + Mode side by side ---------- */
+.acct-bottom {
+  display: grid; grid-template-columns: 1.3fr 1fr;
+  gap: 14px; margin-bottom: 14px;
+}
+@media (max-width: 900px) { .acct-bottom { grid-template-columns: 1fr; } }
+
+/* Compact chart card */
+.acct-chart-card { padding: 12px 14px; }
+.acct-chart-card .card-title { font-size: 11px; margin-bottom: 10px; }
+#acct-equity-svg { display: block; width: 100%; height: 90px; }
+
+.acct-alloc-list { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; }
+.acct-alloc-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11.5px; padding: 5px 8px;
+  background: var(--bg-3); border-radius: 5px;
+}
+.acct-alloc-row .k { color: var(--text-3); text-transform: capitalize; }
+.acct-alloc-row .v { font-family: var(--font-mono); font-weight: 600; color: var(--text); }
+
+/* ---------- MODE & CURRENCY ---------- */
+.acct-mc-grid {
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.acct-mc-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.acct-mc-row:last-child { border-bottom: none; }
+
+.acct-mc-lbl {
+  font-size: 10px; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-weight: 600;
+}
+.acct-mc-val {
+  display: flex; gap: 6px; align-items: center;
+}
+.acct-mc-btn {
+  background: var(--bg-3); color: var(--text-2);
+  border: 1px solid var(--border-2); border-radius: 5px;
+  padding: 5px 10px; font-size: 11px;
+  font-family: var(--font-mono); cursor: pointer;
+  transition: all .15s;
+}
+.acct-mc-btn:hover { border-color: var(--accent); color: var(--text); }
+.acct-mc-btn.active {
+  background: rgba(99,102,241,.15);
+  color: #818cf8;
+  border-color: rgba(99,102,241,.5);
+}
+
+.acct-hint { color: var(--text-4); font-size: 10.5px; }
+
+/* ---------- DOWNLOADS ---------- */
+.acct-dl-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+@media (max-width: 900px) { .acct-dl-grid { grid-template-columns: 1fr 1fr; } }
+
+.acct-dl-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 6px; padding: 8px 10px;
+  background: var(--bg-3); border: 1px solid var(--border-2);
+  border-radius: 5px; color: var(--text-2);
+  font-family: var(--font-mono); font-size: 10.5px;
+  cursor: pointer; transition: all .15s;
+  text-align: left;
+}
+.acct-dl-btn:hover { border-color: var(--accent); color: var(--text); }
+.acct-dl-btn .acct-dl-icon { color: #818cf8; font-size: 11px; }
+/* ================================================================
+   TERMINAL — Portfolio Strip + Positions
+   ================================================================ */
+
+.pf-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 1100px) { .pf-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px)  { .pf-strip { grid-template-columns: 1fr 1fr; } }
+
+.pf-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.pf-lbl {
+  font-size: 9.5px; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-weight: 600; margin-bottom: 3px;
+}
+.pf-val {
+  font-family: var(--font-mono);
+  font-weight: 700; font-size: 14px;
+  color: var(--text); line-height: 1.2;
+}
+.pf-val.pf-green { color: #4ade80; }
+.pf-val.pf-red { color: #f87171; }
+
+.pf-pos-card { padding: 12px 16px; }
+.pf-pos-list { display: flex; flex-direction: column; gap: 6px; }
+.pf-empty { color: var(--text-4); font-size: 12px; padding: 8px 0; }
+
+.pf-pos-row {
+  display: grid;
+  grid-template-columns: 60px 100px 90px 90px 90px 70px 80px;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--bg-3);
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  align-items: center;
+}
+.pf-pos-row .dir { font-weight: 700; }
+.pf-pos-row .dir.long { color: #4ade80; }
+.pf-pos-row .dir.short { color: #f87171; }
+.pf-pos-row .sym { color: var(--text); font-weight: 600; }
+.pf-pos-row .num { color: var(--text-2); }
+.pf-pos-row .close-btn {
+  background: rgba(239,68,68,.15);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,.35);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+.pf-pos-row .close-btn:hover { background: rgba(239,68,68,.25); }
+/* ================================================================
+   AUTOMATION — Bot Finance · Trades · Activity
+   ================================================================ */
+
+.bot-strip {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+@media (max-width: 1100px) { .bot-strip { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 600px)  { .bot-strip { grid-template-columns: 1fr 1fr; } }
+
+.bot-box {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+.bot-lbl {
+  font-size: 9.5px; color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-weight: 600; margin-bottom: 3px;
+}
+.bot-val {
+  font-family: var(--font-mono);
+  font-weight: 700; font-size: 14px;
+  color: var(--text); line-height: 1.2;
+}
+.bot-val.pos { color: #4ade80; }
+.bot-val.neg { color: #f87171; }
+.bot-val.warn { color: #fbbf24; }
+
+/* Trades table */
+.bot-trades-card { padding: 12px 16px; }
+.bot-trade-count {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: var(--bg-3);
+  border-radius: 10px;
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+.bot-trade-head,
+.bot-trade-row {
+  display: grid;
+  grid-template-columns: 50px 90px 75px 75px 75px 70px 75px 55px 60px 60px;
+  gap: 6px;
+  padding: 8px 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  align-items: center;
+}
+
+.bot-trade-head {
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 9.5px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.bot-trade-row {
+  background: var(--bg-3);
+  border-radius: 5px;
+  margin-bottom: 4px;
+}
+.bot-trade-row .dir.long { color: #4ade80; font-weight: 700; }
+.bot-trade-row .dir.short { color: #f87171; font-weight: 700; }
+.bot-trade-row .sym { color: var(--text); font-weight: 600; }
+.bot-trade-row .num { color: var(--text-2); }
+.bot-trade-row .pl.pos { color: #4ade80; font-weight: 700; }
+.bot-trade-row .pl.neg { color: #f87171; font-weight: 700; }
+.bot-trade-row .grade {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(99,102,241,.15);
+  color: #818cf8;
+  font-size: 10px;
+  text-align: center;
+}
+.bot-trade-row .close-btn {
+  background: rgba(239,68,68,.15);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,.35);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 9px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+}
+
+.bot-empty {
+  color: var(--text-4);
+  font-size: 12px;
+  padding: 8px 0;
+  text-align: center;
+}
+
+/* Activity log */
+.bot-activity-card { padding: 12px 16px; }
+.bot-activity-list {
+  max-height: 300px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.bot-act-row {
+  display: grid;
+  grid-template-columns: 70px 70px 1fr;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: var(--bg-3);
+}
+.bot-act-row .ts { color: var(--text-4); }
+.bot-act-row .kind {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+.bot-act-row .kind.OPEN { color: #4ade80; }
+.bot-act-row .kind.CLOSE { color: #fbbf24; }
+.bot-act-row .kind.REJECT { color: #f87171; }
+.bot-act-row .kind.WAIT { color: var(--text-4); }
+.bot-act-row .kind.SIGNAL { color: #818cf8; }
+.bot-act-row .msg { color: var(--text-2); }
+/* ================================================================
+   ACCOUNT — Bot Fund Allocation
+   ================================================================ */
+
+.alloc-wrap { padding: 6px 0; }
+.alloc-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 60px 120px;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.alloc-row:last-of-type { border-bottom: none; }
+.alloc-row label {
+  font-size: 12px; color: var(--text-2);
+  font-weight: 600; letter-spacing: 0.3px;
+}
+.alloc-row input[type="range"] {
+  width: 100%; accent-color: var(--accent);
+  cursor: pointer;
+}
+.alloc-val {
+  font-family: var(--font-mono); font-weight: 700;
+  font-size: 13px; color: var(--text);
+  text-align: right;
+}
+.alloc-cap {
+  font-family: var(--font-mono); font-size: 12px;
+  color: #4ade80; text-align: right;
+}
+
+.alloc-foot {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.alloc-hint {
+  font-size: 11.5px; color: var(--text-4);
+  font-family: var(--font-mono);
+}
+/* ================================================================
+   LOGOUT BUTTON (sidebar footer)
+   ================================================================ */
+
+.logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(239,68,68,.10);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,.30);
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.logout-btn:hover {
+  background: rgba(239,68,68,.20);
+  border-color: rgba(239,68,68,.50);
+}

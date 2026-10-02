@@ -1,0 +1,1622 @@
+```tsx
+// C:\Users\Administrator\ROBOMLM_PLUS\frontend\src\pages\Research.tsx
+
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  createResearchPoller,
+  getResearch,
+  type AuthorityState,
+  type Decision,
+  type ResearchApiState,
+  type ResearchContradiction,
+  type ResearchEngine,
+  type ResearchStage,
+} from "../api/research";
+
+import "./Research.css";
+
+type ViewTab =
+  | "OVERVIEW"
+  | "INTELLIGENCE"
+  | "EVIDENCE"
+  | "AUTHORITY";
+
+const ENGINE_ORDER = [
+  "EQE",
+  "MCT",
+  "LQS",
+  "MTS",
+  "REL",
+  "REG",
+  "MAG",
+  "STR",
+  "RSK",
+  "CAS",
+];
+
+const DECISION_LABEL: Record<Decision, string> = {
+  BUY: "BUY",
+  SELL: "SELL",
+  HOLD: "HOLD",
+  WAIT: "WAIT",
+  REVIEW: "REVIEW",
+  BLOCKED: "BLOCKED",
+  UNAVAILABLE: "UNAVAILABLE",
+};
+
+function cx(
+  ...values: Array<
+    string | false | null | undefined
+  >
+) {
+  return values.filter(Boolean).join(" ");
+}
+
+function text(
+  value: unknown,
+  fallback = "—",
+): string {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return fallback;
+  }
+
+  return String(value);
+}
+
+function score(
+  value: number | null | undefined,
+): string {
+  if (
+    value === undefined ||
+    value === null ||
+    !Number.isFinite(value)
+  ) {
+    return "—";
+  }
+
+  return value.toFixed(1);
+}
+
+function stateClass(
+  value: unknown,
+): string {
+  return String(value ?? "UNKNOWN")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-");
+}
+
+function decisionClass(
+  value: unknown,
+): string {
+  return String(value ?? "UNAVAILABLE")
+    .toLowerCase();
+}
+
+function formatTime(
+  value?: string,
+): string {
+  if (!value) {
+    return "—";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleTimeString(
+    undefined,
+    {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    },
+  );
+}
+
+function stageState(
+  stage?: ResearchStage,
+): string {
+  return stage?.state ?? "UNKNOWN";
+}
+
+function engineState(
+  engine?: ResearchEngine,
+): string {
+  return (
+    engine?.state ??
+    engine?.status ??
+    "UNKNOWN"
+  );
+}
+
+function EngineCard({
+  engine,
+}: {
+  engine: ResearchEngine;
+}) {
+  return (
+    <article className="research-engine-card">
+      <div className="research-engine-top">
+        <span className="research-engine-name">
+          {text(
+            engine.shortName ??
+              engine.name,
+          )}
+        </span>
+
+        <span
+          className={cx(
+            "research-state-pill",
+            stateClass(
+              engineState(engine),
+            ),
+          )}
+        >
+          {text(
+            engineState(engine),
+            "UNKNOWN",
+          )}
+        </span>
+      </div>
+
+      <div className="research-engine-score">
+        {score(engine.score)}
+      </div>
+
+      <div className="research-engine-meta">
+        <span>
+          {text(
+            engine.direction,
+            "NEUTRAL",
+          )}
+        </span>
+
+        {engine.grade && (
+          <span className="research-grade">
+            {engine.grade}
+          </span>
+        )}
+      </div>
+
+      {(engine.message ||
+        engine.reason) && (
+        <div className="research-engine-reason">
+          {text(
+            engine.message ??
+              engine.reason,
+          )}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function DecisionBadge({
+  decision,
+}: {
+  decision: Decision;
+}) {
+  return (
+    <span
+      className={cx(
+        "research-decision-badge",
+        decisionClass(decision),
+      )}
+    >
+      {DECISION_LABEL[decision]}
+    </span>
+  );
+}
+
+function AuthorityCard({
+  title,
+  mode,
+  state,
+  enabled,
+  decision,
+  reason,
+}: {
+  title: string;
+  mode: "AUTO" | "MANUAL";
+  state?: AuthorityState;
+  enabled?: boolean;
+  decision?: Decision;
+  reason?: string;
+}) {
+  return (
+    <article
+      className={cx(
+        "research-authority-card",
+        mode.toLowerCase(),
+      )}
+    >
+      <div className="research-authority-heading">
+        <div>
+          <span className="research-authority-mode">
+            {mode}
+          </span>
+
+          <h3>{title}</h3>
+        </div>
+
+        <span
+          className={cx(
+            "research-state-pill",
+            stateClass(state),
+          )}
+        >
+          {text(state, "UNKNOWN")}
+        </span>
+      </div>
+
+      <div className="research-authority-row">
+        <span>Decision</span>
+
+        <DecisionBadge
+          decision={
+            decision ??
+            "UNAVAILABLE"
+          }
+        />
+      </div>
+
+      <div className="research-authority-row">
+        <span>Control</span>
+
+        <strong>
+          {enabled === true
+            ? "ENABLED"
+            : enabled === false
+              ? "DISABLED"
+              : "UNKNOWN"}
+        </strong>
+      </div>
+
+      {reason && (
+        <div className="research-authority-reason">
+          {reason}
+        </div>
+      )}
+    </article>
+  );
+}
+
+function ContradictionCard({
+  item,
+}: {
+  item: ResearchContradiction;
+}) {
+  return (
+    <article className="research-contradiction">
+      <div className="research-contradiction-head">
+        <strong>
+          {text(
+            item.type,
+            "CONTRADICTION",
+          )}
+        </strong>
+
+        {item.severity && (
+          <span
+            className={cx(
+              "research-severity",
+              stateClass(item.severity),
+            )}
+          >
+            {item.severity}
+          </span>
+        )}
+      </div>
+
+      <p>
+        {text(
+          item.message,
+          "Backend reported a contradiction.",
+        )}
+      </p>
+
+      <div className="research-contradiction-foot">
+        <span>
+          {text(
+            item.source,
+            "SOURCE UNKNOWN",
+          )}
+        </span>
+
+        <span>
+          {text(
+            item.resolution,
+            "REVIEW REQUIRED",
+          )}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+export default function Research() {
+  const [data, setData] =
+    useState<ResearchApiState | null>(
+      null,
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  const [activeTab, setActiveTab] =
+    useState<ViewTab>("OVERVIEW");
+
+  const load = useCallback(
+    async () => {
+      setLoading(true);
+
+      try {
+        const next =
+          await getResearch();
+
+        setData(next);
+        setError(null);
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load research intelligence.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const stop =
+      createResearchPoller(
+        (next) => {
+          setData(next);
+          setLoading(false);
+          setError(null);
+        },
+        (err) => {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Research backend unavailable.",
+          );
+
+          setLoading(false);
+        },
+        5000,
+      );
+
+    return stop;
+  }, []);
+
+  const engines = useMemo(() => {
+    if (!data) {
+      return [];
+    }
+
+    const map = new Map(
+      data.engines.map(
+        (engine) => [
+          engine.shortName ??
+            engine.name,
+          engine,
+        ],
+      ),
+    );
+
+    return ENGINE_ORDER.map(
+      (name) =>
+        map.get(name) ??
+        ({
+          id: name,
+          name,
+          shortName: name,
+          state: "UNAVAILABLE",
+          score: null,
+        } satisfies ResearchEngine),
+    );
+  }, [data]);
+
+  const decision =
+    data?.decision.decision ??
+    "UNAVAILABLE";
+
+  const contradictionCount =
+    data?.contradictions.length ?? 0;
+
+  const evidenceCount =
+    data?.evidence.items?.length ?? 0;
+
+  const stageMap = useMemo(() => {
+    const map = new Map<
+      string,
+      ResearchStage
+    >();
+
+    data?.stages.forEach(
+      (stage) => {
+        map.set(
+          stage.id.toUpperCase(),
+          stage,
+        );
+      },
+    );
+
+    return map;
+  }, [data]);
+
+  return (
+    <main className="research-page">
+      <header className="research-header">
+        <div className="research-brand">
+          <div className="research-eyebrow">
+            ROBOMLM_PLUS
+          </div>
+
+          <h1>
+            Research / Intelligence
+          </h1>
+
+          <p>
+            Evidence, intelligence,
+            decision context and trade
+            authority — from the
+            authoritative backend state.
+          </p>
+        </div>
+
+        <div className="research-header-right">
+          <div className="research-live-indicator">
+            <span
+              className={cx(
+                "research-live-dot",
+                data
+                  ? "online"
+                  : "offline",
+              )}
+            />
+
+            {data
+              ? "LIVE STATE"
+              : "NO DATA"}
+          </div>
+
+          <div className="research-updated">
+            {formatTime(
+              data?.generatedAt,
+            )}
+          </div>
+
+          <button
+            className="research-refresh"
+            type="button"
+            onClick={load}
+            disabled={loading}
+          >
+            {loading
+              ? "SYNCING..."
+              : "REFRESH"}
+          </button>
+        </div>
+      </header>
+
+      {error && (
+        <section className="research-error">
+          <div>
+            <strong>
+              BACKEND STATE UNAVAILABLE
+            </strong>
+
+            <span>{error}</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={load}
+          >
+            RETRY
+          </button>
+        </section>
+      )}
+
+      <section className="research-instrument-bar">
+        <div>
+          <span className="research-label">
+            INSTRUMENT
+          </span>
+
+          <strong className="research-symbol">
+            {text(
+              data?.instrument.symbol,
+              "—",
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span className="research-label">
+            MARKET
+          </span>
+
+          <strong>
+            {text(
+              data?.instrument.market,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span className="research-label">
+            SEGMENT
+          </span>
+
+          <strong>
+            {text(
+              data?.instrument.segment,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span className="research-label">
+            VENUE
+          </span>
+
+          <strong>
+            {text(
+              data?.instrument.venue,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span className="research-label">
+            PRICE
+          </span>
+
+          <strong>
+            {data?.instrument.price !=
+            null
+              ? data.instrument.price.toLocaleString()
+              : "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span className="research-label">
+            CHANGE
+          </span>
+
+          <strong>
+            {data?.instrument.changePercent !=
+            null
+              ? `${data.instrument.changePercent.toFixed(2)}%`
+              : "—"}
+          </strong>
+        </div>
+      </section>
+
+      <nav className="research-tabs">
+        {(
+          [
+            "OVERVIEW",
+            "INTELLIGENCE",
+            "EVIDENCE",
+            "AUTHORITY",
+          ] as ViewTab[]
+        ).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className={cx(
+              activeTab === tab &&
+                "active",
+            )}
+            onClick={() =>
+              setActiveTab(tab)
+            }
+          >
+            {tab}
+          </button>
+        ))}
+      </nav>
+
+      <section className="research-decision-hero">
+        <div className="research-decision-main">
+          <span className="research-label">
+            CURRENT DECISION
+          </span>
+
+          <DecisionBadge
+            decision={decision}
+          />
+
+          <div className="research-decision-direction">
+            {text(
+              data?.decision.direction,
+              "NEUTRAL",
+            )}
+          </div>
+        </div>
+
+        <div className="research-decision-metrics">
+          <div>
+            <span>
+              DECISION SCORE
+            </span>
+
+            <strong>
+              {score(
+                data?.decision.score,
+              )}
+            </strong>
+          </div>
+
+          <div>
+            <span>GRADE</span>
+
+            <strong>
+              {text(
+                data?.decision.grade,
+              )}
+            </strong>
+          </div>
+
+          <div>
+            <span>READY</span>
+
+            <strong>
+              {data?.decision.ready ===
+              true
+                ? "YES"
+                : data?.decision.ready ===
+                    false
+                  ? "NO"
+                  : "—"}
+            </strong>
+          </div>
+
+          <div>
+            <span>STATE</span>
+
+            <strong>
+              {text(
+                data?.decision.state,
+              )}
+            </strong>
+          </div>
+        </div>
+
+        <div className="research-decision-reason">
+          <span className="research-label">
+            BACKEND RATIONALE
+          </span>
+
+          <p>
+            {text(
+              data?.decision.reason ??
+                data?.decision.message,
+              "No rationale returned by backend.",
+            )}
+          </p>
+        </div>
+      </section>
+
+      {activeTab === "OVERVIEW" && (
+        <>
+          <section className="research-section">
+            <div className="research-section-title">
+              <div>
+                <span>
+                  DECISION PIPELINE
+                </span>
+
+                <h2>
+                  D1 — D16
+                </h2>
+              </div>
+
+              <small>
+                Backend stage state
+              </small>
+            </div>
+
+            <div className="research-stage-strip">
+              {Array.from(
+                { length: 16 },
+                (_, index) => {
+                  const id =
+                    `D${index + 1}`;
+
+                  const stage =
+                    stageMap.get(id);
+
+                  return (
+                    <div
+                      key={id}
+                      className={cx(
+                        "research-stage",
+                        stateClass(
+                          stageState(stage),
+                        ),
+                      )}
+                    >
+                      <strong>
+                        {id}
+                      </strong>
+
+                      <span>
+                        {stage
+                          ? stage.label
+                          : "UNAVAILABLE"}
+                      </span>
+
+                      <small>
+                        {stageState(stage)}
+                      </small>
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          </section>
+
+          <section className="research-section">
+            <div className="research-section-title">
+              <div>
+                <span>
+                  INTELLIGENCE ENGINES
+                </span>
+
+                <h2>
+                  ENGINE STATE
+                </h2>
+              </div>
+
+              <small>
+                No frontend calculation
+              </small>
+            </div>
+
+            <div className="research-engine-grid">
+              {engines.map(
+                (engine) => (
+                  <EngineCard
+                    key={
+                      engine.id
+                    }
+                    engine={engine}
+                  />
+                ),
+              )}
+            </div>
+          </section>
+
+          <DecisionMap data={data} />
+
+          <EvidenceSection
+            data={data}
+          />
+
+          <ContradictionSection
+            data={data}
+          />
+        </>
+      )}
+
+      {activeTab ===
+        "INTELLIGENCE" && (
+        <>
+          <section className="research-section">
+            <div className="research-section-title">
+              <div>
+                <span>
+                  INTELLIGENCE SYNTHESIS
+                </span>
+
+                <h2>
+                  ALL INTELLIGENCE
+                </h2>
+              </div>
+
+              <span
+                className={cx(
+                  "research-state-pill",
+                  stateClass(
+                    data?.intelligence
+                      .state,
+                  ),
+                )}
+              >
+                {text(
+                  data?.intelligence
+                    .state,
+                  "UNKNOWN",
+                )}
+              </span>
+            </div>
+
+            <div className="research-intelligence-summary">
+              <div>
+                <span>
+                  INTELLIGENCE SCORE
+                </span>
+
+                <strong>
+                  {score(
+                    data?.intelligence
+                      .score,
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  QUALITY GRADE
+                </span>
+
+                <strong>
+                  {text(
+                    data?.intelligence
+                      .grade,
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  DIRECTION
+                </span>
+
+                <strong>
+                  {text(
+                    data?.intelligence
+                      .direction,
+                    "NEUTRAL",
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  CONTRADICTIONS
+                </span>
+
+                <strong>
+                  {contradictionCount}
+                </strong>
+              </div>
+            </div>
+
+            <div className="research-engine-grid">
+              {engines.map(
+                (engine) => (
+                  <EngineCard
+                    key={
+                      engine.id
+                    }
+                    engine={engine}
+                  />
+                ),
+              )}
+            </div>
+          </section>
+
+          <DecisionMap data={data} />
+
+          <ScenarioSection data={data} />
+        </>
+      )}
+
+      {activeTab === "EVIDENCE" && (
+        <>
+          <EvidenceSection
+            data={data}
+            expanded
+          />
+
+          <ContradictionSection
+            data={data}
+            expanded
+          />
+        </>
+      )}
+
+      {activeTab === "AUTHORITY" && (
+        <AuthoritySection
+          data={data}
+        />
+      )}
+
+      <footer className="research-footer">
+        <span>
+          Request ID:{" "}
+          {text(
+            data?.requestId,
+            "—",
+          )}
+        </span>
+
+        <span>
+          Backend remains the authority.
+        </span>
+
+        <span>
+          Proprietary formulas hidden.
+        </span>
+      </footer>
+    </main>
+  );
+}
+
+function DecisionMap({
+  data,
+}: {
+  data: ResearchApiState | null;
+}) {
+  const map =
+    data?.decisionMap;
+
+  const cells = [
+    ["MARKET", map?.marketState],
+    ["TRANSITION", map?.transition],
+    ["SCENARIO", map?.scenario],
+    ["DIRECTION", map?.direction],
+    ["STRUCTURE", map?.structure],
+    ["LIQUIDITY", map?.liquidity],
+    ["ACCUMULATION", map?.accumulation],
+    ["DISTRIBUTION", map?.distribution],
+    ["VOLATILITY", map?.volatility],
+    ["TIMING", map?.timing],
+    ["REGIME", map?.regime],
+  ];
+
+  return (
+    <section className="research-section">
+      <div className="research-section-title">
+        <div>
+          <span>
+            DECISION CONTEXT
+          </span>
+
+          <h2>
+            DECISION MAP
+          </h2>
+        </div>
+
+        <small>
+          Observed backend state
+        </small>
+      </div>
+
+      <div className="research-map">
+        {cells.map(
+          ([label, value]) => (
+            <div
+              key={label}
+              className="research-map-cell"
+            >
+              <span>{label}</span>
+
+              <strong>
+                {text(value)}
+              </strong>
+            </div>
+          ),
+        )}
+      </div>
+    </section>
+  );
+}
+
+function EvidenceSection({
+  data,
+  expanded = false,
+}: {
+  data: ResearchApiState | null;
+  expanded?: boolean;
+}) {
+  const evidence =
+    data?.evidence;
+
+  const items =
+    evidence?.items ?? [];
+
+  return (
+    <section className="research-section">
+      <div className="research-section-title">
+        <div>
+          <span>
+            EVIDENCE LAYER
+          </span>
+
+          <h2>
+            EVIDENCE
+          </h2>
+        </div>
+
+        <div className="research-section-stats">
+          <span>
+            {items.length} ITEMS
+          </span>
+
+          <span>
+            {text(
+              evidence?.status ??
+                evidence?.state,
+              "UNKNOWN",
+            )}
+          </span>
+        </div>
+      </div>
+
+      <div className="research-evidence-summary">
+        <div>
+          <span>ACCEPTED</span>
+          <strong>
+            {evidence?.acceptedCount ??
+              "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>REJECTED</span>
+          <strong>
+            {evidence?.rejectedCount ??
+              "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>SUPPORTING</span>
+          <strong>
+            {evidence?.supportingCount ??
+              "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>CONFLICTING</span>
+          <strong>
+            {evidence?.conflictingCount ??
+              "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>PROVENANCE</span>
+          <strong>
+            {text(
+              evidence?.provenance,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>TEMPORAL</span>
+          <strong>
+            {text(
+              evidence?.temporal,
+            )}
+          </strong>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="research-evidence-list">
+          {items.length === 0 ? (
+            <div className="research-empty">
+              No evidence items returned
+              by backend.
+            </div>
+          ) : (
+            items.map((item) => (
+              <article
+                className="research-evidence-item"
+                key={item.id}
+              >
+                <div>
+                  <strong>
+                    {item.id}
+                  </strong>
+
+                  <span>
+                    {text(
+                      item.source,
+                      "SOURCE",
+                    )}
+                  </span>
+                </div>
+
+                <div>
+                  <span>
+                    {text(
+                      item.dimension,
+                      "DIMENSION",
+                    )}
+                  </span>
+
+                  <strong>
+                    {text(
+                      item.disposition,
+                      "—",
+                    )}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>
+                    VALIDITY
+                  </span>
+
+                  <strong>
+                    {text(
+                      item.validity,
+                    )}
+                  </strong>
+                </div>
+
+                <div className="research-evidence-reason">
+                  {text(
+                    item.reason,
+                    "No evidence reason returned.",
+                  )}
+                </div>
+              </article>
+            ))
+          )}
+        </div>
+      )}
+
+      {!expanded &&
+        items.length > 0 && (
+          <div className="research-preview-row">
+            {items
+              .slice(0, 3)
+              .map((item) => (
+                <span
+                  key={item.id}
+                  className="research-preview-chip"
+                >
+                  {item.id} ·{" "}
+                  {text(
+                    item.disposition,
+                    "UNKNOWN",
+                  )}
+                </span>
+              ))}
+          </div>
+        )}
+    </section>
+  );
+}
+
+function ContradictionSection({
+  data,
+  expanded = false,
+}: {
+  data: ResearchApiState | null;
+  expanded?: boolean;
+}) {
+  const contradictions =
+    data?.contradictions ?? [];
+
+  return (
+    <section className="research-section">
+      <div className="research-section-title">
+        <div>
+          <span>
+            CONFLICT MONITOR
+          </span>
+
+          <h2>
+            CONTRADICTIONS
+          </h2>
+        </div>
+
+        <span
+          className={cx(
+            "research-count-badge",
+            contradictions.length
+              ? "has-items"
+              : "clear",
+          )}
+        >
+          {contradictions.length}
+        </span>
+      </div>
+
+      {contradictions.length ===
+      0 ? (
+        <div className="research-clear-state">
+          <strong>
+            NO CONTRADICTION REPORTED
+          </strong>
+
+          <span>
+            This does not create a
+            decision; it only reflects
+            the current backend
+            contradiction state.
+          </span>
+        </div>
+      ) : (
+        <div
+          className={cx(
+            "research-contradiction-grid",
+            !expanded &&
+              "compact",
+          )}
+        >
+          {contradictions
+            .slice(
+              0,
+              expanded
+                ? contradictions.length
+                : 3,
+            )
+            .map((item) => (
+              <ContradictionCard
+                key={item.id}
+                item={item}
+              />
+            ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function ScenarioSection({
+  data,
+}: {
+  data: ResearchApiState | null;
+}) {
+  const scenarios =
+    data?.scenarios ?? [];
+
+  return (
+    <section className="research-section">
+      <div className="research-section-title">
+        <div>
+          <span>
+            D12 FUTURE / SCENARIO
+          </span>
+
+          <h2>
+            SCENARIO MAP
+          </h2>
+        </div>
+
+        <small>
+          Conditional paths only
+        </small>
+      </div>
+
+      <div className="research-scenario-grid">
+        {scenarios.length ===
+        0 ? (
+          <div className="research-empty">
+            No scenario records
+            returned by backend.
+          </div>
+        ) : (
+          scenarios.map(
+            (scenario, index) => (
+              <article
+                className="research-scenario"
+                key={
+                  scenario.id ??
+                  `${scenario.type}-${index}`
+                }
+              >
+                <div className="research-scenario-head">
+                  <strong>
+                    {text(
+                      scenario.type,
+                      `SCENARIO ${index + 1}`,
+                    )}
+                  </strong>
+
+                  <span>
+                    {text(
+                      scenario.direction,
+                      "NEUTRAL",
+                    )}
+                  </span>
+                </div>
+
+                <p>
+                  {text(
+                    scenario.description,
+                    "No scenario description returned.",
+                  )}
+                </p>
+
+                <div>
+                  <span>
+                    INVALIDATION
+                  </span>
+
+                  <strong>
+                    {text(
+                      scenario.invalidation,
+                    )}
+                  </strong>
+                </div>
+              </article>
+            ),
+          )
+        )}
+      </div>
+    </section>
+  );
+}
+
+function AuthoritySection({
+  data,
+}: {
+  data: ResearchApiState | null;
+}) {
+  const authority =
+    data?.tradeAuthority;
+
+  return (
+    <>
+      <section className="research-section">
+        <div className="research-section-title">
+          <div>
+            <span>
+              TRADE CONTROL
+            </span>
+
+            <h2>
+              AUTO vs MANUAL
+            </h2>
+          </div>
+
+          <small>
+            Backend authority state
+          </small>
+        </div>
+
+        <div className="research-authority-grid">
+          <AuthorityCard
+            title="AutoROMLM"
+            mode="AUTO"
+            state={
+              authority?.auto
+                ?.state
+            }
+            enabled={
+              authority?.auto
+                ?.enabled
+            }
+            decision={
+              authority?.auto
+                ?.decision
+            }
+            reason={
+              authority?.auto
+                ?.reason ??
+              authority?.auto
+                ?.message
+            }
+          />
+
+          <AuthorityCard
+            title="Manual Trade"
+            mode="MANUAL"
+            state={
+              authority?.manual
+                ?.state
+            }
+            enabled={
+              authority?.manual
+                ?.enabled
+            }
+            decision={
+              authority?.manual
+                ?.decision
+            }
+            reason={
+              authority?.manual
+                ?.reason ??
+              authority?.manual
+                ?.message
+            }
+          />
+        </div>
+      </section>
+
+      <section className="research-section">
+        <div className="research-section-title">
+          <div>
+            <span>
+              ACTION AUTHORITY
+            </span>
+
+            <h2>
+              TRADE ACTIONS
+            </h2>
+          </div>
+
+          <small>
+            No frontend authorization
+            is generated
+          </small>
+        </div>
+
+        <div className="research-action-grid">
+          <ActionCard
+            label="BUY"
+            action={
+              authority?.actions?.buy
+            }
+          />
+
+          <ActionCard
+            label="SELL"
+            action={
+              authority?.actions?.sell
+            }
+          />
+
+          <ActionCard
+            label="HOLD"
+            action={
+              authority?.actions?.hold
+            }
+          />
+
+          <ActionCard
+            label="WAIT"
+            action={
+              authority?.actions?.wait
+            }
+          />
+        </div>
+      </section>
+
+      <section className="research-section">
+        <div className="research-section-title">
+          <div>
+            <span>
+              USER POLICY
+            </span>
+
+            <h2>
+              TRADE POLICY
+            </h2>
+          </div>
+        </div>
+
+        <div className="research-policy">
+          <div>
+            <span>POLICY STATE</span>
+
+            <strong>
+              {authority
+                ?.userPolicy
+                ?.enabled === true
+                ? "ENABLED"
+                : authority
+                      ?.userPolicy
+                      ?.enabled ===
+                    false
+                  ? "DISABLED"
+                  : "UNKNOWN"}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              MINIMUM SCORE
+            </span>
+
+            <strong>
+              {authority
+                ?.userPolicy
+                ?.minimumScore ??
+                "—"}
+            </strong>
+          </div>
+
+          <div>
+            <span>
+              BELOW MINIMUM
+            </span>
+
+            <strong>
+              {text(
+                authority
+                  ?.userPolicy
+                  ?.belowMinimumAction,
+              )}
+            </strong>
+          </div>
+
+          <p>
+            {text(
+              authority
+                ?.userPolicy
+                ?.description,
+              "No user trade policy returned by backend.",
+            )}
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}
+
+function ActionCard({
+  label,
+  action,
+}: {
+  label: string;
+  action?: {
+    state?: AuthorityState;
+    enabled?: boolean;
+    reason?: string;
+    message?: string;
+  };
+}) {
+  return (
+    <article
+      className={cx(
+        "research-action-card",
+        stateClass(
+          action?.state,
+        ),
+      )}
+    >
+      <div className="research-action-head">
+        <strong>{label}</strong>
+
+        <span>
+          {text(
+            action?.state,
+            "UNKNOWN",
+          )}
+        </span>
+      </div>
+
+      <div className="research-action-enabled">
+        {action?.enabled === true
+          ? "AVAILABLE"
+          : action?.enabled ===
+              false
+            ? "NOT AVAILABLE"
+            : "UNDETERMINED"}
+      </div>
+
+      <p>
+        {text(
+          action?.reason ??
+            action?.message,
+          "No backend action reason returned.",
+        )}
+      </p>
+    </article>
+  );
+}
+```

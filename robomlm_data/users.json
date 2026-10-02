@@ -1,0 +1,20 @@
+{
+  "demo@robomlm.io": {
+    "user_id": "demo_user",
+    "email": "demo@robomlm.io",
+    "display_name": "Demo Trader",
+    "salt": "a69bb7b2c90971ab1944bbc57da49e75",
+    "password_hash": "02b962c77816d3e493029c54b47bb4f60bb662f1310a9365cb03c83d8d0b7e09",
+    "verified": true,
+    "joined_at": "2026-09-14T08:42:50.302912+00:00"
+  },
+  "pramod.rf@gmail.com": {
+    "user_id": "pramod.rf_4f5d34",
+    "email": "pramod.rf@gmail.com",
+    "display_name": "Pramod Kumar",
+    "salt": "e8b3658c933482cbbec3b8044225fe62",
+    "password_hash": "74747071c8e37d5c76be54de21ab092b72ad861a768358f3cfee9fe493f08e52",
+    "verified": true,
+    "joined_at": "2026-09-14T08:43:37.141345+00:00"
+  }
+}

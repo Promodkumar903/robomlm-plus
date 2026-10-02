@@ -38,8 +38,93 @@
           <div class="page-sub">Profile · Plan · API Keys · Preferences</div>
         </div>
       </div>
+      <!-- ============================================================ -->
+      <!-- TOP BAR — Mode · Currency · Balance                          -->
+      <!-- ============================================================ -->
+      <div class="acct-topbar">
+        <div class="acct-topbar-left">
+          <button class="acct-mode-btn" id="acct-mode-btn">● PAPER</button>
+          <button class="acct-cur-btn" id="acct-cur-btn">₹ INR</button>
+        </div>
+        <div class="acct-topbar-right">
+          <span class="acct-topbar-label">Balance</span>
+          <span class="acct-topbar-balance" id="acct-topbar-balance">₹ 0</span>
+        </div>
+      </div>
 
-      <!-- Profile + Plan -->
+      <!-- ============================================================ -->
+      <!-- CAPITAL STRIP — 4 boxes                                      -->
+      <!-- ============================================================ -->
+      <div class="acct-strip">
+        <div class="acct-box">
+          <div class="acct-box-lbl">Capital (seed)</div>
+          <div class="acct-box-val" id="acct-capital">—</div>
+        </div>
+        <div class="acct-box">
+          <div class="acct-box-lbl">Balance (live)</div>
+          <div class="acct-box-val acct-green" id="acct-balance">—</div>
+        </div>
+        <div class="acct-box">
+          <div class="acct-box-lbl">Today P/L</div>
+          <div class="acct-box-val" id="acct-pnl">—</div>
+        </div>
+        <div class="acct-box">
+          <div class="acct-box-lbl">Open Positions</div>
+          <div class="acct-box-val" id="acct-pos">—</div>
+        </div>
+      </div>
+      <!-- ============================================================ -->
+      <!-- BOTTOM GRID — Chart + Mode side by side                       -->
+      <!-- ============================================================ -->
+      <div class="acct-bottom">
+        <!-- LEFT: Chart + Allocation -->
+        <div>
+          <div class="card acct-chart-card" style="margin-bottom:12px;">
+            <div class="card-title"><span class="ct-icon">📈</span> Equity Curve (30d)</div>
+            <svg id="acct-equity-svg" viewBox="0 0 600 90" preserveAspectRatio="none"></svg>
+          </div>
+          <div class="card acct-chart-card">
+            <div class="card-title"><span class="ct-icon">🥧</span> Allocation</div>
+            <div class="acct-alloc-list" id="acct-alloc-list"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Mode & Currency -->
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">⚙️</span> Mode & Currency</div>
+          <div class="acct-mc-grid">
+            <div class="acct-mc-row">
+              <div class="acct-mc-lbl">Mode</div>
+              <div class="acct-mc-val">
+                <button class="acct-mc-btn" data-mode="PAPER">PAPER</button>
+                <button class="acct-mc-btn" data-mode="LIVE">LIVE</button>
+              </div>
+            </div>
+            <div class="acct-mc-row">
+              <div class="acct-mc-lbl">Currency</div>
+              <div class="acct-mc-val">
+                <button class="acct-mc-btn" data-cur="INR">₹ INR</button>
+                <button class="acct-mc-btn" data-cur="USD">$ USD</button>
+              </div>
+            </div>
+            <div class="acct-mc-row">
+              <div class="acct-mc-lbl">Seed Capital</div>
+              <div class="acct-mc-val">
+                <button class="btn btn-danger" id="acct-reset-btn" style="font-size:11px;padding:6px 12px;">↺ Reset</button>
+              </div>
+            </div>
+            <div class="acct-hint">Reset → ₹1,00,000 (INR) / $1,200 (USD)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- DOWNLOADS CARD                                               -->
+      <!-- ============================================================ -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">⬇</span> Data Downloads</div>
+        <div class="acct-dl-grid" id="acct-dl-grid"></div>
+      </div>      <!-- Profile + Plan -->
       <div class="grid grid-2">
         <div class="card">
           <div class="card-title"><span class="ct-icon">👤</span> Profile</div>
@@ -68,6 +153,31 @@
           <div class="card-title"><span class="ct-icon">⚙️</span> Preferences</div>
           <div id="prefs-body"></div>
         </div>
+      <!-- ============================================================ -->
+      <!-- BOT FUND ALLOCATION                                          -->
+      <!-- ============================================================ -->
+      <div class="card">
+        <div class="card-title"><span class="ct-icon">💰</span> Bot Fund Allocation</div>
+        <div class="alloc-wrap">
+          <div class="alloc-row">
+            <label>Auto Bot</label>
+            <input type="range" id="alloc-auto" min="0" max="100" value="50" step="5"/>
+            <span class="alloc-val" id="alloc-auto-val">50%</span>
+            <span class="alloc-cap" id="alloc-auto-cap">₹50,000</span>
+          </div>
+          <div class="alloc-row">
+            <label>Mission</label>
+            <input type="range" id="alloc-mission" min="0" max="100" value="50" step="5"/>
+            <span class="alloc-val" id="alloc-mission-val">50%</span>
+            <span class="alloc-cap" id="alloc-mission-cap">₹50,000</span>
+          </div>
+          <div class="alloc-foot">
+            <span class="alloc-hint" id="alloc-hint">0% unallocated (safe in account)</span>
+            <button class="btn" id="alloc-save">💾 Save Allocation</button>
+          </div>
+        </div>
+      </div>
+
         <div class="card">
           <div class="card-title"><span class="ct-icon">📊</span> Usage</div>
           <div id="usage-body"></div>
@@ -78,5 +188,5 @@
   </div>
 
   <script src="/static/js/account.js"></script>
-</body>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

@@ -1,0 +1,681 @@
+import { useMemo } from "react";
+import type {
+  ChartCandle,
+  DecisionEvent,
+} from "../types/terminal";
+
+interface ChartProps {
+  candles: ChartCandle[];
+  symbol?: string;
+  timeframe?: string;
+  status?: string;
+  decisions?: DecisionEvent[];
+  height?: number;
+}
+
+function numeric(
+  value: string | number | null | undefined,
+): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : null;
+}
+
+function timestamp(value: string): number {
+  const parsed = Date.parse(value);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : 0;
+}
+
+function formatPrice(value: number): string {
+  if (Math.abs(value) >= 1000) {
+    return value.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+  }
+
+  return value.toLocaleString(undefined, {
+    maximumFractionDigits: 6,
+  });
+}
+
+function formatTime(value: string): string {
+  const parsed = timestamp(value);
+
+  if (!parsed) {
+    return "—";
+  }
+
+  return new Date(parsed).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function statusTone(value: string): string {
+  const normalized = value.toUpperCase();
+
+  if (
+    normalized === "READY" ||
+    normalized === "VALID" ||
+    normalized === "ONLINE" ||
+    normalized === "ACTIVE"
+  ) {
+    return "positive";
+  }
+
+  if (
+    normalized === "ERROR" ||
+    normalized === "INVALID" ||
+    normalized === "BLOCKED"
+  ) {
+    return "negative";
+  }
+
+  return "neutral";
+}
+
+function candleBodyClass(
+  open: number,
+  close: number,
+): string {
+  if (close > open) {
+    return "chart-candle-up";
+  }
+
+  if (close < open) {
+    return "chart-candle-down";
+  }
+
+  return "chart-candle-flat";
+}
+
+function markerClass(
+  decision: string,
+): string {
+  const normalized = decision.toUpperCase();
+
+  if (
+    normalized.includes("BUY") ||
+    normalized.includes("BULLISH")
+  ) {
+    return "chart-decision-buy";
+  }
+
+  if (
+    normalized.includes("SELL") ||
+    normalized.includes("BEARISH")
+  ) {
+    return "chart-decision-sell";
+  }
+
+  if (
+    normalized.includes("BLOCK")
+  ) {
+    return "chart-decision-blocked";
+  }
+
+  return "chart-decision-neutral";
+}
+
+function Chart({
+  candles,
+  symbol = "—",
+  timeframe = "—",
+  status = "READY",
+  decisions = [],
+  height = 460,
+}: ChartProps) {
+  const normalizedCandles = useMemo(() => {
+    return candles
+      .map((candle) => {
+        const open = numeric(candle.open);
+        const high = numeric(candle.high);
+        const low = numeric(candle.low);
+        const close = numeric(candle.close);
+
+        if (
+          open === null ||
+          high === null ||
+          low === null ||
+          close === null
+        ) {
+          return null;
+        }
+
+        return {
+          ...candle,
+          open,
+          high,
+          low,
+          close,
+          time: timestamp(candle.timestamp),
+        };
+      })
+      .filter(
+        (
+          candle,
+        ): candle is ChartCandle & {
+          open: number;
+          high: number;
+          low: number;
+          close: number;
+          time: number;
+        } => candle !== null,
+      )
+      .sort(
+        (a, b) =>
+          a.time - b.time,
+      );
+  }, [candles]);
+
+  const dimensions = {
+    width: 1200,
+    height,
+    left: 82,
+    right: 30,
+    top: 28,
+    bottom: 48,
+  };
+
+  const plotWidth =
+    dimensions.width -
+    dimensions.left -
+    dimensions.right;
+
+  const plotHeight =
+    dimensions.height -
+    dimensions.top -
+    dimensions.bottom;
+
+  const range = useMemo(() => {
+    if (normalizedCandles.length === 0) {
+      return {
+        min: 0,
+        max: 1,
+      };
+    }
+
+    const lows = normalizedCandles.map(
+      (candle) => candle.low,
+    );
+
+    const highs = normalizedCandles.map(
+      (candle) => candle.high,
+    );
+
+    const min = Math.min(...lows);
+    const max = Math.max(...highs);
+
+    if (min === max) {
+      return {
+        min: min - 1,
+        max: max + 1,
+      };
+    }
+
+    const padding =
+      (max - min) * 0.08;
+
+    return {
+      min: min - padding,
+      max: max + padding,
+    };
+  }, [normalizedCandles]);
+
+  const priceToY = (
+    price: number,
+  ): number => {
+    const ratio =
+      (price - range.min) /
+      (range.max - range.min);
+
+    return (
+      dimensions.top +
+      plotHeight -
+      ratio * plotHeight
+    );
+  };
+
+  const candleWidth =
+    normalizedCandles.length > 0
+      ? Math.max(
+          3,
+          Math.min(
+            18,
+            (plotWidth /
+              normalizedCandles.length) *
+              0.58,
+          ),
+        )
+      : 8;
+
+  const priceTicks = useMemo(() => {
+    const count = 5;
+
+    const step =
+      (range.max - range.min) /
+      (count - 1);
+
+    return Array.from(
+      { length: count },
+      (_, index) =>
+        range.max -
+        step * index,
+    );
+  }, [range]);
+
+  const latest =
+    normalizedCandles[
+      normalizedCandles.length - 1
+    ];
+
+  const first =
+    normalizedCandles[0];
+
+  const latestPrice =
+    latest?.close ?? null;
+
+  const changePercent =
+    first && latest
+      ? first.close !== 0
+        ? ((latest.close -
+            first.close) /
+            first.close) *
+          100
+        : null
+      : null;
+
+  return (
+    <section className="terminal-chart-shell">
+      <header className="terminal-chart-header">
+        <div>
+          <div className="terminal-chart-title">
+            {symbol}
+          </div>
+
+          <div className="terminal-chart-subtitle">
+            Market Reflection &amp;
+            Decision Verification
+          </div>
+        </div>
+
+        <div className="terminal-chart-header-right">
+          <span
+            className={`terminal-badge-${statusTone(
+              status,
+            )}`}
+          >
+            {status}
+          </span>
+
+          <span className="terminal-chart-timeframe">
+            {timeframe}
+          </span>
+        </div>
+      </header>
+
+      <div className="terminal-chart-summary">
+        <div>
+          <span>LAST</span>
+
+          <strong>
+            {latestPrice === null
+              ? "—"
+              : formatPrice(
+                  latestPrice,
+                )}
+          </strong>
+        </div>
+
+        <div>
+          <span>CHANGE</span>
+
+          <strong>
+            {changePercent === null
+              ? "—"
+              : `${changePercent.toFixed(
+                  2,
+                )}%`}
+          </strong>
+        </div>
+
+        <div>
+          <span>CANDLES</span>
+
+          <strong>
+            {normalizedCandles.length}
+          </strong>
+        </div>
+      </div>
+
+      <div
+        className="terminal-chart-canvas"
+        style={{
+          minHeight: height,
+        }}
+      >
+        {normalizedCandles.length === 0 ? (
+          <div className="terminal-empty-state">
+            Backend returned no candle
+            data.
+          </div>
+        ) : (
+          <svg
+            viewBox={`0 0 ${dimensions.width} ${dimensions.height}`}
+            width="100%"
+            height={height}
+            preserveAspectRatio="none"
+            role="img"
+            aria-label={`${symbol} ${timeframe} market chart`}
+          >
+            {priceTicks.map(
+              (price) => {
+                const y =
+                  priceToY(price);
+
+                return (
+                  <g
+                    key={price}
+                  >
+                    <line
+                      x1={
+                        dimensions.left
+                      }
+                      x2={
+                        dimensions.width -
+                        dimensions.right
+                      }
+                      y1={y}
+                      y2={y}
+                      className="terminal-chart-grid-line"
+                    />
+
+                    <text
+                      x={
+                        dimensions.left -
+                        10
+                      }
+                      y={y + 4}
+                      textAnchor="end"
+                      className="terminal-chart-axis-label"
+                    >
+                      {formatPrice(
+                        price,
+                      )}
+                    </text>
+                  </g>
+                );
+              },
+            )}
+
+            {normalizedCandles.map(
+              (
+                candle,
+                index,
+              ) => {
+                const slot =
+                  plotWidth /
+                  normalizedCandles.length;
+
+                const centerX =
+                  dimensions.left +
+                  slot * index +
+                  slot / 2;
+
+                const highY =
+                  priceToY(
+                    candle.high,
+                  );
+
+                const lowY =
+                  priceToY(
+                    candle.low,
+                  );
+
+                const openY =
+                  priceToY(
+                    candle.open,
+                  );
+
+                const closeY =
+                  priceToY(
+                    candle.close,
+                  );
+
+                const bodyTop =
+                  Math.min(
+                    openY,
+                    closeY,
+                  );
+
+                const bodyHeight =
+                  Math.max(
+                    1,
+                    Math.abs(
+                      closeY -
+                        openY,
+                    ),
+                  );
+
+                const bodyClass =
+                  candleBodyClass(
+                    candle.open,
+                    candle.close,
+                  );
+
+                return (
+                  <g
+                    key={`${candle.timestamp}-${index}`}
+                  >
+                    <line
+                      x1={centerX}
+                      x2={centerX}
+                      y1={highY}
+                      y2={lowY}
+                      className={bodyClass}
+                    />
+
+                    <rect
+                      x={
+                        centerX -
+                        candleWidth /
+                          2
+                      }
+                      y={bodyTop}
+                      width={
+                        candleWidth
+                      }
+                      height={
+                        bodyHeight
+                      }
+                      rx={1}
+                      className={bodyClass}
+                    />
+                  </g>
+                );
+              },
+            )}
+
+            {latest && (
+              <>
+                <line
+                  x1={
+                    dimensions.left
+                  }
+                  x2={
+                    dimensions.width -
+                    dimensions.right
+                  }
+                  y1={priceToY(
+                    latest.close,
+                  )}
+                  y2={priceToY(
+                    latest.close,
+                  )}
+                  className="terminal-chart-price-line"
+                />
+
+                <text
+                  x={
+                    dimensions.width -
+                    dimensions.right
+                  }
+                  y={
+                    priceToY(
+                      latest.close,
+                    ) - 6
+                  }
+                  textAnchor="end"
+                  className="terminal-chart-price-label"
+                >
+                  {formatPrice(
+                    latest.close,
+                  )}
+                </text>
+              </>
+            )}
+
+            {first && (
+              <text
+                x={
+                  dimensions.left
+                }
+                y={
+                  dimensions.height -
+                  14
+                }
+                className="terminal-chart-axis-label"
+              >
+                {formatTime(
+                  first.timestamp,
+                )}
+              </text>
+            )}
+
+            {latest && (
+              <text
+                x={
+                  dimensions.width -
+                  dimensions.right
+                }
+                y={
+                  dimensions.height -
+                  14
+                }
+                textAnchor="end"
+                className="terminal-chart-axis-label"
+              >
+                {formatTime(
+                  latest.timestamp,
+                )}
+              </text>
+            )}
+
+            {decisions.map(
+              (decision) => {
+                const decisionTime =
+                  timestamp(
+                    decision.decision_timestamp,
+                  );
+
+                const candle =
+                  normalizedCandles.find(
+                    (item) =>
+                      Math.abs(
+                        item.time -
+                          decisionTime,
+                      ) <
+                      60 *
+                        60 *
+                        1000,
+                  );
+
+                if (!candle) {
+                  return null;
+                }
+
+                const index =
+                  normalizedCandles.indexOf(
+                    candle,
+                  );
+
+                const slot =
+                  plotWidth /
+                  normalizedCandles.length;
+
+                const x =
+                  dimensions.left +
+                  slot * index +
+                  slot / 2;
+
+                const referencePrice =
+                  numeric(
+                    decision.reference_price,
+                  ) ??
+                  candle.close;
+
+                const y =
+                  priceToY(
+                    referencePrice,
+                  );
+
+                return (
+                  <g
+                    key={
+                      decision.decision_id
+                    }
+                  >
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={6}
+                      className={markerClass(
+                        decision.decision,
+                      )}
+                    />
+
+                    <text
+                      x={x}
+                      y={y - 10}
+                      textAnchor="middle"
+                      className="terminal-chart-decision-label"
+                    >
+                      {
+                        decision.decision
+                      }
+                    </text>
+                  </g>
+                );
+              },
+            )}
+          </svg>
+        )}
+      </div>
+
+      <footer className="terminal-chart-footer">
+        <span>
+          ACTUAL MARKET DATA
+        </span>
+
+        <span>
+          ROBOMLM DECISIONS =
+          OVERLAY ONLY
+        </span>
+      </footer>
+    </section>
+  );
+}
+
+export default Chart;

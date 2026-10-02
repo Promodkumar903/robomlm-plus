@@ -5,54 +5,96 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROBOMLM — Constitution</title>
   <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { margin: 0; padding: 40px 20px; background: var(--bg); color: var(--text); font-family: var(--font-sans); }
+    .doc { max-width: 780px; margin: 0 auto; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 40px 48px; }
+    .doc-title { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: 1px; margin-bottom: 4px; }
+    .doc-sub { font-size: 12px; color: var(--text-4); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 28px; }
+    .doc-section { margin-bottom: 22px; }
+    .doc-section h3 { font-size: 14px; color: #818cf8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .doc-section p { font-size: 13.5px; line-height: 1.7; color: var(--text-2); margin: 0 0 8px; }
+    .doc-section ul { margin: 0; padding-left: 22px; }
+    .doc-section li { font-size: 13px; line-height: 1.7; color: var(--text-2); }
+    .doc-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .btn-accept { padding: 12px 28px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 1px; }
+    .btn-accept:hover { box-shadow: 0 6px 20px rgba(34,197,94,.35); }
+    .btn-back { padding: 12px 24px; background: var(--bg-3); color: var(--text-3); border: 1px solid var(--border-2); border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .doc-meta { display: flex; gap: 24px; padding: 14px 0; margin-bottom: 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .doc-meta-item { font-family: var(--font-mono); font-size: 11px; color: var(--text-4); }
+    .doc-meta-item b { color: var(--text-2); }
+    .doc-footer { font-size: 11px; color: var(--text-4); text-align: center; margin-top: 24px; font-family: var(--font-mono); }
+  </style>
 </head>
 <body>
-  <div class="login-wrap">
-    <div class="login-card" style="max-width:640px;text-align:left">
-      <div style="text-align:center;margin-bottom:24px">
-        <div class="login-logo">📜</div>
-        <div class="login-title">ROBOMLM Constitution</div>
-        <div class="login-sub">Core Principles & Operating Boundaries</div>
-      </div>
+  <div class="doc">
+    <div class="doc-title">ROBOMLM CONSTITUTION</div>
+    <div class="doc-sub">AIC-001 to AIC-028 · Version v4.5</div>
 
-      <div class="const-section">
-        <div class="const-head">🎯 Mission</div>
-        <div class="const-body">
-          Provide a deterministic, explainable, self-learning Market Decision Engine
-          that protects capital while exploiting identified market inefficiencies.
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">💡 Core Philosophy</div>
-        <div class="const-body" style="font-style:italic;color:var(--accent-2)">
-          "Reject noise. Filter evidence. Execute discipline."
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">📋 Engineering Laws</div>
-        <ul class="const-list">
-          <li><b>L-01</b> · Candle = output. Order Flow + Volatility = input.</li>
-          <li><b>L-02</b> · Reverse Scientific Engineering — treat every idea as wrong until proven.</li>
-          <li><b>L-03</b> · Self-correction — the system does not guess.</li>
-          <li><b>L-04</b> · Universal framework — EQ-0001 to EQ-0009 apply to every asset class.</li>
-          <li><b>L-05</b> · Scientific honesty — only PASSED / FAILED / INSUFFICIENT DATA.</li>
-          <li><b>L-06</b> · Information theory — probability, entropy, information.</li>
-        </ul>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">🛡 Governance Pipeline</div>
-        <div class="const-body" style="font-family:var(--font-mono);font-size:12px;line-height:1.8">
-          CHANGE → IMPACT → VERSION → CONSISTENCY → ATOMICITY → ROLLBACK → RECOVERY → VALIDATION
-        </div>
-      </div>
-
-      <a href="/login" class="btn btn-block btn-lg mt-24" style="margin-top:24px">
-        <span class="btn-icon">←</span> Back to Sign In
-      </a>
+    <div class="doc-meta">
+      <div class="doc-meta-item">Status: <b>Locked</b></div>
+      <div class="doc-meta-item">Compiled: <b>August 2026</b></div>
+      <div class="doc-meta-item">Read time: <b>~3 min</b></div>
     </div>
+
+    <div class="doc-section">
+      <h3>Core Philosophy</h3>
+      <p>ROBOMLM is a deterministic, explainable, self-learning Market Decision Engine. Its purpose is to protect capital while exploiting identified market inefficiencies.</p>
+      <p><em>"Observe honestly. Reason scientifically. Challenge relentlessly. Correct continuously. Decide only after validation."</em></p>
+    </div>
+
+    <div class="doc-section">
+      <h3>Engineering Laws (ROE)</h3>
+      <ul>
+        <li><b>ROE-33:</b> Every idea must be captured, even if it seems like a joke.</li>
+        <li><b>Engg Law-01:</b> Every failure must produce a scientifically justified correction.</li>
+        <li><b>Engg Law-02:</b> A failure resolves into exactly one of three outcomes — Correction, Rejection, or Research Question.</li>
+        <li><b>Engg Law-03:</b> Self-Correction Cycle — the system fights its own errors automatically, without human guessing.</li>
+      </ul>
+    </div>
+
+    <div class="doc-section">
+      <h3>Core Logic Principles</h3>
+      <ul>
+        <li><b>L-01:</b> Candle is the output. Order Flow and Volatility are the input. Measure the cause, not the recording.</li>
+        <li><b>L-02:</b> Reverse Scientific Engineering — treat every idea as wrong until proven.</li>
+        <li><b>L-03:</b> If the desired output does not appear, the system corrects itself — it does not guess.</li>
+        <li><b>L-04:</b> Universal framework — the same equations apply to every asset class; only parameters change.</li>
+        <li><b>L-05:</b> Scientific honesty — output is only PASSED, FAILED (with reason), or INSUFFICIENT DATA. Never a guess.</li>
+        <li><b>L-06:</b> Probability, Entropy, and Information. Price is a symptom, not the cause.</li>
+      </ul>
+    </div>
+
+    <div class="doc-section">
+      <h3>Governance Pipeline</h3>
+      <p>Every state change must pass through this ordered pipeline:</p>
+      <p style="font-family: var(--font-mono); font-size: 12px; color: #818cf8;">CHANGE → IMPACT → VERSION → CONSISTENCY → ATOMICITY → ROLLBACK → RECOVERY → VALIDATION</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>Scientific Stop Condition</h3>
+      <p>The system recognizes exactly three valid output states: <b>Validated</b>, <b>Research Required</b>, or <b>Insufficient Evidence</b>. Any output outside these states is a violation.</p>
+    </div>
+
+    <div class="doc-actions">
+      <button class="btn-back" onclick="logoutBack()">← Back to Login</button>
+      <button class="btn-accept" onclick="accept()">✓ I Accept the Constitution</button>
+    </div>
+
+    <div class="doc-footer">AIC-001 to AIC-028 · ADR-032 · Locked v4.5</div>
   </div>
-</body>
+
+  <script>
+    const token = localStorage.getItem("robomlm_token") || "";
+
+    async function accept() {
+      localStorage.setItem("robomlm_token", "robomlm-dev-token");
+      window.location.href = "/risk-disclosure";
+    }
+
+    function logoutBack() {
+      localStorage.removeItem("robomlm_token");
+      window.location.href = "/login";
+    }
+  </script>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

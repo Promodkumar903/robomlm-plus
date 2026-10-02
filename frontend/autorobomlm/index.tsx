@@ -1,0 +1,1196 @@
+// frontend/autorobomlm/index.tsx
+// AutoROBOMLM — automation control panel
+//
+// User-facing automation surface. Shows:
+//   • Running automation state + mode
+//   • Active trades (positions with SL/TP/P&L)
+//   • Next best available opportunities (from Discovery)
+//   • Decision context (why the system picked it)
+//   • Activity log
+//   • Kill / Pause / Start controls
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+import {
+  describeAutoRobomlmError,
+  getAutoRobomlmEvents,
+  getAutoRobomlmPlus,
+  getAutoRobomlmReadiness,
+  getAutoRobomlmStatus,
+  type AutoRobomlmEvent,
+  type AutoRobomlmHistory,
+  type AutoRobomlmPlus,
+  type AutoRobomlmReadiness,
+  type AutoRobomlmStatus,
+  takeOpportunity,
+  closePosition,
+  closeAllPositions,
+} from "../src/api/autorobomlm";
+
+import {
+  getPositions,
+  startLoop,
+  stopLoop,
+  killSwitch,
+  resumeLoop,
+  runTick,
+  updateConfig,
+  type AutoRobomlmPosition,
+} from "../src/api/autorobomlm";
+
+import "./autorobomlm.css";
+
+const API_BASE =
+  (import.meta as ImportMeta & { env?: Record<string, string> }).env
+    ?.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+type AnyRecord = Record<string, any>;
+
+type GradeBand = "A+" | "A" | "B+" | "B" | "HOLD";
+
+const GRADE_RANK: Record<GradeBand, number> = {
+  "A+": 5,
+  A: 4,
+  "B+": 3,
+  B: 2,
+  HOLD: 1,
+};
+
+function computeGrade(score: number | null | undefined): GradeBand {
+  if (score === null || score === undefined) return "HOLD";
+  const s = Number(score);
+  if (!Number.isFinite(s)) return "HOLD";
+  if (s >= 75) return "A+";
+  if (s >= 55) return "A";
+  if (s >= 45) return "B+";
+  if (s >= 30) return "B";
+  return "HOLD";
+}
+
+function gradeAtLeast(actual: GradeBand, minimum: GradeBand): boolean {
+  return GRADE_RANK[actual] >= GRADE_RANK[minimum];
+}
+
+function gradeTone(g: GradeBand): string {
+  if (g === "A+") return "grade-ap";
+  if (g === "A") return "grade-a";
+  if (g === "B+") return "grade-bp";
+  if (g === "B") return "grade-b";
+  return "grade-hold";
+}
+
+interface Opportunity {
+  symbol: string;
+  market: string;
+  direction: string;
+  score: number | null;
+  confidence: number | null;
+  reason: string;
+  raw: AnyRecord;
+}
+
+interface ActiveTrade {
+  id: string;
+  symbol: string;
+  direction: string;
+  entry: number;
+  current: number | null;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  pnl: number | null;
+  pnlPct: number | null;
+  openedAt: string;
+  entryGrade: string | null;
+  entrySource: string | null;
+}
+
+interface EventRecord {
+  id: string;
+  timestamp: string;
+  type: string;
+  status: string;
+  message: string;
+  severity: "INFO" | "WARN" | "ERROR" | "OK";
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function toNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const n = Number(value.replace(/,/g, "").trim());
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function firstNumber(record: AnyRecord, keys: string[]): number | null {
+  for (const k of keys) {
+    const v = toNumber(record[k]);
+    if (v !== null) return v;
+  }
+  return null;
+}
+
+function firstString(record: AnyRecord, keys: string[]): string | null {
+  for (const k of keys) {
+    const v = record[k];
+    if (typeof v === "string" && v.trim()) return v;
+    if (typeof v === "number") return String(v);
+  }
+  return null;
+}
+
+function fmtNum(value: number | null, digits = 2): string {
+  if (value === null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: digits,
+  }).format(value);
+}
+
+function fmtPct(value: number | null, digits = 2): string {
+  if (value === null) return "—";
+  const norm = Math.abs(value) <= 1 ? value * 100 : value;
+  const sign = norm >= 0 ? "+" : "";
+  return `${sign}${norm.toFixed(digits)}%`;
+}
+
+function fmtMoney(value: number | null): string {
+  if (value === null) return "—";
+  const sign = value >= 0 ? "+" : "";
+  return `${sign}₹${Math.abs(value).toLocaleString("en-IN", {
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+function fmtTime(iso: string | number | undefined): string {
+  if (!iso) return "—";
+  const d =
+    typeof iso === "number"
+      ? new Date(iso > 10_000_000_000 ? iso : iso * 1000)
+      : new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso);
+  return d.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Opportunity extraction (from discovery top10)
+// ---------------------------------------------------------------------------
+
+function deriveReason(raw: AnyRecord): string {
+  const trend = firstString(raw, ["opportunity_type"]);
+  const direction = firstString(raw, ["direction"]);
+  const volumeRatio = firstNumber(raw, ["volume_ratio"]);
+  const trendStrength = firstNumber(raw, ["trend_strength"]);
+
+  const parts: string[] = [];
+
+  if (trend) parts.push(trend.replace(/_/g, " ").toLowerCase());
+
+  if (trendStrength !== null) {
+    if (trendStrength >= 80) parts.push("strong trend");
+    else if (trendStrength >= 60) parts.push("building trend");
+    else parts.push("developing");
+  }
+
+  if (volumeRatio !== null && volumeRatio >= 1.5) {
+    parts.push("high volume");
+  }
+
+  if (direction) parts.push(direction.toLowerCase());
+
+  if (parts.length === 0) return "Opportunity detected";
+  return parts.join(" · ");
+}
+
+
+/**
+ * Sort opportunities:
+ *   1. Directional (LONG/SHORT) before NEUTRAL
+ *   2. Then by score descending
+ *   3. Then alphabetically by symbol
+ *
+ * Strongest candidate ends up on top.
+ */
+function sortOpportunities(a: Opportunity, b: Opportunity): number {
+  const aDir = (a.direction || "").toUpperCase();
+  const bDir = (b.direction || "").toUpperCase();
+
+  const aDirectional = aDir === "LONG" || aDir === "SHORT" ? 1 : 0;
+  const bDirectional = bDir === "LONG" || bDir === "SHORT" ? 1 : 0;
+
+  if (aDirectional !== bDirectional) {
+    return bDirectional - aDirectional;
+  }
+
+  const aScore = a.score ?? -Infinity;
+  const bScore = b.score ?? -Infinity;
+
+  if (aScore !== bScore) {
+    return bScore - aScore;
+  }
+
+  return a.symbol.localeCompare(b.symbol);
+}
+
+function extractOpportunities(payload: AnyRecord | null): Opportunity[] {
+  if (!payload) return [];
+  const rows = Array.isArray(payload.top10)
+    ? payload.top10
+    : Array.isArray(payload.candidates)
+      ? payload.candidates
+      : [];
+
+  return rows.slice(0, 10).map((row: AnyRecord) => {
+    const symbol = firstString(row, ["symbol"]) || "UNKNOWN";
+    const market = firstString(row, ["market", "market_id"]) || "—";
+    const direction = firstString(row, ["direction", "bias"]) || "NEUTRAL";
+    const score = firstNumber(row, ["score", "eqe", "pfs", "mci"]);
+    const confidence = firstNumber(row, ["confidence"]);
+    const reason = deriveReason(row);
+
+    return {
+      symbol,
+      market,
+      direction,
+      score,
+      confidence,
+      reason,
+      raw: row,
+    };
+  });
+}
+
+async function fetchDiscovery(market: string): Promise<AnyRecord | null> {
+  try {
+    const params = new URLSearchParams({
+      market,
+      timeframe: "1h",
+      limit: "10",
+    });
+    const res = await fetch(
+      `${API_BASE}/api/discovery?${params.toString()}`,
+      { headers: { Accept: "application/json" } },
+    );
+    if (!res.ok) return null;
+    return (await res.json()) as AnyRecord;
+  } catch {
+    return null;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Event normalization
+// ---------------------------------------------------------------------------
+
+function extractEvents(payload: unknown): EventRecord[] {
+  let items: unknown[] = [];
+
+  if (Array.isArray(payload)) {
+    items = payload;
+  } else if (payload && typeof payload === "object") {
+    const rec = payload as AnyRecord;
+    for (const k of ["items", "events", "history", "data"]) {
+      if (Array.isArray(rec[k])) {
+        items = rec[k];
+        break;
+      }
+    }
+  }
+
+  return items
+    .map((item, index) => {
+      if (!item || typeof item !== "object") return null;
+      const rec = item as AnyRecord;
+
+      const rawSeverity = String(rec.severity || "INFO").toUpperCase();
+      let severity: EventRecord["severity"] = "INFO";
+      if (rawSeverity.includes("ERROR")) severity = "ERROR";
+      else if (rawSeverity.includes("WARN")) severity = "WARN";
+      else if (rawSeverity.includes("OK") || rawSeverity.includes("SUCCESS"))
+        severity = "OK";
+
+      return {
+        id: String(rec.id ?? rec.event_id ?? index),
+        timestamp: String(rec.timestamp ?? rec.time ?? ""),
+        type: String(rec.type ?? rec.event_type ?? "EVENT"),
+        status: String(rec.status ?? rec.state ?? ""),
+        message: String(
+          rec.message ?? rec.detail ?? rec.description ?? "—",
+        ),
+        severity,
+      };
+    })
+    .filter((e): e is EventRecord => e !== null);
+}
+
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+function DirectionBadge({ direction }: { direction: string }) {
+  const raw = String(direction ?? "").trim().toUpperCase();
+  let normalized = raw;
+  if (raw === "BUY") normalized = "LONG";
+  else if (raw === "SELL") normalized = "SHORT";
+  else if (raw === "NEUTRAL" || raw === "") normalized = "NEUTRAL";
+
+  const cls =
+    normalized === "LONG"
+      ? "auto-direction auto-direction-long"
+      : normalized === "SHORT"
+        ? "auto-direction auto-direction-short"
+        : "auto-direction auto-direction-neutral";
+
+  const label =
+    normalized === "LONG"
+      ? "UP LONG"
+      : normalized === "SHORT"
+        ? "DOWN SHORT"
+        : "NEUTRAL";
+
+  return <span className={cls}>{label}</span>;
+}
+
+
+function MetricCard({
+  label,
+  value,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  tone?: "ok" | "warn" | "bad" | "muted";
+}) {
+  return (
+    <article className={`auto-metric-card ${tone ? `tone-${tone}` : ""}`}>
+      <span className="auto-metric-label">{label}</span>
+      <strong className="auto-metric-value">{value}</strong>
+      {sub && <small className="auto-metric-sub">{sub}</small>}
+    </article>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main component
+// ---------------------------------------------------------------------------
+
+export default function AutoRobomlmPage() {
+  const [status, setStatus] = useState<AutoRobomlmStatus | null>(null);
+  const [readiness, setReadiness] = useState<AutoRobomlmReadiness | null>(null);
+  const [plus, setPlus] = useState<AutoRobomlmPlus | null>(null);
+  const [eventsPayload, setEventsPayload] = useState<
+    AutoRobomlmEvent[] | AutoRobomlmHistory | null
+  >(null);
+
+  const [market, setMarket] = useState("CRYPTO");
+  const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [selected, setSelected] = useState<Opportunity | null>(null);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Active trades — from backend (empty for now, wired later)
+  // Real positions from backend
+  const [positions, setPositions] = useState<AutoRobomlmPosition[]>([]);
+
+  const [manualSymbol, setManualSymbol] = useState("");
+  const [manualQty, setManualQty] = useState("");
+  const [manualDirection, setManualDirection] = useState<"LONG" | "SHORT">("LONG");
+  const [busy, setBusy] = useState(false);
+  const [pendingMode, setPendingMode] = useState<"DEMO" | "LIVE">("DEMO");
+  const [pendingMinGrade, setPendingMinGrade] = useState<GradeBand>("B");
+
+  // Map backend positions to page ActiveTrade shape
+  const activeTrades: ActiveTrade[] = useMemo(() => {
+    return positions
+      .filter((p) => p.status === "OPEN")
+      .map((p) => ({
+        id: p.position_id,
+        symbol: p.symbol,
+        direction: p.direction,
+        entry: p.entry_price,
+        current: p.current_price ?? null,
+        stopLoss: p.stop_loss,
+        takeProfit: p.take_profit,
+        pnl: p.pnl ?? null,
+        pnlPct: p.pnl_pct ?? null,
+        openedAt: p.opened_at,
+        entryGrade: (p as unknown as { entry_grade?: string | null })
+          .entry_grade ?? null,
+        entrySource:
+          (p as unknown as { entry_source?: string | null })
+            .entry_source ?? null,
+      }));
+  }, [positions]);
+
+  const loadAll = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    const [sRes, rRes, pRes, eRes, discRes, posRes] = await Promise.allSettled([
+      getAutoRobomlmStatus(),
+      getAutoRobomlmReadiness(),
+      getAutoRobomlmPlus(),
+      getAutoRobomlmEvents(),
+      fetchDiscovery(market),
+      getPositions(),
+    ]);
+
+    const failures: string[] = [];
+
+    if (sRes.status === "fulfilled") setStatus(sRes.value);
+    else failures.push("Status: " + describeAutoRobomlmError(sRes.reason));
+
+    if (rRes.status === "fulfilled") setReadiness(rRes.value);
+    else failures.push("Readiness: " + describeAutoRobomlmError(rRes.reason));
+
+    if (pRes.status === "fulfilled") setPlus(pRes.value);
+    else failures.push("Plus: " + describeAutoRobomlmError(pRes.reason));
+
+    if (eRes.status === "fulfilled") setEventsPayload(eRes.value);
+    else failures.push("Events: " + describeAutoRobomlmError(eRes.reason));
+
+    if (posRes.status === "fulfilled") {
+      const posPayload = posRes.value as unknown as {
+        positions?: AutoRobomlmPosition[];
+        all_positions?: AutoRobomlmPosition[];
+      };
+      setPositions(posPayload.all_positions ?? posPayload.positions ?? []);
+    } else {
+      failures.push("Positions: " + describeAutoRobomlmError(posRes.reason));
+    }
+
+    if (discRes.status === "fulfilled" && discRes.value) {
+      const allOpps = extractOpportunities(discRes.value).sort(sortOpportunities);
+
+      // Frontend guard: if backend ignored market filter, filter locally.
+      // Crypto symbols typically contain "/" with USDT/BTC/USD quotes.
+      const cryptoQuotes = ["USDT", "USDC", "BUSD", "BTC", "ETH"];
+      const isCrypto = (sym: string) =>
+        cryptoQuotes.some((q) => sym.toUpperCase().endsWith(q) || sym.toUpperCase().includes(q + "/"));
+
+      const filtered =
+        market === "CRYPTO"
+          ? allOpps.filter((o) => isCrypto(o.symbol))
+          : allOpps;
+
+      // If filter left nothing but backend returned data, keep original
+      // so the page is never silently empty due to filter mismatch.
+      const opps = filtered.length > 0 ? filtered : allOpps;
+
+      setOpportunities(opps);
+      setSelected((prev) => prev ?? opps[0] ?? null);
+    } else {
+      setOpportunities([]);
+      setSelected(null);
+    }
+
+    setLoading(false);
+
+    if (failures.length > 0) setError(failures.join(" "));
+  }, [market]);
+
+  useEffect(() => {
+    void loadAll();
+  }, [loadAll]);
+
+  // Auto-refresh every 30s
+  useEffect(() => {
+    const id = setInterval(() => {
+      void loadAll();
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [loadAll]);
+
+  const events = useMemo(() => extractEvents(eventsPayload), [eventsPayload]);
+
+  // Derived state from real /status
+  const loopState = ((status as AnyRecord | null)?.state as string) ?? "STOPPED";
+  const mode =
+    (((status as AnyRecord | null)?.config as AnyRecord)
+      ?.execution_mode as string) ?? "DEMO";
+  const isRunning = loopState === "RUNNING";
+  const killEnabled = loopState === "KILLED";
+
+  // Sync pendingMode with backend when idle
+  useEffect(() => {
+    if (!isRunning && (mode === "DEMO" || mode === "LIVE")) {
+      setPendingMode(mode as "DEMO" | "LIVE");
+    }
+  }, [mode, isRunning]);
+
+  // Placeholder — kill switch backend action
+  const withBusy = useCallback(
+    async (fn: () => Promise<unknown>, label: string) => {
+      if (busy) return null;
+      setBusy(true);
+      setError(null);
+      try {
+        const result = await fn();
+        await loadAll();
+        return result;
+      } catch (err) {
+        setError(`${label}: ${describeAutoRobomlmError(err)}`);
+        return null;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [busy, loadAll],
+  );
+
+  const handleStart = useCallback(async () => {
+    // Push mode change if it differs from backend
+    if (pendingMode !== mode) {
+      const result = await withBusy(
+        () =>
+          updateConfig({
+            execution_mode: pendingMode,
+            live_confirmed: pendingMode === "LIVE",
+            min_grade: pendingMinGrade,
+          }),
+        "Mode change",
+      );
+      if (result === null) return;
+    }
+    await withBusy(() => startLoop(), "Start");
+  }, [withBusy, pendingMode, mode]);
+
+  const handleStop = useCallback(async () => {
+    await withBusy(() => stopLoop(), "Stop");
+  }, [withBusy]);
+
+  const handleResume = useCallback(async () => {
+    await withBusy(() => resumeLoop(), "Resume");
+  }, [withBusy]);
+
+  const handleTick = useCallback(async () => {
+    await withBusy(() => runTick(), "Tick");
+  }, [withBusy]);
+
+  const handleManualTrade = useCallback(
+    async (direction: "LONG" | "SHORT") => {
+      const sym = manualSymbol.trim().toUpperCase();
+      if (!sym) {
+        alert("Enter a symbol first (e.g. BTC/USDT)");
+        return;
+      }
+
+      // Parse quantity (optional)
+      let qty: number | undefined;
+      const qtyRaw = manualQty.trim();
+      if (qtyRaw) {
+        const parsed = Number(qtyRaw);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          alert("Quantity must be a positive number (or empty for auto).");
+          return;
+        }
+        qty = parsed;
+      }
+
+      const confirmed = confirm(
+        qty !== undefined
+          ? `Open ${direction} ${qty} x ${sym} at market price?`
+          : `Open ${direction} ${sym} (auto quantity) at market price?`,
+      );
+      if (!confirmed) return;
+
+      await withBusy(
+        () =>
+          takeOpportunity(
+            sym,
+            direction,
+            "MANUAL",
+            undefined,
+            pendingMinGrade,
+            qty,
+          ),
+        `Manual ${direction} ${sym}`,
+      );
+    },
+    [withBusy, manualSymbol, manualQty, pendingMinGrade],
+  );
+
+  const handleClosePosition = useCallback(
+    async (positionId: string, symbol: string) => {
+      const confirmed = confirm(
+        `Close ${symbol}? Market order at current price.`,
+      );
+      if (!confirmed) return;
+      await withBusy(
+        () => closePosition(positionId, "MANUAL_CLOSE"),
+        `Close ${symbol}`,
+      );
+    },
+    [withBusy],
+  );
+
+  const handleCloseAll = useCallback(async () => {
+    const confirmed = confirm(
+      "Close ALL open positions at market? This is immediate.",
+    );
+    if (!confirmed) return;
+    await withBusy(() => closeAllPositions("CLOSE_ALL"), "Close all");
+  }, [withBusy]);
+
+  const handleKill = useCallback(async () => {
+    const confirmed = confirm(
+      "Kill switch will stop all automation activity. This is a safety control. Proceed?",
+    );
+    if (!confirmed) return;
+    await withBusy(() => killSwitch(), "Kill");
+  }, [withBusy]);
+
+  return (
+    <main className="autorobomlm-page">
+      {/* HEADER */}
+      <header className="auto-header">
+        <div>
+          <p className="auto-eyebrow">AUTOMATION</p>
+          <h1>AutoROBOMLM</h1>
+          <p className="auto-subtitle">
+            Live automation · active trades · best opportunities · decision
+            context
+          </p>
+        </div>
+
+        <div className="auto-header-actions">
+          <span
+            className={`auto-mode-badge ${
+              killEnabled
+                ? "mode-killed"
+                : isRunning
+                  ? "mode-live"
+                  : "mode-paused"
+            }`}
+          >
+            <span className="auto-mode-dot" />
+            {killEnabled ? "KILLED" : isRunning ? "ACTIVE" : "PAUSED"}
+          </span>
+
+          <select
+            className="auto-select auto-select-mode"
+            value={pendingMode}
+            onChange={(e) =>
+              setPendingMode(e.target.value as "DEMO" | "LIVE")
+            }
+            disabled={busy || isRunning}
+            title={
+              isRunning
+                ? "Stop the loop to change mode"
+                : "Select execution mode"
+            }
+          >
+            <option value="DEMO">DEMO</option>
+            <option value="LIVE">LIVE</option>
+          </select>
+
+          <select
+            className="auto-select auto-select-mode auto-select-grade"
+            value={pendingMinGrade}
+            onChange={(e) =>
+              setPendingMinGrade(e.target.value as GradeBand)
+            }
+            disabled={busy}
+            title="Minimum grade for trades"
+          >
+            <option value="A+">A+ (75+)</option>
+            <option value="A">A (55+)</option>
+            <option value="B+">B+ (45+)</option>
+            <option value="B">B (30+)</option>
+            <option value="HOLD">OFF</option>
+          </select>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-primary"
+            onClick={handleStart}
+            disabled={busy || isRunning || killEnabled}
+          >
+            {busy ? "..." : "Start"}
+          </button>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-ghost"
+            onClick={handleStop}
+            disabled={busy || !isRunning}
+          >
+            Stop
+          </button>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-ghost"
+            onClick={handleTick}
+            disabled={busy}
+          >
+            Tick
+          </button>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-ghost"
+            onClick={handleResume}
+            disabled={busy || !killEnabled}
+          >
+            Resume
+          </button>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-ghost"
+            onClick={handleCloseAll}
+            disabled={busy || positions.length === 0}
+            title="Close all open positions"
+          >
+            Close All
+          </button>
+
+          <button
+            type="button"
+            className="auto-btn auto-btn-danger"
+            onClick={handleKill}
+            disabled={busy || killEnabled}
+          >
+            Kill
+          </button>
+        </div>
+      </header>
+
+      {error && (
+        <div className="auto-alert">
+          <strong>Backend notice</strong>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* TOP METRICS */}
+      <section className="auto-metrics">
+        <MetricCard
+          label="Today's P&L"
+          value={fmtMoney(
+            activeTrades.reduce((sum, t) => sum + (t.pnl ?? 0), 0),
+          )}
+          sub="Live positions"
+          tone={activeTrades.length > 0 ? "ok" : "muted"}
+        />
+        <MetricCard
+          label="Active Trades"
+          value={String(activeTrades.length)}
+          sub={isRunning ? "Running" : "Paused"}
+        />
+        <MetricCard
+          label="Opportunities"
+          value={String(opportunities.length)}
+          sub={`${market} market`}
+        />
+        <MetricCard
+          label="Mode"
+          value={mode}
+          sub={killEnabled ? "Kill engaged" : "Ready"}
+          tone={killEnabled ? "bad" : "ok"}
+        />
+      </section>
+
+      {/* ACTIVE TRADES */}
+      <section className="auto-panel">
+        <div className="auto-panel-head">
+          <div>
+            <span className="auto-eyebrow">ACTIVE</span>
+            <h2>Active trades</h2>
+          </div>
+          <span className="auto-count">
+            {activeTrades.length}
+          </span>
+        </div>
+
+        {activeTrades.length === 0 ? (
+          <div className="auto-empty">
+            <strong>No active trades</strong>
+            <span>
+              Click <strong>Tick</strong> above to run one scan now, or
+              press <strong>Start</strong> to scan automatically. Trades will
+              appear here when a signal passes grade and all gates.
+            </span>
+          </div>
+        ) : (
+          <div className="auto-table-wrap">
+            <table className="auto-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Direction</th>
+                  <th>Source</th>
+                  <th>Grade</th>
+                  <th>Entry</th>
+                  <th>Current</th>
+                  <th>SL</th>
+                  <th>TP</th>
+                  <th>P&L</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeTrades.map((trade) => (
+                  <tr key={trade.id}>
+                    <td className="auto-symbol">{trade.symbol}</td>
+                    <td>
+                      <DirectionBadge direction={trade.direction} />
+                    </td>
+                    <td>
+                      <span className="auto-source-tag">
+                        {trade.entrySource ?? "—"}
+                      </span>
+                    </td>
+                    <td>
+                      {trade.entryGrade ? (
+                        <span
+                          className={`auto-grade-badge ${gradeTone(trade.entryGrade as GradeBand)}`}
+                        >
+                          {trade.entryGrade}
+                        </span>
+                      ) : (
+                        <span className="auto-muted">—</span>
+                      )}
+                    </td>
+                    <td>{fmtNum(trade.entry)}</td>
+                    <td>{fmtNum(trade.current)}</td>
+                    <td className="auto-danger">{fmtNum(trade.stopLoss)}</td>
+                    <td className="auto-ok">{fmtNum(trade.takeProfit)}</td>
+                    <td
+                      className={
+                        trade.pnl === null
+                          ? ""
+                          : trade.pnl >= 0
+                            ? "auto-ok"
+                            : "auto-danger"
+                      }
+                    >
+                      {fmtMoney(trade.pnl)}{" "}
+                      <small>{fmtPct(trade.pnlPct)}</small>
+                    </td>
+                    <td>
+                      <button
+                        className="auto-btn auto-btn-ghost auto-btn-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleClosePosition(
+                            trade.id,
+                            trade.symbol,
+                          );
+                        }}
+                        disabled={busy}
+                      >
+                        Close
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* MANUAL TRADE PANEL */}
+      <section className="auto-panel auto-manual-panel">
+        <div className="auto-panel-head">
+          <div>
+            <span className="auto-eyebrow">MANUAL</span>
+            <h2>Manual trade</h2>
+          </div>
+        </div>
+
+        <div className="auto-manual-row">
+          <div className="auto-manual-input-group">
+            <label className="auto-manual-label">Symbol</label>
+            <input
+              type="text"
+              className="auto-manual-input"
+              placeholder="BTC/USDT"
+              value={manualSymbol}
+              onChange={(e) =>
+                setManualSymbol(e.target.value.toUpperCase())
+              }
+              disabled={busy}
+            />
+          </div>
+
+          <div className="auto-manual-input-group auto-manual-qty-group">
+            <label className="auto-manual-label">Quantity</label>
+            <input
+              type="text"
+              className="auto-manual-input"
+              placeholder="auto"
+              value={manualQty}
+              onChange={(e) => setManualQty(e.target.value)}
+              disabled={busy}
+            />
+          </div>
+
+          <div className="auto-manual-btns">
+            <button
+              type="button"
+              className="auto-manual-btn auto-manual-btn-buy"
+              onClick={() => handleManualTrade("LONG")}
+              disabled={busy || !manualSymbol.trim()}
+              title="Open LONG position"
+            >
+              BUY
+            </button>
+
+            <button
+              type="button"
+              className="auto-manual-btn auto-manual-btn-sell"
+              onClick={() => handleManualTrade("SHORT")}
+              disabled={busy || !manualSymbol.trim()}
+              title="Open SHORT position"
+            >
+              SELL
+            </button>
+          </div>
+        </div>
+
+        <p className="auto-manual-hint">
+          Leave quantity empty for auto (1% risk sizing) · Manual trades still
+          pass all gates except grade.
+        </p>
+      </section>
+
+      {/* NEXT BEST OPPORTUNITIES */}
+      <section className="auto-panel">
+        <div className="auto-panel-head">
+          <div>
+            <span className="auto-eyebrow">NEXT BEST</span>
+            <h2>Available opportunities</h2>
+          </div>
+          <div className="auto-panel-head-actions">
+            <select
+              className="auto-select auto-select-sm"
+              value={market}
+              onChange={(e) => setMarket(e.target.value)}
+            >
+              <option value="CRYPTO">CRYPTO</option>
+              <option value="EQUITY">EQUITY</option>
+              <option value="FOREX">FOREX</option>
+              <option value="INDEX">INDEX</option>
+              <option value="FUTURES">FUTURES</option>
+              <option value="OPTIONS">OPTIONS</option>
+              <option value="COMMODITY">COMMODITY</option>
+            </select>
+            <button
+              type="button"
+              className="auto-btn auto-btn-ghost auto-btn-sm"
+              onClick={loadAll}
+              disabled={loading}
+            >
+              {loading ? "..." : "Refresh"}
+            </button>
+          </div>
+        </div>
+
+        {opportunities.length === 0 ? (
+          <div className="auto-empty">
+            <strong>No opportunities available</strong>
+            <span>
+              No candidates returned by the scanner for the {market} market.
+              If this looks wrong, the discovery endpoint may ignore the
+              market filter — check backend <code>/api/discovery</code>.
+            </span>
+          </div>
+        ) : (
+          <div className="auto-table-wrap">
+            <table className="auto-table">
+              <thead>
+                <tr>
+                  <th>Symbol</th>
+                  <th>Direction</th>
+                  <th>Score</th>
+                  <th>Grade</th>
+                  <th>Why</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {opportunities.map((opp) => {
+                  const isSelected = selected?.symbol === opp.symbol;
+                  return (
+                    <tr
+                      key={opp.symbol}
+                      className={isSelected ? "auto-row-selected" : ""}
+                      onClick={() => setSelected(opp)}
+                    >
+                      <td className="auto-symbol">{opp.symbol}</td>
+                      <td>
+                        <DirectionBadge direction={opp.direction} />
+                      </td>
+                      <td>
+                        <div className="auto-score-cell">
+                          <span className="auto-score-value">
+                            {fmtNum(opp.score, 1)}
+                          </span>
+                          <span className="auto-score-bar">
+                            <span
+                              className="auto-score-fill"
+                              style={{
+                                width: `${Math.min(100, Math.max(0, opp.score ?? 0))}%`,
+                              }}
+                            />
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span
+                          className={`auto-grade-badge ${gradeTone(computeGrade(opp.score))}`}
+                        >
+                          {computeGrade(opp.score)}
+                        </span>
+                      </td>
+                      <td className="auto-reason">{opp.reason}</td>
+                      <td>
+                        <button
+                          className="auto-btn auto-btn-primary auto-btn-sm"
+                          disabled={
+                            busy ||
+                            !opp.direction ||
+                            opp.direction.toUpperCase() === "NEUTRAL"
+                          }
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (
+                              !opp.direction ||
+                              opp.direction.toUpperCase() === "NEUTRAL"
+                            ) {
+                              return;
+                            }
+                            const dir = opp.direction.toUpperCase();
+                            if (dir !== "LONG" && dir !== "SHORT") return;
+                            await withBusy(
+                              () =>
+                                takeOpportunity(
+                                  opp.symbol,
+                                  dir,
+                                  computeGrade(opp.score),
+                                  opp.score ?? undefined,
+                                  pendingMinGrade,
+                                ),
+                              `Take ${opp.symbol}`,
+                            );
+                          }}
+                        >
+                          Take
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* DECISION CONTEXT */}
+      {selected && (
+        <section className="auto-panel">
+          <div className="auto-panel-head">
+            <div>
+              <span className="auto-eyebrow">DECISION CONTEXT</span>
+              <h2>
+                {selected.symbol}{" "}
+                <DirectionBadge direction={selected.direction} />
+              </h2>
+            </div>
+          </div>
+
+          <div className="auto-context-grid">
+            <div className="auto-context-item">
+              <span>Trend strength</span>
+              <strong>
+                {firstString(selected.raw, ["opportunity_type"])?.replace(
+                  /_/g,
+                  " ",
+                ) || "—"}
+              </strong>
+            </div>
+            <div className="auto-context-item">
+              <span>Volume ratio</span>
+              <strong>
+                {fmtNum(firstNumber(selected.raw, ["volume_ratio"]), 2)}
+              </strong>
+            </div>
+            <div className="auto-context-item">
+              <span>Confidence</span>
+              <strong>{fmtPct(selected.confidence)}</strong>
+            </div>
+            <div className="auto-context-item">
+              <span>Score</span>
+              <strong>{fmtNum(selected.score, 1)}</strong>
+            </div>
+            <div className="auto-context-item">
+              <span>Market</span>
+              <strong>{selected.market}</strong>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ACTIVITY LOG */}
+      <section className="auto-panel">
+        <div className="auto-panel-head">
+          <div>
+            <span className="auto-eyebrow">ACTIVITY</span>
+            <h2>Recent events</h2>
+          </div>
+          <span className="auto-count">{events.length}</span>
+        </div>
+
+        {events.length === 0 ? (
+          <div className="auto-empty">
+            <strong>No events yet</strong>
+            <span>Automation activity will appear here.</span>
+          </div>
+        ) : (
+          <div className="auto-events">
+            {events.slice(0, 15).map((event) => (
+              <div
+                key={event.id}
+                className={`auto-event auto-event-${event.severity.toLowerCase()}`}
+              >
+                <span className="auto-event-time">
+                  {fmtTime(event.timestamp)}
+                </span>
+                <span className="auto-event-dot" />
+                <div className="auto-event-body">
+                  <strong>{event.type.replace(/_/g, " ")}</strong>
+                  <span>{event.message}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* FOOTER */}
+      <section className="auto-footer-note">
+        <strong>Authority boundary</strong>
+        <p>
+          AutoROBOMLM displays backend state and provider market data. It does
+          not create trading signals, modify decisions, bypass risk controls,
+          or authorize execution without the backend contract.
+        </p>
+      </section>
+    </main>
+  );
+}

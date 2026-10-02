@@ -35,6 +35,45 @@
     </aside>
 
     <main class="main main-tight">
+      <!-- ============================================================ -->
+      <!-- PORTFOLIO STRIP                                              -->
+      <!-- ============================================================ -->
+      <div class="pf-strip">
+        <div class="pf-box">
+          <div class="pf-lbl">Capital</div>
+          <div class="pf-val" id="pf-capital">—</div>
+        </div>
+        <div class="pf-box">
+          <div class="pf-lbl">Balance</div>
+          <div class="pf-val pf-green" id="pf-balance">—</div>
+        </div>
+        <div class="pf-box">
+          <div class="pf-lbl">Today P/L</div>
+          <div class="pf-val" id="pf-pnl">—</div>
+        </div>
+        <div class="pf-box">
+          <div class="pf-lbl">Open</div>
+          <div class="pf-val" id="pf-open">—</div>
+        </div>
+        <div class="pf-box">
+          <div class="pf-lbl">Win Rate</div>
+          <div class="pf-val" id="pf-winrate">—</div>
+        </div>
+        <div class="pf-box">
+          <div class="pf-lbl">Mode</div>
+          <div class="pf-val" id="pf-mode">—</div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- POSITIONS PANEL                                              -->
+      <!-- ============================================================ -->
+      <div class="card pf-pos-card">
+        <div class="card-title"><span class="ct-icon">📊</span> Open Positions</div>
+        <div class="pf-pos-list" id="pf-pos-list">
+          <div class="pf-empty">No open positions</div>
+        </div>
+      </div>
 
       <!-- ============ SYMBOL BAR ============ -->
       <div class="symbol-bar">
@@ -127,7 +166,7 @@
               <span class="arrow">▼</span> PUT
             </button>
           </div>
-
+          <div id="d13-advisory" style="display:none;font-size:11px;color:#fbbf24;text-align:center;margin:8px 0;font-family:var(--font-mono);"></div>
           <button class="btn btn-block" id="btn-confirm" disabled style="margin-top:8px">
             ✓ Confirm Trade
           </button>
@@ -150,10 +189,246 @@
         </div>
 
       </div>
+<script>
+(function () {
+    "use strict";
+
+    /*
+     * ROBOMLM Discovery → Terminal context bridge
+     *
+     * Reads:
+     *   /terminal?symbol=BTC%2FUSDT&market=Crypto&instrument=BTCUSDT&timeframe=5m
+     *
+     * Restores the selected context without creating a BUY/SELL decision.
+     */
+
+    function getDiscoveryContext() {
+        const params = new URLSearchParams(window.location.search);
+
+        const context = {
+            symbol: params.get("symbol") || "",
+            market: params.get("market") || "",
+            instrument: params.get("instrument") || "",
+            timeframe: params.get("timeframe") || params.get("tf") || ""
+        };
+
+        // Fall back to the handoff saved by Discovery.
+        try {
+            const saved = sessionStorage.getItem("robomlm.discovery.selection");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+
+                if (!context.symbol) {
+                    context.symbol = parsed.symbol || "";
+                }
+                if (!context.market) {
+                    context.market = parsed.market || "";
+                }
+                if (!context.instrument) {
+                    context.instrument = parsed.instrument || "";
+                }
+                if (!context.timeframe) {
+                    context.timeframe = parsed.timeframe || parsed.tf || "";
+                }
+            }
+        } catch (e) {
+            // Invalid session data must never break Terminal.
+        }
+
+        return context;
+    }
+
+    function setElementValue(element, value) {
+        if (!element || value === "") return false;
+
+        const wanted = String(value);
+
+        // Select
+        if (element.tagName === "SELECT") {
+            const options = Array.from(element.options);
+
+            let option = options.find(
+                o => o.value === wanted
+            );
+
+            if (!option) {
+                option = options.find(
+                    o => o.text.trim().toLowerCase() === wanted.toLowerCase()
+                );
+            }
+
+            if (!option) {
+                option = options.find(
+                    o => o.value.toLowerCase() === wanted.toLowerCase()
+                );
+            }
+
+            if (option) {
+                element.value = option.value;
+                element.dispatchEvent(new Event("change", {
+                    bubbles: true
+                }));
+                return true;
+            }
+
+            return false;
+        }
+
+        // Input / other controls
+        element.value = wanted;
+        element.dispatchEvent(new Event("input", {
+            bubbles: true
+        }));
+        element.dispatchEvent(new Event("change", {
+            bubbles: true
+        }));
+
+        return true;
+    }
+
+    function findControl(names) {
+        for (const name of names) {
+            const byId = document.getElementById(name);
+            if (byId) return byId;
+
+            const byName = document.querySelector(
+                `[name="${CSS.escape(name)}"]`
+            );
+            if (byName) return byName;
+
+            const byData = document.querySelector(
+                `[data-${CSS.escape(name)}]`
+            );
+            if (byData) return byData;
+        }
+
+        return null;
+    }
+
+    function restoreTerminalContext() {
+        const context = getDiscoveryContext();
+
+        if (!context.symbol &&
+            !context.market &&
+            !context.instrument &&
+            !context.timeframe) {
+            return;
+        }
+
+        /*
+         * Do not assume a single DOM naming convention.
+         * Existing Terminal controls are searched using several
+         * compatible names.
+         */
+
+        const symbolControl = findControl([
+            "symbol",
+            "terminal-symbol",
+            "selected-symbol",
+            "asset-symbol"
+        ]);
+
+        const marketControl = findControl([
+            "market",
+            "terminal-market",
+            "selected-market"
+        ]);
+
+        const instrumentControl = findControl([
+            "instrument",
+            "terminal-instrument",
+            "selected-instrument"
+        ]);
+
+        const timeframeControl = findControl([
+            "timeframe",
+            "tf",
+            "terminal-timeframe",
+            "selected-timeframe"
+        ]);
+
+        setElementValue(symbolControl, context.symbol);
+        setElementValue(marketControl, context.market);
+        setElementValue(instrumentControl, context.instrument);
+        setElementValue(timeframeControl, context.timeframe);
+
+        /*
+         * Public state for the existing Terminal application.
+         * Existing code can consume this without changing the
+         * backend contract.
+         */
+        window.ROBOMLM_TERMINAL_CONTEXT = Object.freeze({
+            symbol: context.symbol,
+            market: context.market,
+            instrument: context.instrument,
+            timeframe: context.timeframe,
+            source: "discovery"
+        });
+
+        document.dispatchEvent(
+            new CustomEvent("robomlm:discovery-context-restored", {
+                detail: window.ROBOMLM_TERMINAL_CONTEXT
+            })
+        );
+
+        /*
+         * Update common visual labels where matching data attributes
+         * already exist.
+         */
+        document.querySelectorAll(
+            "[data-discovery-symbol]"
+        ).forEach(el => {
+            el.textContent = context.symbol;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-market]"
+        ).forEach(el => {
+            el.textContent = context.market;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-instrument]"
+        ).forEach(el => {
+            el.textContent = context.instrument;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-timeframe]"
+        ).forEach(el => {
+            el.textContent = context.timeframe;
+        });
+    }
+
+    /*
+     * Existing Terminal page scripts may populate their controls
+     * asynchronously, therefore retry briefly rather than assuming
+     * the controls already exist.
+     */
+    let attempts = 0;
+
+    function boot() {
+        restoreTerminalContext();
+
+        attempts += 1;
+
+        if (attempts < 20) {
+            setTimeout(boot, 100);
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+    } else {
+        boot();
+    }
+
+})();
+</script>
 
     </main>
   </div>
 
   <script src="/static/js/terminal.js?v=2"></script>
-</body>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

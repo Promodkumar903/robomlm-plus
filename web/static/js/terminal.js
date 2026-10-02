@@ -136,11 +136,29 @@ function renderDecision(dec) {
   document.getElementById("d13-rr").textContent =
     rr ? "1 : " + rr.toFixed(1) : "â€”";
 
-  // Buttons â€” enabled only if BUY or SELL (HOLD = disabled)
+   // Manual trading: user-first. Buttons enabled if EQE (confidence) >= 30.
+  // D13 signal shown as advisory only — user decides to take the trade or not.
   const callBtn = document.getElementById("btn-call");
   const putBtn = document.getElementById("btn-put");
-  const canTrade = (signal === "BUY" || signal === "SELL");
+  const eqe = (dec.confidence || 0) * 100;
+  const canTrade = eqe >= 30;
 
+  callBtn.disabled = !canTrade;
+  putBtn.disabled = !canTrade;
+
+  // Show advisory note if D13 disagrees with user choice
+  const advisory = document.getElementById("d13-advisory");
+  if (advisory) {
+    if (canTrade && (signal === "HOLD")) {
+      advisory.textContent = "⚠ D13 suggests HOLD — but you can trade manually";
+      advisory.style.display = "block";
+    } else if (!canTrade) {
+      advisory.textContent = "🚫 EQE " + eqe.toFixed(0) + " < 30 — trade blocked";
+      advisory.style.display = "block";
+    } else {
+      advisory.style.display = "none";
+    }
+  }
   callBtn.disabled = !canTrade;
   putBtn.disabled = !canTrade;
 
@@ -295,3 +313,84 @@ window.addEventListener("load", () => {
   loadAll();
   setInterval(loadAll, 5000);
 });
+
+// ============================================================================
+// PORTFOLIO STRIP + POSITIONS
+// ============================================================================
+
+function pfFmt(v, cur) {
+  if (v == null) return "—";
+  const n = Number(v);
+  if (cur === "USD") return "$" + n.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
+async function pfLoadOverview() {
+  try {
+    const r = await fetch("/api/portfolio/overview");
+    const d = await r.json();
+    if (!d.ok) return;
+
+    document.getElementById("pf-capital").textContent = pfFmt(d.capital, d.currency);
+    document.getElementById("pf-balance").textContent = pfFmt(d.balance, d.currency);
+
+    const pnlEl = document.getElementById("pf-pnl");
+    const pnl = d.today_pnl;
+    pnlEl.textContent = (pnl >= 0 ? "+" : "−") + pfFmt(Math.abs(pnl), d.currency).replace(/^[₹$]/, "");
+    pnlEl.className = "pf-val " + (pnl > 0 ? "pf-green" : pnl < 0 ? "pf-red" : "");
+
+    document.getElementById("pf-open").textContent = d.open_positions;
+    document.getElementById("pf-winrate").textContent = d.win_rate + "%";
+    document.getElementById("pf-mode").textContent = d.mode;
+  } catch (e) { console.error(e); }
+}
+
+async function pfLoadPositions() {
+  try {
+    const r = await fetch("/api/positions");
+    const d = await r.json();
+    if (!d.ok) return;
+
+    const open = (d.positions || []).filter(p => p.status === "open");
+    const el = document.getElementById("pf-pos-list");
+
+    if (!open.length) {
+      el.innerHTML = '<div class="pf-empty">No open positions</div>';
+      return;
+    }
+
+    el.innerHTML = open.map(p => `
+      <div class="pf-pos-row">
+        <div class="dir ${p.direction.toLowerCase()}">${p.direction}</div>
+        <div class="sym">${p.symbol}</div>
+        <div class="num">${p.entry}</div>
+        <div class="num">${p.sl}</div>
+        <div class="num">${p.tp}</div>
+        <div class="num">${p.grade}</div>
+        <button class="close-btn" data-id="${p.id}">CLOSE</button>
+      </div>
+    `).join("");
+
+    el.querySelectorAll(".close-btn").forEach(b => {
+      b.addEventListener("click", async () => {
+        if (!confirm("Close this position?")) return;
+        await fetch("/api/positions/" + b.dataset.id + "/close", { method: "POST" });
+        pfLoadPositions();
+        pfLoadOverview();
+      });
+    });
+  } catch (e) { console.error(e); }
+}
+
+function pfBoot() {
+  pfLoadOverview();
+  pfLoadPositions();
+  setInterval(pfLoadOverview, 5000);
+  setInterval(pfLoadPositions, 5000);
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", pfBoot);
+} else {
+  pfBoot();
+}

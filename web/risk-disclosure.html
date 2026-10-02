@@ -5,69 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ROBOMLM — Risk Disclosure</title>
   <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body { margin: 0; padding: 40px 20px; background: var(--bg); color: var(--text); font-family: var(--font-sans); }
+    .doc { max-width: 780px; margin: 0 auto; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 40px 48px; }
+    .doc-title { font-size: 24px; font-weight: 700; color: #fbbf24; letter-spacing: 1px; margin-bottom: 4px; }
+    .doc-sub { font-size: 12px; color: var(--text-4); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 28px; }
+    .doc-section { margin-bottom: 20px; }
+    .doc-section h3 { font-size: 13px; color: #f87171; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .doc-section p { font-size: 13.5px; line-height: 1.7; color: var(--text-2); margin: 0 0 8px; }
+    .doc-section ul { margin: 0; padding-left: 22px; }
+    .doc-section li { font-size: 13px; line-height: 1.7; color: var(--text-2); }
+    .warning-box { background: rgba(239,68,68,.08); border-left: 3px solid #ef4444; padding: 14px 18px; border-radius: 6px; margin: 20px 0; }
+    .warning-box p { color: #fca5a5; font-size: 13px; margin: 0; }
+    .doc-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+    .btn-accept { padding: 12px 28px; background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 1px; }
+    .btn-accept:hover { box-shadow: 0 6px 20px rgba(34,197,94,.35); }
+    .btn-back { padding: 12px 24px; background: var(--bg-3); color: var(--text-3); border: 1px solid var(--border-2); border-radius: 6px; font-size: 13px; cursor: pointer; }
+    .doc-footer { font-size: 11px; color: var(--text-4); text-align: center; margin-top: 24px; font-family: var(--font-mono); }
+    .check-row { display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px; background: var(--bg-3); border-radius: 6px; margin: 18px 0; }
+    .check-row input { margin-top: 3px; accent-color: #22c55e; }
+    .check-row label { font-size: 12.5px; color: var(--text-2); line-height: 1.6; cursor: pointer; }
+  </style>
 </head>
 <body>
-  <div class="login-wrap">
-    <div class="login-card" style="max-width:640px;text-align:left">
-      <div style="text-align:center;margin-bottom:24px">
-        <div class="login-logo" style="background:linear-gradient(135deg,var(--red) 0%,#b91c1c 100%)">⚠</div>
-        <div class="login-title">Risk Disclosure</div>
-        <div class="login-sub">Please Read Carefully</div>
-      </div>
+  <div class="doc">
+    <div class="doc-title">⚠ RISK DISCLOSURE</div>
+    <div class="doc-sub">Trading Risk Acknowledgment · v4.5</div>
 
-      <div class="banner banner-warn" style="margin-bottom:20px">
-        <span class="dot"></span> Trading involves substantial risk of loss.
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">📊 Market Risk</div>
-        <div class="const-body">
-          Financial markets are inherently volatile. Prices can move rapidly against your
-          position. Past performance does not indicate future results. No system —
-          including ROBOMLM — can predict market movements with certainty.
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">🎯 No Guarantees</div>
-        <div class="const-body">
-          ROBOMLM provides intelligence, evidence, and decision support. It does NOT
-          guarantee profits. Acted-signal win rate is target-based (65-75%) and can vary
-          with market conditions.
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">🔬 Scientific Honesty</div>
-        <div class="const-body">
-          Per ROBOMLM's Constitution (L-05), every decision output carries exactly one
-          of three states: PASSED, FAILED (with reason), or INSUFFICIENT DATA.
-          The system never guesses.
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">💼 Capital Responsibility</div>
-        <div class="const-body">
-          Never trade with money you cannot afford to lose. Position sizing, stop-loss
-          discipline, and risk management are YOUR responsibility. Enable LIVE mode only
-          after thorough paper trading validation.
-        </div>
-      </div>
-
-      <div class="const-section">
-        <div class="const-head">⚙️ System Limitations</div>
-        <div class="const-body">
-          Data feeds may fail; the system falls back to simulation automatically. Execution
-          latency, exchange outages, and network issues can affect results. Uptime target
-          is 99.95%+, not 100%.
-        </div>
-      </div>
-
-      <a href="/login" class="btn btn-block btn-lg mt-24" style="margin-top:24px">
-        <span class="btn-icon">←</span> I Understand · Back to Sign In
-      </a>
+    <div class="warning-box">
+      <p><b>Read carefully.</b> Trading financial markets — including crypto, forex, commodities, and indices — carries substantial risk. You may lose some or all of your capital.</p>
     </div>
+
+    <div class="doc-section">
+      <h3>1. Market Risk</h3>
+      <p>Prices can move sharply and unexpectedly in response to news, economic events, or liquidity changes. Past performance does not guarantee future results. No system — including ROBOMLM — can predict markets with certainty.</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>2. Execution Risk</h3>
+      <p>Orders may be delayed, partially filled, or rejected by exchanges. Slippage can occur. System outages, network delays, or broker failures may prevent you from entering or exiting positions.</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>3. Automation Risk</h3>
+      <p>AUTOROBOMLM and Mission Mode place trades automatically based on configured rules. If configured incorrectly, or if market conditions change, the system may place trades you did not intend. Always monitor your account and use the Kill Switch when needed.</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>4. Data Accuracy</h3>
+      <p>Market data comes from third-party sources (Bybit, Dhan, and others). While we aim for accuracy, ROBOMLM does not guarantee that prices, indicators, or signals are error-free.</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>5. No Financial Advice</h3>
+      <p>ROBOMLM is a technical tool, not a financial advisor. Nothing displayed in this application constitutes investment advice. You are solely responsible for your trading decisions.</p>
+    </div>
+
+    <div class="doc-section">
+      <h3>6. PAPER vs LIVE Mode</h3>
+      <p><b>PAPER mode</b> simulates trades without real money. <b>LIVE mode</b> places real orders with real capital. Always test your strategies in PAPER mode first.</p>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="chk-understand"/>
+      <label for="chk-understand">I have read and understood this Risk Disclosure. I accept full responsibility for my trading decisions and any resulting gains or losses.</label>
+    </div>
+
+    <div class="doc-actions">
+      <button class="btn-back" onclick="window.location.href='/constitution'">← Back</button>
+      <button class="btn-accept" id="btn-accept" disabled onclick="accept()">✓ I Understand — Enter ROBOMLM</button>
+    </div>
+
+    <div class="doc-footer">By entering, you agree to ROBOMLM's terms of use.</div>
   </div>
-</body>
+
+  <script>
+   const token = localStorage.getItem("robomlm_token") || "";
+
+    document.getElementById("chk-understand").addEventListener("change", e => {
+      document.getElementById("btn-accept").disabled = !e.target.checked;
+    });
+
+    async function accept() {
+      localStorage.setItem("robomlm_token", "robomlm-dev-token");
+      window.location.href = "/terminal";
+    }
+  </script>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

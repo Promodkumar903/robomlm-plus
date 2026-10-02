@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -16,8 +16,8 @@ from app.intelligence.evidence.evidence_normalizer import (
     NormalizationResult,
 )
 from app.intelligence.evidence.evidence_package import (
-    EvidencePackageBuilder,
-    PackageBuildResult,
+    EvidencePackageEngine as EvidencePackageBuilder,
+    EvidencePackageBuildResult as PackageBuildResult,
 )
 from app.intelligence.evidence.evidence_conflict import (
     ConflictAnalysisResult,
@@ -128,12 +128,34 @@ class EvidenceOrchestrationResult:
                 else None
             ),
             "normalized": (
-                self.normalized.to_dict()
+                {
+                    "status": self.normalized.status,
+                    "items": [item.to_dict() for item in self.normalized.items],
+                    "normalized_count": self.normalized.normalized_count,
+                    "rejected_count": self.normalized.rejected_count,
+                    "errors": list(self.normalized.errors),
+                    "warnings": list(self.normalized.warnings),
+                    "normalizer": self.normalized.normalizer,
+                    "version": self.normalized.version,
+                }
                 if self.normalized is not None
                 else None
             ),
             "package_result": (
-                self.package_result.to_dict()
+                {
+                    "status": self.package_result.status,
+                    "package": (
+                        self.package_result.package.to_dict()
+                        if self.package_result.package is not None
+                        else None
+                    ),
+                    "accepted_count": self.package_result.accepted_count,
+                    "rejected_count": self.package_result.rejected_count,
+                    "duplicate_count": self.package_result.duplicate_count,
+                    "conflict_count": self.package_result.conflict_count,
+                    "errors": list(self.package_result.errors),
+                    "warnings": list(self.package_result.warnings),
+                }
                 if self.package_result is not None
                 else None
             ),
@@ -143,9 +165,28 @@ class EvidenceOrchestrationResult:
                 else None
             ),
             "confidence_results": {
-                key: value.to_dict()
-                for key, value in self.confidence_results.items()
-            },
+    key: {
+        "status": value.status,
+        "weight": value.weight,
+        "prior_weight": value.prior_weight,
+        "posterior_weight": value.posterior_weight,
+        "sample_adjustment": value.sample_adjustment,
+        "decay_factor": value.decay_factor,
+        "evidence_contribution": value.evidence_contribution,
+        "observation_count": value.observation_count,
+        "evidence_count": value.evidence_count,
+        "observed_at": (
+            value.observed_at.isoformat()
+            if value.observed_at is not None
+            else None
+        ),
+        "evaluated_at": value.evaluated_at.isoformat(),
+        "calculation": dict(value.calculation),
+        "errors": list(value.errors),
+        "warnings": list(value.warnings),
+    }
+    for key, value in self.confidence_results.items()
+},
             "reliability_results": {
                 key: value.to_dict()
                 for key, value in self.reliability_results.items()
@@ -161,8 +202,6 @@ class EvidenceOrchestrationResult:
             "version": self.version,
             "reason": self.reason,
         }
-
-
 class EvidenceOrchestrator:
     """
     Evidence Cortex orchestration boundary.
@@ -170,17 +209,17 @@ class EvidenceOrchestrator:
     Pipeline
     --------
         Raw evidence
-            ↓
+            â†“
         Normalization
-            ↓
+            â†“
         Evidence Package
-            ↓
+            â†“
         Conflict Detection
-            ↓
+            â†“
         Evidence Confidence
-            ↓
+            â†“
         Source Reliability
-            ↓
+            â†“
         Evidence Orchestration Result
 
     Constitutional boundaries
@@ -262,7 +301,7 @@ class EvidenceOrchestrator:
         warnings: list[str] = []
 
         # --------------------------------------------------------------
-        # Stage 1 — Normalization
+        # Stage 1 â€” Normalization
         # --------------------------------------------------------------
 
         normalized = self.normalizer.normalize_many(raw_items)
@@ -274,7 +313,7 @@ class EvidenceOrchestrator:
                 error="Evidence normalization returned no result.",
             )
 
-        if normalized.status.name == "INVALID":
+        if normalized.status == "INVALID":
             errors.extend(normalized.errors)
 
             return self._failed_result(
@@ -312,7 +351,7 @@ class EvidenceOrchestrator:
             )
 
         # --------------------------------------------------------------
-        # Stage 2 — Package construction
+        # Stage 2 â€” Package construction
         # --------------------------------------------------------------
 
         package_result = self.package_builder.build(
@@ -363,7 +402,7 @@ class EvidenceOrchestrator:
             )
 
         # --------------------------------------------------------------
-        # Stage 3 — Conflict detection
+        # Stage 3 â€” Conflict detection
         # --------------------------------------------------------------
 
         conflict_result = self.conflict_engine.analyze(
@@ -383,7 +422,7 @@ class EvidenceOrchestrator:
             )
 
         # --------------------------------------------------------------
-        # Stage 4 — Evidence confidence
+        # Stage 4 â€” Evidence confidence
         # --------------------------------------------------------------
 
         confidence_results = (
@@ -401,7 +440,7 @@ class EvidenceOrchestrator:
                 )
 
         # --------------------------------------------------------------
-        # Stage 5 — Source reliability
+        # Stage 5 â€” Source reliability
         # --------------------------------------------------------------
 
         reliability_results = (
@@ -416,7 +455,7 @@ class EvidenceOrchestrator:
                 )
 
         # --------------------------------------------------------------
-        # Stage 6 — Final state
+        # Stage 6 â€” Final state
         # --------------------------------------------------------------
 
         rejected_count = (
@@ -530,32 +569,18 @@ class EvidenceOrchestrator:
         conflict_count: int,
     ) -> EvidenceConfidenceResult:
         """
-        Adapter around the confidence engine.
+        Adapter to the canonical EQ-0009 EvidenceConfidenceEngine.
 
-        The confidence engine remains the owner of confidence mathematics.
+        The orchestrator does not invent confidence, prior weights,
+        or EQ-0009 parameters. The canonical confidence engine remains
+        the owner of confidence mathematics.
         """
-        engine = self.confidence_engine
-
-        # Preferred interface.
-        if hasattr(engine, "evaluate_item"):
-            return engine.evaluate_item(
-                item,
-                conflict_count=conflict_count,
-            )
-
-        # Compatibility interface for an implementation exposing
-        # `evaluate`.
-        if hasattr(engine, "evaluate"):
-            return engine.evaluate(
-                item,
-                conflict_count=conflict_count,
-            )
-
-        raise TypeError(
-            "EvidenceConfidenceEngine must expose "
-            "`evaluate_item` or `evaluate`."
+        return self.confidence_engine.calculate_from_items(
+            (item,),
+            prior_weight=None,
+            observations=1,
+            parameters=None,
         )
-
     # ------------------------------------------------------------------
     # Failure helper
     # ------------------------------------------------------------------

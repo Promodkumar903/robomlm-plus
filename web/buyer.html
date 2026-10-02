@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROBOMLM — Buyer Workspace</title>
+  <title>ROBOMLM — Buyer</title>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -37,98 +37,343 @@
 
       <div class="page-header">
         <div class="page-header-left">
-          <div class="page-title"><span class="title-icon">🛒</span> Buyer Workspace</div>
-          <div class="page-sub">Select · Apply · Intelligence → D13 → Risk → CAS → PLUS</div>
+          <div class="page-title"><span class="title-icon">🛒</span> BUYER</div>
+          <div class="page-sub">Market → Instrument → Contract → Strategy → Apply</div>
         </div>
+        <div id="buyer-badge" class="state-badge state-stopped">● IDLE</div>
       </div>
 
-      <!-- STEP SELECTORS -->
+      <!-- STEP 1-4: SELECTION -->
       <div class="card">
-        <div class="card-title"><span class="ct-icon">📋</span> Request Setup</div>
-
-        <div class="buyer-steps">
-          <div class="buyer-step">
-            <label>Step 1 · Market</label>
-            <select id="sel-market" class="buyer-select"></select>
+        <div class="card-title"><span class="ct-icon">🎛</span> Selection</div>
+        <div class="buyer-grid">
+          <div class="auto-field">
+            <label>1 · Market</label>
+            <select id="sel-market"><option value="">— select —</option></select>
           </div>
-          <div class="buyer-step">
-            <label>Step 2 · Instrument</label>
-            <select id="sel-instrument" class="buyer-select"></select>
+          <div class="auto-field">
+            <label>2 · Instrument</label>
+            <select id="sel-instrument" disabled><option value="">—</option></select>
           </div>
-          <div class="buyer-step">
-            <label>Step 3 · Contract</label>
-            <select id="sel-contract" class="buyer-select"></select>
+          <div class="auto-field">
+            <label>3 · Contract</label>
+            <select id="sel-contract" disabled><option value="">—</option></select>
           </div>
-          <div class="buyer-step">
-            <label>Step 4 · Strategy</label>
-            <select id="sel-strategy" class="buyer-select"></select>
+          <div class="auto-field">
+            <label>4 · Strategy</label>
+            <select id="sel-strategy" disabled><option value="">—</option></select>
           </div>
-          <div class="buyer-step buyer-step-action">
-            <button class="btn btn-lg" id="btn-apply">
-              <span class="btn-icon">▶</span> Apply for Analysis
-            </button>
-          </div>
+        </div>
+        <div class="buyer-actions">
+          <button class="btn btn-lg" id="btn-apply" disabled>⚡ Apply & Analyze</button>
+          <button class="btn btn-ghost btn-lg" id="btn-reset">↺ Reset</button>
         </div>
       </div>
 
-      <!-- RESULTS -->
-      <div id="buyer-result" style="display:none">
+      <!-- PIPELINE RESULT -->
+      <div id="buyer-result" style="display:none;">
 
-        <!-- Intelligence -->
-        <div class="card buyer-result-card">
+        <div class="card">
           <div class="card-title"><span class="ct-icon">🧠</span> Intelligence</div>
-          <div class="buyer-result-row">
-            <span class="badge-green" id="r-int-bias">BULLISH</span>
-            <span class="buyer-result-meta">Score: <b id="r-int-score">—</b> · Confidence: <b id="r-int-conf">—</b></span>
+          <div class="control-stats">
+            <div class="ctrl-stat"><span class="lbl">Signal</span><span class="val" id="r-signal">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">Grade</span><span class="val" id="r-grade">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">Confidence</span><span class="val" id="r-conf">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">Regime</span><span class="val" id="r-regime">—</span></div>
           </div>
-          <div class="buyer-result-reason" id="r-int-reason"></div>
         </div>
 
-        <!-- D13 Decision -->
-        <div class="card buyer-result-card">
-          <div class="card-title"><span class="ct-icon">🎯</span> D13 Decision (Final Authority)</div>
-          <div class="buyer-result-row">
-            <span class="badge-signal" id="r-dec-signal">—</span>
-            <span class="buyer-result-meta">Grade: <b id="r-dec-grade">—</b> · Score: <b id="r-dec-score">—</b> · Confidence: <b id="r-dec-conf">—</b></span>
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">🎯</span> Decision</div>
+          <div class="control-stats">
+            <div class="ctrl-stat"><span class="lbl">Direction</span><span class="val" id="r-dir">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">Entry</span><span class="val" id="r-entry">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">SL</span><span class="val" id="r-sl">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">TP</span><span class="val" id="r-tp">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">R : R</span><span class="val" id="r-rr">—</span></div>
           </div>
-          <div class="buyer-result-reason" id="r-dec-reason"></div>
         </div>
 
-        <!-- Risk -->
-        <div class="card buyer-result-card">
-          <div class="card-title"><span class="ct-icon">🛡</span> Risk</div>
-          <div class="buyer-result-grid">
-            <div><span class="lbl">Risk Score</span><span class="val" id="r-risk-score">—</span></div>
-            <div><span class="lbl">Level</span><span class="val" id="r-risk-level">—</span></div>
-            <div><span class="lbl">Size Factor</span><span class="val" id="r-risk-size">—</span></div>
-            <div><span class="lbl">SL / TP</span><span class="val" id="r-risk-sltp">—</span></div>
-            <div><span class="lbl">R:R</span><span class="val" id="r-risk-rr">—</span></div>
+        <div class="card">
+          <div class="card-title"><span class="ct-icon">🛡</span> Risk · CAS · PLUS</div>
+          <div class="control-stats">
+            <div class="ctrl-stat"><span class="lbl">Max Loss %</span><span class="val" id="r-mloss">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">Position Size %</span><span class="val" id="r-psize">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">CAS Authorized</span><span class="val" id="r-cas">—</span></div>
+            <div class="ctrl-stat"><span class="lbl">PLUS Verdict</span><span class="val" id="r-plus">—</span></div>
           </div>
-          <div class="buyer-result-reason" id="r-risk-reason"></div>
-        </div>
-
-        <!-- CAS Gates -->
-        <div class="card buyer-result-card">
-          <div class="card-title"><span class="ct-icon">🔐</span> CAS — Control / Authorization / Suitability</div>
-          <div class="cas-status" id="r-cas-status">—</div>
-          <div class="cas-grid" id="r-cas-grid"></div>
-        </div>
-
-        <!-- PLUS Handoff -->
-        <div class="card buyer-result-card buyer-plus">
-          <div class="card-title"><span class="ct-icon">⚡</span> PLUS Handoff</div>
-          <div class="plus-status" id="r-plus-status">—</div>
-          <div class="plus-message" id="r-plus-message"></div>
-          <button class="btn btn-lg" id="btn-plus" disabled>
-            <span class="btn-icon">🚀</span> Send to PLUS Execution
-          </button>
+          <div class="auto-rules" style="margin-top:14px;">
+            <div class="auto-rule" id="r-reason"><b>i.</b> —</div>
+          </div>
         </div>
 
       </div>
+<script>
+(function () {
+    "use strict";
+
+    /*
+     * ROBOMLM Discovery → Buyer context bridge
+     *
+     * Reads:
+     *   /buyer?symbol=BTC%2FUSDT&market=Crypto&instrument=BTCUSDT&timeframe=5m
+     *
+     * This restores selection only.
+     * It does NOT create a strategy, BUY/SELL decision, order,
+     * authorization, or CAS action.
+     */
+
+    function readContext() {
+        const params = new URLSearchParams(window.location.search);
+
+        const context = {
+            symbol: params.get("symbol") || "",
+            market: params.get("market") || "",
+            instrument: params.get("instrument") || "",
+            timeframe: params.get("timeframe") || params.get("tf") || ""
+        };
+
+        try {
+            const saved = sessionStorage.getItem(
+                "robomlm.discovery.selection"
+            );
+
+            if (saved) {
+                const parsed = JSON.parse(saved);
+
+                context.symbol =
+                    context.symbol || parsed.symbol || "";
+
+                context.market =
+                    context.market || parsed.market || "";
+
+                context.instrument =
+                    context.instrument || parsed.instrument || "";
+
+                context.timeframe =
+                    context.timeframe ||
+                    parsed.timeframe ||
+                    parsed.tf ||
+                    "";
+            }
+        } catch (e) {
+            // Ignore malformed session state.
+        }
+
+        return context;
+    }
+
+    function findControl(names) {
+        for (const name of names) {
+            const element = document.getElementById(name);
+            if (element) return element;
+
+            const named = document.querySelector(
+                `[name="${CSS.escape(name)}"]`
+            );
+            if (named) return named;
+
+            const dataElement = document.querySelector(
+                `[data-${CSS.escape(name)}]`
+            );
+            if (dataElement) return dataElement;
+        }
+
+        return null;
+    }
+
+    function selectValue(element, value) {
+        if (!element || !value) return false;
+
+        const wanted = String(value);
+
+        if (element.tagName === "SELECT") {
+            const options = Array.from(element.options);
+
+            let match = options.find(
+                option => option.value === wanted
+            );
+
+            if (!match) {
+                match = options.find(
+                    option =>
+                        option.value.toLowerCase() ===
+                        wanted.toLowerCase()
+                );
+            }
+
+            if (!match) {
+                match = options.find(
+                    option =>
+                        option.text.trim().toLowerCase() ===
+                        wanted.toLowerCase()
+                );
+            }
+
+            if (!match) return false;
+
+            element.value = match.value;
+
+            element.dispatchEvent(
+                new Event("change", { bubbles: true })
+            );
+
+            return true;
+        }
+
+        element.value = wanted;
+
+        element.dispatchEvent(
+            new Event("input", { bubbles: true })
+        );
+
+        element.dispatchEvent(
+            new Event("change", { bubbles: true })
+        );
+
+        return true;
+    }
+
+    function restoreBuyerContext() {
+        const context = readContext();
+
+        if (!context.symbol &&
+            !context.market &&
+            !context.instrument &&
+            !context.timeframe) {
+            return;
+        }
+
+        const marketControl = findControl([
+            "market",
+            "buyer-market",
+            "selected-market"
+        ]);
+
+        const instrumentControl = findControl([
+            "instrument",
+            "buyer-instrument",
+            "selected-instrument"
+        ]);
+
+        const symbolControl = findControl([
+            "symbol",
+            "buyer-symbol",
+            "selected-symbol"
+        ]);
+
+        const timeframeControl = findControl([
+            "timeframe",
+            "tf",
+            "buyer-timeframe",
+            "selected-timeframe"
+        ]);
+
+        /*
+         * Market must be restored first because the existing Buyer
+         * page may rebuild its instrument list after market changes.
+         */
+        if (context.market) {
+            selectValue(marketControl, context.market);
+        }
+
+        /*
+         * Give the existing market→instrument logic time to populate
+         * the instrument control.
+         */
+        setTimeout(function () {
+            if (context.instrument) {
+                selectValue(
+                    instrumentControl,
+                    context.instrument
+                );
+            }
+
+            if (context.symbol) {
+                selectValue(
+                    symbolControl,
+                    context.symbol
+                );
+            }
+
+            if (context.timeframe) {
+                selectValue(
+                    timeframeControl,
+                    context.timeframe
+                );
+            }
+
+            publishContext(context);
+        }, 50);
+    }
+
+    function publishContext(context) {
+        window.ROBOMLM_BUYER_CONTEXT = Object.freeze({
+            symbol: context.symbol,
+            market: context.market,
+            instrument: context.instrument,
+            timeframe: context.timeframe,
+            source: "discovery"
+        });
+
+        document.dispatchEvent(
+            new CustomEvent(
+                "robomlm:discovery-context-restored",
+                {
+                    detail: window.ROBOMLM_BUYER_CONTEXT
+                }
+            )
+        );
+
+        document.querySelectorAll(
+            "[data-discovery-symbol]"
+        ).forEach(el => {
+            el.textContent = context.symbol;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-market]"
+        ).forEach(el => {
+            el.textContent = context.market;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-instrument]"
+        ).forEach(el => {
+            el.textContent = context.instrument;
+        });
+
+        document.querySelectorAll(
+            "[data-discovery-timeframe]"
+        ).forEach(el => {
+            el.textContent = context.timeframe;
+        });
+    }
+
+    let attempts = 0;
+
+    function boot() {
+        restoreBuyerContext();
+
+        attempts += 1;
+
+        if (attempts < 20) {
+            setTimeout(boot, 100);
+        }
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+    } else {
+        boot();
+    }
+
+})();
+</script>
 
     </main>
   </div>
 
-  <script src="/static/js/buyer.js"></script>
-</body>
+  <script src="/static/js/buyer.js?v=2"></script>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

@@ -1,0 +1,50 @@
+===== REL =====
+11:class RelationshipAssessment:
+44:class RelationshipIntelligence:
+663:    def calculate_relationship_score(
+980:    # Public assessment
+983:    def assess(
+1093:            self.calculate_relationship_score(
+1230:        assessment = RelationshipAssessment(
+1290:            assessment
+1299:        return assessment
+1425:__all__ = [
+===== REG =====
+11:class RegimeAssessment:
+43:class RegimeIntelligence:
+48:    structured regime assessment.
+884:    # Public assessment
+887:    def assess(
+1124:        assessment = RegimeAssessment(
+1192:            assessment
+1201:        return assessment
+1339:__all__ = [
+===== MAG =====
+11:class MagnitudeAssessment:
+83:class MagnitudeEngine:
+798:    # CORE MAGNITUDE FORMULA
+801:    def calculate_magnitude(
+1045:    def assess(
+1053:        Produce one complete auditable magnitude assessment.
+1116:        magnitude_score = self.calculate_magnitude(
+1336:                f"Magnitude assessment is associated with upstream "
+1382:        assessment = MagnitudeAssessment(
+1427:                assessment
+1430:        return assessment
+1547:            "assessment_count": count,
+1572:__all__ = [
+===== STR =====
+10:class StrategyName(str, Enum):
+21:class StrategyFitState(str, Enum):
+31:class StrategyAssessment:
+52:class StrategyIntelligence:
+109:    MIN_DECISION_SCORE = 70.0
+635:    def calculate_fit(
+722:    def assess(
+770:        score = self.calculate_fit(**components)
+795:            score >= self.MIN_DECISION_SCORE
+856:        assessment = StrategyAssessment(
+886:        self._history.append(assessment)
+888:        return assessment
+953:                "minimum_decision_score": self.MIN_DECISION_SCORE,
+963:__all__ = [

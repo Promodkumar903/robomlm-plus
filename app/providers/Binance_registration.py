@@ -1,0 +1,41 @@
+from app.providers.provider_contract import (
+    ProviderCapability,
+    ProviderCapabilityState,
+    ProviderContract,
+    ProviderStatus,
+)
+
+BINANCE_PROVIDER = ProviderContract(
+    provider_id="BINANCE",
+    provider_name="Binance",
+    markets=frozenset({"CRYPTO"}),
+    segments=frozenset({"SPOT"}),
+    instrument_types=frozenset({"SPOT"}),
+    capabilities=(
+        ProviderCapabilityState(
+            ProviderCapability.TICKER,
+            ProviderStatus.AVAILABLE,
+        ),
+        ProviderCapabilityState(
+            ProviderCapability.SNAPSHOT,
+            ProviderStatus.AVAILABLE,
+        ),
+        ProviderCapabilityState(
+            ProviderCapability.OHLC,
+            ProviderStatus.AVAILABLE,
+        ),
+        ProviderCapabilityState(
+            ProviderCapability.CANDLES,
+            ProviderStatus.AVAILABLE,
+        ),
+        ProviderCapabilityState(
+            ProviderCapability.ORDERBOOK,
+            ProviderStatus.AVAILABLE,
+        ),
+    ),
+    status=ProviderStatus.AVAILABLE,
+    adapter_path=(
+        "app.adapters.binance.binance_market_data."
+        "BinanceMarketData"
+    ),
+)

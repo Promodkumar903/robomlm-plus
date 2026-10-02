@@ -1,0 +1,435 @@
+===== DECISION ORCHESTRATOR EXACT CALCULATION =====
+
+        direction = self._normalize_direction(normalized.direction)
+
+        evidence = self._clamp(normalized.evidence_score)
+        confidence = self._clamp(normalized.confidence_score)
+        commitment = self._clamp(normalized.commitment_score)
+        context = self._clamp(normalized.context_score)
+        risk = self._clamp(normalized.risk_score)
+        timing = self._clamp(normalized.timing_score)
+
+        reasons: list[str] = []
+        conflicts: list[str] = []
+
+        # ------------------------------------------------------------
+        # Core Decision Cortex score
+        # ------------------------------------------------------------
+
+        decision_score = (
+            evidence * self.WEIGHTS["evidence"]
+            + confidence * self.WEIGHTS["confidence"]
+            + commitment * self.WEIGHTS["commitment"]
+        )
+
+        # ------------------------------------------------------------
+        # Minimum intelligence gates
+        # ------------------------------------------------------------
+
+        if evidence < self.MIN_EVIDENCE:
+            reasons.append("Evidence below minimum decision threshold.")
+
+        if confidence < self.MIN_CONFIDENCE:
+            reasons.append("Confidence below minimum decision threshold.")
+
+        if commitment < self.MIN_COMMITMENT:
+            reasons.append("Commitment below minimum decision threshold.")
+
+        # ------------------------------------------------------------
+        # Context gate
+        # ------------------------------------------------------------
+
+        if context > 0.0 and context < 40.0:
+            reasons.append("Market context is weak.")
+            conflicts.append("context_weak")
+
+        # ------------------------------------------------------------
+        # Timing gate
+        # ------------------------------------------------------------
+
+        if timing > 0.0 and timing < 30.0:
+            reasons.append("Timing quality is weak.")
+            conflicts.append("timing_weak")
+
+        # ------------------------------------------------------------
+        # Risk gate
+        #
+        # risk_score is interpreted as remaining risk quality:
+        # 100 = favorable / controlled
+        # 0   = unacceptable
+        # ------------------------------------------------------------
+
+        if risk > 0.0 and risk < 30.0:
+            reasons.append("Risk condition is unacceptable.")
+            conflicts.append("risk_weak")
+
+        # ------------------------------------------------------------
+        # Direction consistency
+        # ------------------------------------------------------------
+
+        directional_conflict = self._directional_conflict(
+            normalized.metadata
+        )
+
+        if directional_conflict:
+            conflicts.append("directional_conflict")
+            reasons.append(
+                "Upstream intelligence contains contradictory direction."
+            )
+
+        # ------------------------------------------------------------
+        # Decision gate
+        # ------------------------------------------------------------
+
+        approved = (
+            decision_score >= self.APPROVAL_THRESHOLD
+            and evidence >= self.MIN_EVIDENCE
+            and confidence >= self.MIN_CONFIDENCE
+            and commitment >= self.MIN_COMMITMENT
+            and not directional_conflict
+            and "risk_weak" not in conflicts
+        )
+
+        # If direction is HOLD/NEUTRAL, approval does not create
+        # an entry decision.
+        if direction in {"HOLD", "NEUTRAL"}:
+            approved = False
+            reasons.append("Directional state is HOLD/NEUTRAL.")
+
+        # ------------------------------------------------------------
+        # Final verdict
+        # ------------------------------------------------------------
+
+        if directional_conflict:
+            decision = "CONFLICTED"
+        elif not approved:
+            if decision_score >= self.APPROVAL_THRESHOLD:
+                decision = "REJECTED"
+            else:
+                decision = "HOLD"
+        elif decision_score >= self.STRONG_THRESHOLD:
+            decision = direction
+        else:
+            decision = direction
+
+        # ------------------------------------------------------------
+        # Decision confidence
+        #
+        # This is a decision-level confidence measure, not the
+        # upstream Confidence Engine score.
+        # ------------------------------------------------------------
+
+        gate_quality = (
+            evidence * 0.25
+            + confidence * 0.30
+            + commitment * 0.25
+            + (context if context > 0.0 else decision_score) * 0.10
+            + (timing if timing > 0.0 else decision_score) * 0.10
+        )
+
+        if conflicts:
+            gate_quality *= 0.70
+
+        if not approved:
+            gate_quality *= 0.80
+
+        decision_confidence = self._clamp(gate_quality)
+
+        evidence_record = {
+            "engine": self.VERSION,
+            "formula": "D=E*0.35+C*0.35+K*0.30",
+            "weights": dict(self.WEIGHTS),
+            "direction": direction,
+            "decision_score": decision_score,
+            "approved": approved,
+            "minimum_gates": {
+                "evidence": self.MIN_EVIDENCE,
+                "confidence": self.MIN_CONFIDENCE,
+                "commitment": self.MIN_COMMITMENT,
+            },
+            "context_score": context,
+            "risk_score": risk,
+            "timing_score": timing,
+            "directional_conflict": directional_conflict,
+            "conflicts": tuple(conflicts),
+        }
+
+        outcome = DecisionOutcome(
+            symbol=normalized.symbol,
+            timeframe=normalized.timeframe,
+            decision=decision,
+            direction=direction,
+            decision_score=self._clamp(decision_score),
+            evidence_score=evidence,
+            confidence_score=confidence,
+            commitment_score=commitment,
+            context_score=context,
+            risk_score=risk,
+            timing_score=timing,
+            approved=approved,
+            confidence=decision_confidence,
+            gate_reasons=tuple(dict.fromkeys(reasons)),
+            conflict_flags=tuple(dict.fromkeys(conflicts)),
+
+    # ================================================================
+    # HEALTH
+    # ================================================================
+
+    def health_check(self) -> dict[str, Any]:
+        with self._lock:
+            history_count = len(self._history)
+            handler_count = len(self._handlers)
+
+        return {
+            "engine": self.VERSION,
+            "status": "healthy",
+            "history_count": history_count,
+            "handler_count": handler_count,
+            "formula": "D=E*0.35+C*0.35+K*0.30",
+            "weights": dict(self.WEIGHTS),
+            "thresholds": {
+                "approval": self.APPROVAL_THRESHOLD,
+                "strong": self.STRONG_THRESHOLD,
+                "minimum_evidence": self.MIN_EVIDENCE,
+                "minimum_confidence": self.MIN_CONFIDENCE,
+                "minimum_commitment": self.MIN_COMMITMENT,
+            },
+        }
+
+    # ================================================================
+    # HELPERS
+    # ================================================================
+
+    @staticmethod
+===== INTELLIGENCE ORCHESTRATOR EXACT CALCULATION =====
+    S = Specialized Intelligence
+    C = Confidence
+    K = Commitment
+
+    The orchestrator does not execute trades and does not bypass
+    Risk, Authorization, Kill Switch or Execution layers.
+    """
+
+    VERSION = "ROBOMLM-INTELLIGENCE-2.0"
+
+    WEIGHTS = {
+        "evidence": 0.25,
+        "context": 0.25,
+        "specialized": 0.30,
+        "confidence": 0.10,
+        "commitment": 0.10,
+    }
+
+    ACTIONABLE_THRESHOLD = 70.0
+    STRONG_THRESHOLD = 85.0
+
+    MIN_EVIDENCE = 40.0
+    MIN_CONTEXT = 40.0
+    MIN_CONFIDENCE = 50.0
+    MIN_COMMITMENT = 50.0
+
+    def __init__(self, max_history: int = 1000) -> None:
+        if max_history < 1:
+            raise ValueError("max_history must be >= 1.")
+
+        self._history: list[IntelligenceResult] = []
+        self._processors: dict[str, Callable[..., Any]] = {}
+        self._max_history = max_history
+        self._lock = RLock()
+
+    # ================================================================
+    # MAIN PIPELINE
+    # ================================================================
+
+    def analyze(
+        self,
+        request: IntelligenceRequest | Mapping[str, Any],
+    ) -> IntelligenceResult:
+
+        normalized = self._normalize_request(request)
+
+        evidence_score = self._extract_score(
+            normalized.evidence,
+            normalized.data,
+            (
+                "evidence_score",
+                "evidence_quality",
+                "evidence_strength",
+            ),
+        )
+
+        context_score = self._extract_score(
+            normalized.context,
+            normalized.data,
+            (
+                "context_score",
+                "market_context_score",
+                "mci_score",
+            ),
+        )
+
+        specialized_score = self._extract_score(
+            normalized.specialized,
+            normalized.data,
+            (
+                "specialized_score",
+                "intelligence_score",
+                "specialized_quality",
+            ),
+        )
+
+        confidence_score = self._extract_score(
+            normalized.specialized,
+            normalized.data,
+            (
+                "confidence_score",
+                "confidence",
+            ),
+        )
+
+        commitment_score = self._extract_score(
+            normalized.specialized,
+            normalized.data,
+            (
+                "commitment_score",
+                "commitment",
+            ),
+        )
+
+        evidence_score = self._clamp(evidence_score)
+        context_score = self._clamp(context_score)
+        specialized_score = self._clamp(specialized_score)
+        confidence_score = self._clamp(confidence_score)
+        commitment_score = self._clamp(commitment_score)
+
+        reasons: list[str] = []
+        contradiction_flags: list[str] = []
+
+        # ------------------------------------------------------------
+        # Core intelligence score
+        # ------------------------------------------------------------
+
+        intelligence_score = (
+            evidence_score * self.WEIGHTS["evidence"]
+            + context_score * self.WEIGHTS["context"]
+            + specialized_score * self.WEIGHTS["specialized"]
+            + confidence_score * self.WEIGHTS["confidence"]
+            + commitment_score * self.WEIGHTS["commitment"]
+        )
+
+        # ------------------------------------------------------------
+        # Directional synthesis
+        # ------------------------------------------------------------
+
+        directional_bias = self._directional_bias(
+            normalized
+        )
+
+        # ------------------------------------------------------------
+        # Contradiction detection
+        # ------------------------------------------------------------
+
+        contradiction_flags.extend(
+            self._detect_contradictions(
+                normalized,
+                evidence_score,
+                context_score,
+                specialized_score,
+                confidence_score,
+                commitment_score,
+                directional_bias,
+            )
+        )
+
+        contradiction = bool(contradiction_flags)
+
+        if contradiction:
+            intelligence_score *= 0.70
+            reasons.append(
+                "Intelligence score reduced because material "
+                "cross-layer contradiction was detected."
+            )
+
+        # ------------------------------------------------------------
+        # Weak layer gates
+        # ------------------------------------------------------------
+
+        if evidence_score < self.MIN_EVIDENCE:
+            reasons.append(
+                "Evidence layer below minimum intelligence threshold."
+            )
+
+        if context_score < self.MIN_CONTEXT:
+            reasons.append(
+                "Market context below minimum intelligence threshold."
+            )
+
+        if confidence_score < self.MIN_CONFIDENCE:
+            reasons.append(
+                "Confidence below minimum intelligence threshold."
+            )
+
+        if commitment_score < self.MIN_COMMITMENT:
+            reasons.append(
+                "Commitment below minimum intelligence threshold."
+            )
+
+        intelligence_score = self._clamp(intelligence_score)
+
+        # ------------------------------------------------------------
+        # Decision-ready gate
+        # ------------------------------------------------------------
+
+        decision_ready = (
+            intelligence_score >= self.ACTIONABLE_THRESHOLD
+            and evidence_score >= self.MIN_EVIDENCE
+            and context_score >= self.MIN_CONTEXT
+            and confidence_score >= self.MIN_CONFIDENCE
+            and commitment_score >= self.MIN_COMMITMENT
+            and not contradiction
+            and directional_bias in {"BUY", "SELL"}
+        )
+
+        # ------------------------------------------------------------
+        # State
+        # ------------------------------------------------------------
+
+        if contradiction:
+            state = "CONFLICTED"
+        elif intelligence_score >= self.STRONG_THRESHOLD:
+            state = "STRONG"
+        elif decision_ready:
+            state = "ACTIONABLE"
+        elif intelligence_score >= self.ACTIONABLE_THRESHOLD:
+            state = "QUALIFIED"
+        elif intelligence_score >= 50.0:
+            state = "PARTIAL"
+        elif intelligence_score >= 30.0:
+            state = "WEAK"
+        else:
+            state = "INSUFFICIENT"
+
+        # A strong numeric score alone cannot override a failed gate.
+        if (
+            intelligence_score >= self.STRONG_THRESHOLD
+            and not decision_ready
+        ):
+            reasons.append(
+                "High composite score does not override failed "
+                "decision-readiness gates."
+            )
+
+        evidence_snapshot = {
+            "engine": self.VERSION,
+            "formula": (
+                "I=E*0.25+M*0.25+S*0.30+"
+                "C*0.10+K*0.10"
+            ),
+            "weights": dict(self.WEIGHTS),
+            "layers": {
+                "evidence": evidence_score,
+                "context": context_score,
+                "specialized": specialized_score,
+                "confidence": confidence_score,
+                "commitment": commitment_score,
+            },

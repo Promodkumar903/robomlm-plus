@@ -1,0 +1,104 @@
+.ui-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.ui-card__header {
+  margin-bottom: 12px;
+}
+
+.ui-card__title {
+  margin: 0;
+}
+
+.ui-card__subtitle {
+  margin: 4px 0 0;
+  opacity: 0.7;
+}
+
+.ui-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ui-table th,
+.ui-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.ui-status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 12px;
+}
+
+.ui-status-badge[data-tone="success"] {
+  background: var(--success-bg);
+}
+
+.ui-status-badge[data-tone="warning"] {
+  background: var(--warning-bg);
+}
+
+.ui-status-badge[data-tone="danger"] {
+  background: var(--danger-bg);
+}
+
+.ui-status-badge[data-tone="info"] {
+  background: var(--info-bg);
+}
+
+.ui-evidence-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ui-evidence-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.ui-decision-value {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.ui-risk-panel {
+  display: grid;
+  gap: 8px;
+}
+
+.ui-risk-warnings {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.ui-state {
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.ui-state--loading {
+  opacity: 0.7;
+}
+
+.ui-state--error {
+  border: 1px solid var(--danger);
+}
+
+.ui-state--empty {
+  opacity: 0.65;
+}

@@ -1,0 +1,16 @@
+{
+  "balance": 150000.0,
+  "deposits_total": 150000.0,
+  "withdrawals_total": 0.0,
+  "realized_pnl_total": 0.0,
+  "ledger": [
+    {
+      "entry_id": "4cb1dc17-4f78-4521-8ecd-a127e7de7924",
+      "kind": "DEPOSIT",
+      "amount": 50000.0,
+      "balance_after": 150000.0,
+      "note": "test deposit",
+      "created_at": "2026-09-23T19:06:05.507602+00:00"
+    }
+  ]
+}

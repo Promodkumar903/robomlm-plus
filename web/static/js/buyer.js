@@ -1,100 +1,170 @@
-// ROBOMLM — Buyer Workspace
+// ROBOMLM — Buyer workflow
 
-let DATA = null;
+let STATE = { markets: [], strategies: [] };
 
-async function load() {
+async function boot() {
   try {
-    const res = await fetch("/api/buyer");
-    DATA = await res.json();
-    initSelectors();
+    const [m, s] = await Promise.all([
+      fetch("/api/buyer/markets").then(r => r.json()),
+      fetch("/api/buyer/strategies").then(r => r.json()),
+    ]);
+    STATE.markets = m || [];
+    STATE.strategies = s || [];
+    fillMarkets();
+    fillStrategies();
   } catch (e) {
-    console.error("Buyer load failed:", e);
+    console.error("boot failed", e);
   }
 }
 
-function initSelectors() {
-  const mSel = document.getElementById("sel-market");
-  mSel.innerHTML = DATA.markets.map(m => `<option value="${m}">${m}</option>`).join("");
-  mSel.addEventListener("change", () => {
-    refreshInstruments();
-    refreshContracts();
+function fillMarkets() {
+  const sel = document.getElementById("sel-market");
+  STATE.markets.forEach(m => {
+    const o = document.createElement("option");
+    o.value = m.id;
+    o.textContent = m.label;
+    sel.appendChild(o);
   });
-
-  document.getElementById("sel-instrument").addEventListener("change", refreshContracts);
-
-  const sSel = document.getElementById("sel-strategy");
-  sSel.innerHTML = DATA.strategies.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
-
-  refreshInstruments();
-  refreshContracts();
-
-  document.getElementById("btn-apply").addEventListener("click", applyForAnalysis);
 }
 
-function refreshInstruments() {
-  const m = document.getElementById("sel-market").value;
-  const iSel = document.getElementById("sel-instrument");
-  const list = DATA.instruments[m] || [];
-  iSel.innerHTML = list.map(i => `<option value="${i}">${i}</option>`).join("");
+function fillStrategies() {
+  const sel = document.getElementById("sel-strategy");
+  STATE.strategies.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s.id;
+    o.textContent = `${s.name} · min ${s.min_grade}`;
+    sel.appendChild(o);
+  });
 }
 
-function refreshContracts() {
-  const i = document.getElementById("sel-instrument").value;
-  const cSel = document.getElementById("sel-contract");
-  const list = DATA.contracts[i] || [`${i}-SPOT`];
-  cSel.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join("");
+function onMarket() {
+  const id = document.getElementById("sel-market").value;
+  const inst = document.getElementById("sel-instrument");
+  const con = document.getElementById("sel-contract");
+  inst.innerHTML = "<option value=''>— select —</option>";
+  con.innerHTML = "<option value=''>—</option>";
+  con.disabled = true;
+  inst.disabled = !id;
+  document.getElementById("btn-apply").disabled = true;
+
+  if (!id) return;
+  const m = STATE.markets.find(x => x.id === id);
+  m.instruments.forEach(i => {
+    const o = document.createElement("option");
+    o.value = i; o.textContent = i;
+    inst.appendChild(o);
+  });
 }
 
-function applyForAnalysis() {
-  const d = DATA.result;
-  const wrap = document.getElementById("buyer-result");
-  wrap.style.display = "block";
+function onInstrument() {
+  const id = document.getElementById("sel-market").value;
+  const con = document.getElementById("sel-contract");
+  const iv = document.getElementById("sel-instrument").value;
+  con.innerHTML = "<option value=''>— select —</option>";
+  con.disabled = !iv;
+  document.getElementById("btn-apply").disabled = true;
 
-  // Intelligence
-  document.getElementById("r-int-bias").textContent = d.intelligence.bias;
-  document.getElementById("r-int-score").textContent = d.intelligence.score;
-  document.getElementById("r-int-conf").textContent = d.intelligence.confidence.toFixed(2);
-  document.getElementById("r-int-reason").textContent = d.intelligence.reason;
-
-  // Decision
-  const sigEl = document.getElementById("r-dec-signal");
-  sigEl.textContent = d.decision.signal;
-  sigEl.className = "badge-signal " +
-    (d.decision.signal === "BUY" ? "call" :
-     d.decision.signal === "SELL" ? "put" : "hold");
-  document.getElementById("r-dec-grade").textContent = d.decision.grade;
-  document.getElementById("r-dec-score").textContent = d.decision.score;
-  document.getElementById("r-dec-conf").textContent = d.decision.confidence.toFixed(2);
-  document.getElementById("r-dec-reason").textContent = d.decision.reason;
-
-  // Risk
-  document.getElementById("r-risk-score").textContent = d.risk.score;
-  document.getElementById("r-risk-level").textContent = d.risk.level;
-  document.getElementById("r-risk-size").textContent = d.risk.size_factor;
-  document.getElementById("r-risk-sltp").textContent = `${d.risk.sl_pct}% / ${d.risk.tp_pct}%`;
-  document.getElementById("r-risk-rr").textContent = "1 : " + d.risk.rr;
-  document.getElementById("r-risk-reason").textContent = d.risk.summary;
-
-  // CAS
-  document.getElementById("r-cas-status").textContent = "● " + d.cas.status;
-  document.getElementById("r-cas-grid").innerHTML = d.cas.gates.map(g => `
-    <div class="cas-item">
-      <span class="cas-item-name">${g.name}</span>
-      <span class="risk-badge risk-pass">${g.status}</span>
-    </div>
-  `).join("");
-
-  // PLUS
-  document.getElementById("r-plus-status").textContent = "● " + d.plus.status;
-  document.getElementById("r-plus-message").textContent = d.plus.message;
-  document.getElementById("btn-plus").disabled = (d.plus.status !== "READY");
-
-  // Scroll to results
-  wrap.scrollIntoView({ behavior: "smooth", block: "start" });
+  if (!iv) return;
+  const m = STATE.markets.find(x => x.id === id);
+  m.contracts.forEach(c => {
+    const o = document.createElement("option");
+    o.value = c; o.textContent = c;
+    con.appendChild(o);
+  });
 }
 
-document.getElementById("btn-plus").addEventListener("click", () => {
-  alert("PLUS handoff — backend integration pending.");
-});
+function onContract() {
+  const c = document.getElementById("sel-contract").value;
+  const s = document.getElementById("sel-strategy").value;
+  document.getElementById("sel-strategy").disabled = !c;
+  document.getElementById("btn-apply").disabled = !(c && s);
+}
 
-load();
+function onStrategy() {
+  const c = document.getElementById("sel-contract").value;
+  const s = document.getElementById("sel-strategy").value;
+  document.getElementById("btn-apply").disabled = !(c && s);
+}
+
+async function apply() {
+  const payload = {
+    market: document.getElementById("sel-market").value,
+    instrument: document.getElementById("sel-instrument").value,
+    contract: document.getElementById("sel-contract").value,
+    strategy: document.getElementById("sel-strategy").value,
+  };
+
+  const badge = document.getElementById("buyer-badge");
+  badge.textContent = "● ANALYZING";
+  badge.className = "state-badge state-paused";
+
+  try {
+    const res = await fetch("/api/buyer/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const d = await res.json();
+    if (!d.ok) {
+      alert("Failed: " + (d.error || "unknown"));
+      badge.textContent = "● ERROR";
+      badge.className = "state-badge state-stopped";
+      return;
+    }
+    render(d);
+    badge.textContent = "● " + d.plus.verdict;
+    badge.className = "state-badge " + (d.plus.verdict === "READY" ? "state-running" : "state-stopped");
+  } catch (e) {
+    alert("Error: " + e.message);
+  }
+}
+
+function set(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v == null ? "—" : v;
+}
+
+function render(d) {
+  document.getElementById("buyer-result").style.display = "block";
+
+  set("r-signal", d.intelligence.signal);
+  set("r-grade", d.intelligence.grade);
+  set("r-conf", (d.intelligence.confidence * 100).toFixed(0) + "%");
+  set("r-regime", d.intelligence.regime);
+
+  set("r-dir", d.decision.direction);
+  set("r-entry", d.decision.entry);
+  set("r-sl", d.decision.sl);
+  set("r-tp", d.decision.tp);
+  set("r-rr", "1 : " + d.decision.rr.toFixed(2));
+
+  set("r-mloss", d.risk.max_loss_pct + "%");
+  set("r-psize", d.risk.position_size_pct + "%");
+  set("r-cas", d.cas.authorized ? "✅ YES" : "❌ NO");
+  set("r-plus", d.plus.verdict);
+  set("r-reason", d.cas.reason);
+}
+
+function reset() {
+  document.getElementById("sel-market").value = "";
+  document.getElementById("sel-instrument").innerHTML = "<option value=''>—</option>";
+  document.getElementById("sel-instrument").disabled = true;
+  document.getElementById("sel-contract").innerHTML = "<option value=''>—</option>";
+  document.getElementById("sel-contract").disabled = true;
+  document.getElementById("sel-strategy").value = "";
+  document.getElementById("sel-strategy").disabled = true;
+  document.getElementById("btn-apply").disabled = true;
+  document.getElementById("buyer-result").style.display = "none";
+  const badge = document.getElementById("buyer-badge");
+  badge.textContent = "● IDLE";
+  badge.className = "state-badge state-stopped";
+}
+
+document.getElementById("sel-market").addEventListener("change", onMarket);
+document.getElementById("sel-instrument").addEventListener("change", onInstrument);
+document.getElementById("sel-contract").addEventListener("change", onContract);
+document.getElementById("sel-strategy").addEventListener("change", onStrategy);
+document.getElementById("btn-apply").addEventListener("click", apply);
+document.getElementById("btn-reset").addEventListener("click", reset);
+
+boot();

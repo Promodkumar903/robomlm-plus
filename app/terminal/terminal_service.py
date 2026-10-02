@@ -3319,3 +3319,520 @@ __all__ = [
     # Summary
     "build_terminal_service_summary",
 ]
+# ============================================================================
+# ROBOMLM TERMINAL — FRONTEND INTEGRATION CONTRACT
+# PART 1
+# ----------------------------------------------------------------------------
+# Purpose:
+#   Expose the EXISTING Terminal service through one stable application-level
+#   entry point for the frontend/API integration.
+#
+# Rules:
+#   - Does NOT create a new intelligence engine.
+#   - Does NOT calculate a new decision.
+#   - Does NOT create BUY/SELL authority.
+#   - Does NOT bypass D13.
+#   - Does NOT bypass Risk.
+#   - Does NOT bypass CAS.
+#   - Does NOT place orders.
+#   - Does NOT fabricate missing values.
+#   - Existing Terminal components remain their owners.
+# ============================================================================
+
+
+from typing import Any, Mapping
+
+
+_TERMINAL_FRONTEND_CONTRACT_VERSION = "ROBOMLM-TERMINAL-FRONTEND-1.0"
+
+
+def _terminal_frontend_dict(value: Any) -> dict[str, Any]:
+    """
+    Convert an existing Terminal result into a plain dictionary without
+    inventing missing fields.
+
+    Supported existing result types:
+        - dict / Mapping
+        - dataclass-like object
+        - object exposing model_dump()
+        - object exposing dict()
+    """
+    if value is None:
+        return {}
+
+    if isinstance(value, Mapping):
+        return dict(value)
+
+    model_dump = getattr(value, "model_dump", None)
+    if callable(model_dump):
+        try:
+            result = model_dump()
+            if isinstance(result, Mapping):
+                return dict(result)
+        except Exception:
+            pass
+
+    as_dict = getattr(value, "dict", None)
+    if callable(as_dict):
+        try:
+            result = as_dict()
+            if isinstance(result, Mapping):
+                return dict(result)
+        except Exception:
+            pass
+
+    if hasattr(value, "__dict__"):
+        try:
+            return dict(vars(value))
+        except Exception:
+            pass
+
+    return {}
+
+
+def _terminal_frontend_section(
+    result: Mapping[str, Any],
+    *names: str,
+) -> Any:
+    """
+    Resolve an existing Terminal section from the canonical result.
+
+    The canonical Terminal application result keeps:
+        evidence -> top-level
+        intelligence -> pipeline
+        decision -> pipeline
+        risk -> pipeline
+        cas -> pipeline
+
+    This is a transport/presentation lookup only.
+    It does not calculate, transform, or manufacture domain results.
+    """
+    for name in names:
+        if name in result:
+            return result[name]
+
+    pipeline = result.get("pipeline")
+    if isinstance(pipeline, Mapping):
+        for name in names:
+            if name in pipeline:
+                return pipeline[name]
+
+    return None
+
+def terminal_frontend_payload(
+    result: Any,
+    *,
+    symbol: str | None = None,
+    timeframe: str | None = None,
+    market: str | None = None,
+    instrument: str | None = None,
+) -> dict[str, Any]:
+    """
+    Build the frontend transport envelope from an EXISTING Terminal result.
+
+    Important:
+        This function is a presentation/transport adapter only.
+
+        It never creates:
+            - decision
+            - direction
+            - confidence
+            - EQE
+            - risk
+            - CAS approval
+            - execution
+
+        Missing sections remain None instead of being fabricated.
+    """
+    raw = _terminal_frontend_dict(result)
+
+    context = {
+        "symbol": symbol or raw.get("symbol"),
+        "timeframe": timeframe or raw.get("timeframe"),
+        "market": market or raw.get("market"),
+        "instrument": instrument or raw.get("instrument"),
+    }
+
+    payload = dict(raw)
+
+    payload["terminal_contract"] = {
+        "version": _TERMINAL_FRONTEND_CONTRACT_VERSION,
+        "source": "app.terminal.terminal_service",
+        "generated_by": "existing_terminal_service",
+    }
+
+    payload["context"] = context
+
+    # ------------------------------------------------------------------------
+    # Preserve existing Terminal owners.
+    # Nothing is generated here.
+    # ------------------------------------------------------------------------
+
+    payload["sections"] = {
+        "market_context": _terminal_frontend_section(
+         raw, "market_context", "marketContext", "market",
+         ),
+
+        "evidence_strip": _terminal_frontend_section(
+            raw,
+            "evidence_strip",
+            "evidenceStrip",
+            "evidence",
+        ),
+        "intelligence": _terminal_frontend_section(
+            raw,
+            "intelligence",
+            "intelligence_panel",
+            "intelligencePanel",
+        ),
+        "decision_outlook": _terminal_frontend_section(
+            raw,
+            "decision_outlook",
+            "decisionOutlook",
+            "decision",
+        ),
+        "risk": _terminal_frontend_section(
+            raw,
+            "risk",
+            "risk_panel",
+            "riskPanel",
+        ),
+        "cas_status": _terminal_frontend_section(
+            raw,
+            "cas_status",
+            "casStatus",
+            "cas",
+        ),
+    }
+
+    # ------------------------------------------------------------------------
+    # Explicit authority metadata.
+    #
+    # These are architectural declarations, NOT calculated approvals.
+    # ------------------------------------------------------------------------
+
+    payload["authority"] = {
+        "decision_authority": "D13",
+        "risk_authority": "Risk",
+        "execution_authority": "CAS",
+        "frontend_is_authority": False,
+        "frontend_can_execute": False,
+    }
+
+    return payload
+
+
+def terminal_frontend_context(
+    *,
+    symbol: str = "BTC/USDT",
+    timeframe: str = "1m",
+    market: str | None = None,
+    instrument: str | None = None,
+) -> dict[str, Any]:
+    """
+    Return the normalized context used by Terminal frontend integration.
+
+    This does not fetch market data and does not perform analysis.
+    """
+    return {
+        "symbol": str(symbol or "BTC/USDT").strip(),
+        "timeframe": str(timeframe or "1m").strip(),
+        "market": (
+            str(market).strip()
+            if market is not None and str(market).strip()
+            else None
+        ),
+        "instrument": (
+            str(instrument).strip()
+            if instrument is not None and str(instrument).strip()
+            else None
+        ),
+    }
+
+
+# Public compatibility names.
+#
+# API/frontend integration can use these names without depending on private
+# implementation details of the Terminal service.
+terminal_to_frontend = terminal_frontend_payload
+get_terminal_frontend_context = terminal_frontend_context
+# ============================================================
+# ROBOMLM TERMINAL FRONTEND CONTRACT — PART 2
+# Exact Terminal UI mapping
+# ============================================================
+
+_TERMINAL_FRONTEND_UI_VERSION = "ROBOMLM-TERMINAL-UI-1.0"
+
+
+def terminal_frontend_ui_map() -> dict[str, Any]:
+    """
+    Canonical mapping between Terminal backend sections and the
+    EXISTING terminal.html DOM.
+
+    This is presentation metadata only.
+    It does not calculate signals, decisions, risk, CAS or execution.
+    """
+
+    return {
+        "version": _TERMINAL_FRONTEND_UI_VERSION,
+
+        "portfolio": {
+            "capital": "#pf-capital",
+            "balance": "#pf-balance",
+            "today_pnl": "#pf-pnl",
+            "open_positions": "#pf-open",
+            "win_rate": "#pf-winrate",
+            "mode": "#pf-mode",
+            "positions_list": "#pf-pos-list",
+        },
+
+        "market": {
+            "market_select": "#market-select",
+            "symbol_select": "#symbol-select",
+            "price": "#sb-price",
+            "change": "#sb-change",
+            "timeframe_group": "#tf-group",
+            "timeframe_buttons": "[data-tf]",
+            "state_badge": "#state-badge",
+        },
+
+        "chart": {
+            "container": "#chart",
+        },
+
+        "metrics": {
+            "container": "#metrics-strip",
+        },
+
+        "evidence": {
+            "container": "#evidence-strip",
+        },
+
+        "decision": {
+            "box": "#decision-box",
+            "signal_box": "#d13-signal-box",
+            "signal": "#d13-signal-text",
+            "confidence": "#d13-conf",
+            "grade": "#d13-grade",
+            "rr": "#d13-rr",
+            "count": "#decision-count",
+            "reason": "#decision-reason",
+            "progress_bar": "#decision-progress-bar",
+            "advisory": "#d13-advisory",
+        },
+
+        "manual_inputs": {
+            "tp": "#in-tp",
+            "sl": "#in-sl",
+        },
+
+        "trade_controls": {
+            "call": "#btn-call",
+            "put": "#btn-put",
+            "confirm": "#btn-confirm",
+        },
+
+        "cas": {
+            "container": "#p-cas",
+        },
+
+        "log": {
+            "container": "#p-log",
+        },
+
+        "discovery_context": {
+            "symbol": "[data-discovery-symbol]",
+            "market": "[data-discovery-market]",
+            "instrument": "[data-discovery-instrument]",
+            "timeframe": "[data-discovery-timeframe]",
+        },
+    }
+
+
+def _terminal_frontend_ui_section(
+    value: Any,
+    *,
+    section: str,
+    selectors: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Attach the exact existing UI selectors to one backend section.
+
+    No transformation of the underlying domain result is performed
+    beyond the safe frontend dictionary conversion already provided
+    by terminal_frontend_payload().
+    """
+
+    return {
+        "section": section,
+        "selectors": selectors,
+        "data": _terminal_frontend_dict(value),
+    }
+
+
+def build_terminal_frontend_ui_payload(
+    result: Any,
+    *,
+    symbol: str = "",
+    timeframe: str = "",
+    market: str = "",
+    instrument: str = "",
+) -> dict[str, Any]:
+    """
+    Convert the canonical TerminalService result into the frontend
+    contract expected by the existing terminal.html.
+
+    Backend ownership remains unchanged:
+
+        Market Context
+            ↓
+        Evidence
+            ↓
+        Intelligence
+            ↓
+        D13 Decision
+            ↓
+        Risk
+            ↓
+        CAS
+
+    The frontend only renders the returned state.
+    """
+
+    base = terminal_frontend_payload(
+        result,
+        symbol=symbol,
+        timeframe=timeframe,
+        market=market,
+        instrument=instrument,
+    )
+
+    ui = terminal_frontend_ui_map()
+    sections = base.get("sections", {})
+
+    payload = {
+        "contract_version": _TERMINAL_FRONTEND_UI_VERSION,
+
+        "symbol": base.get("symbol", symbol),
+        "timeframe": base.get("timeframe", timeframe),
+
+        "context": base.get("context", {
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "market": market,
+            "instrument": instrument,
+        }),
+
+        "ui": ui,
+
+        "sections": {
+            "portfolio": _terminal_frontend_ui_section(
+                base.get("portfolio"),
+                section="portfolio",
+                selectors=ui["portfolio"],
+            ),
+
+            "market": _terminal_frontend_ui_section(
+                sections.get("market_context"),
+                section="market",
+                selectors=ui["market"],
+            ),
+
+            "chart": _terminal_frontend_ui_section(
+                base.get("chart"),
+                section="chart",
+                selectors=ui["chart"],
+            ),
+
+            "metrics": _terminal_frontend_ui_section(
+                base.get("metrics"),
+                section="metrics",
+                selectors=ui["metrics"],
+            ),
+
+            "evidence": _terminal_frontend_ui_section(
+                sections.get("evidence_strip"),
+                section="evidence",
+                selectors=ui["evidence"],
+            ),
+
+            "intelligence": _terminal_frontend_ui_section(
+                sections.get("intelligence"),
+                section="intelligence",
+                selectors={
+                    "container": "#decision-box",
+                },
+            ),
+
+            "decision": _terminal_frontend_ui_section(
+                sections.get("decision_outlook"),
+                section="decision",
+                selectors=ui["decision"],
+            ),
+
+            "risk": _terminal_frontend_ui_section(
+                sections.get("risk"),
+                section="risk",
+                selectors={
+                    "container": "#decision-box",
+                },
+            ),
+
+            "cas": _terminal_frontend_ui_section(
+                sections.get("cas_status"),
+                section="cas",
+                selectors=ui["cas"],
+            ),
+
+            "log": _terminal_frontend_ui_section(
+                base.get("log"),
+                section="log",
+                selectors=ui["log"],
+            ),
+        },
+
+        "controls": {
+            "manual_inputs": ui["manual_inputs"],
+            "trade_controls": ui["trade_controls"],
+        },
+
+        "authority": {
+            "frontend_is_authority": False,
+            "frontend_can_decide": False,
+            "frontend_can_authorize": False,
+            "frontend_can_execute": False,
+            "decision_authority": "D13",
+            "risk_authority": "RISK",
+            "execution_authority": "CAS",
+        },
+    }
+
+    return payload
+
+
+def terminal_frontend_ui_contract(
+    result: Any,
+    *,
+    symbol: str = "",
+    timeframe: str = "",
+    market: str = "",
+    instrument: str = "",
+) -> dict[str, Any]:
+    """
+    Public compatibility entry point for API/application layers.
+
+    Existing TerminalService remains the owner of the domain result.
+    """
+
+    return build_terminal_frontend_ui_payload(
+        result,
+        symbol=symbol,
+        timeframe=timeframe,
+        market=market,
+        instrument=instrument,
+    )
+
+
+# Compatibility aliases for existing callers.
+build_terminal_ui_payload = build_terminal_frontend_ui_payload
+get_terminal_frontend_ui_map = terminal_frontend_ui_map

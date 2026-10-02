@@ -1,0 +1,1684 @@
+﻿```tsx
+// C:\Users\Administrator\ROBOMLM_PLUS\frontend\src\api\research.ts
+
+/**
+ * ROBOMLM_PLUS
+ * Research / Intelligence API Adapter
+ *
+ * Responsibility:
+ * - Fetch the authoritative backend Research/Terminal intelligence payload.
+ * - Normalize common backend naming variants.
+ * - Preserve backend states exactly.
+ * - Never calculate proprietary intelligence formulas.
+ * - Never invent BUY/SELL decisions.
+ * - Never invent scores, grades, thresholds, or authority.
+ */
+
+export type Decision =
+  | "BUY"
+  | "SELL"
+  | "HOLD"
+  | "WAIT"
+  | "REVIEW"
+  | "BLOCKED"
+  | "UNAVAILABLE";
+
+export type AuthorityState =
+  | "AVAILABLE"
+  | "READY"
+  | "REVIEW"
+  | "BLOCKED"
+  | "DISABLED"
+  | "UNAVAILABLE"
+  | "UNKNOWN";
+
+export interface ResearchInstrument {
+  symbol?: string;
+  market?: string;
+  segment?: string;
+  venue?: string;
+  country?: string;
+  instrumentType?: string;
+  price?: number | null;
+  changePercent?: number | null;
+  liveState?: string;
+}
+
+export interface ResearchDecision {
+  decision: Decision;
+  direction?: string;
+  score?: number | null;
+  grade?: string | null;
+  state?: string;
+  status?: string;
+  ready?: boolean;
+  reason?: string;
+  message?: string;
+}
+
+export interface ResearchIntelligence {
+  state?: string;
+  score?: number | null;
+  grade?: string | null;
+  direction?: string;
+  items?: ResearchEngine[];
+  contradictions?: ResearchContradiction[];
+}
+
+export interface ResearchEngine {
+  id: string;
+  name: string;
+  shortName?: string;
+  score?: number | null;
+  grade?: string | null;
+  state?: string;
+  direction?: string;
+  status?: string;
+  message?: string;
+  reason?: string;
+  source?: string;
+  timestamp?: string;
+}
+
+export interface ResearchStage {
+  id: string;
+  label: string;
+  state:
+    | "PASS"
+    | "ACTIVE"
+    | "PENDING"
+    | "REVIEW"
+    | "BLOCKED"
+    | "FAILED"
+    | "UNAVAILABLE"
+    | "UNKNOWN";
+  message?: string;
+}
+
+export interface ResearchEvidence {
+  id: string;
+  source?: string;
+  dimension?: string;
+  value?: unknown;
+  disposition?: string;
+  validity?: string;
+  reason?: string;
+  observedAt?: string;
+}
+
+export interface ResearchEvidenceState {
+  state?: string;
+  status?: string;
+  packageState?: string;
+  supportingCount?: number;
+  conflictingCount?: number;
+  acceptedCount?: number;
+  rejectedCount?: number;
+  provenance?: string;
+  temporal?: string;
+  items?: ResearchEvidence[];
+}
+
+export interface ResearchContradiction {
+  id: string;
+  type?: string;
+  severity?: string;
+  state?: string;
+  message?: string;
+  resolution?: string;
+  source?: string;
+}
+
+export interface ResearchDecisionMap {
+  marketState?: string;
+  transition?: string;
+  scenario?: string;
+  direction?: string;
+  structure?: string;
+  liquidity?: string;
+  accumulation?: string;
+  distribution?: string;
+  volatility?: string;
+  timing?: string;
+  regime?: string;
+}
+
+export interface ResearchAction {
+  state?: AuthorityState;
+  enabled?: boolean;
+  reason?: string;
+  message?: string;
+}
+
+export interface ResearchTradeAuthority {
+  userPolicy?: {
+    enabled?: boolean;
+    minimumScore?: number | null;
+    belowMinimumAction?: Decision;
+    description?: string;
+  };
+
+  auto?: {
+    state?: AuthorityState;
+    decision?: Decision;
+    enabled?: boolean;
+    reason?: string;
+    message?: string;
+  };
+
+  manual?: {
+    state?: AuthorityState;
+    decision?: Decision;
+    enabled?: boolean;
+    reason?: string;
+    message?: string;
+  };
+
+  actions?: {
+    buy?: ResearchAction;
+    sell?: ResearchAction;
+    hold?: ResearchAction;
+    wait?: ResearchAction;
+  };
+}
+
+export interface ResearchScenarios {
+  id?: string;
+  type?: string;
+  direction?: string;
+  state?: string;
+  description?: string;
+  invalidation?: string;
+}
+
+export interface ResearchSystemState {
+  marketData?: string;
+  evidence?: string;
+  intelligence?: string;
+  risk?: string;
+  execution?: string;
+  cas?: string;
+}
+
+export interface ResearchApiState {
+  requestId?: string;
+  generatedAt?: string;
+
+  instrument: ResearchInstrument;
+
+  decision: ResearchDecision;
+
+  intelligence: ResearchIntelligence;
+
+  engines: ResearchEngine[];
+
+  stages: ResearchStage[];
+
+  decisionMap: ResearchDecisionMap;
+
+  evidence: ResearchEvidenceState;
+
+  contradictions: ResearchContradiction[];
+
+  tradeAuthority: ResearchTradeAuthority;
+
+  scenarios: ResearchScenarios[];
+
+  system: ResearchSystemState;
+
+  raw: unknown;
+}
+
+export interface ResearchApiError {
+  code: string;
+  message: string;
+  retryable: boolean;
+  requestId?: string;
+}
+
+export class ResearchApiException extends Error {
+  readonly code: string;
+  readonly retryable: boolean;
+  readonly requestId?: string;
+
+  constructor(error: ResearchApiError) {
+    super(error.message);
+
+    this.name = "ResearchApiException";
+    this.code = error.code;
+    this.retryable = error.retryable;
+    this.requestId = error.requestId;
+  }
+}
+
+const RESEARCH_ENDPOINT =
+  "/api/terminal/frontend";
+
+/**
+ * Do not use Number(value) blindly for backend objects.
+ */
+function numberOrNull(value: unknown): number | null {
+  if (
+    typeof value === "number" &&
+    Number.isFinite(value)
+  ) {
+    return value;
+  }
+
+  if (
+    typeof value === "string" &&
+    value.trim() !== ""
+  ) {
+    const parsed = Number(value);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+function stringOrUndefined(
+  value: unknown,
+): string | undefined {
+  if (
+    value === undefined ||
+    value === null
+  ) {
+    return undefined;
+  }
+
+  const text = String(value).trim();
+
+  return text === "" ? undefined : text;
+}
+
+function booleanOrUndefined(
+  value: unknown,
+): boolean | undefined {
+  return typeof value === "boolean"
+    ? value
+    : undefined;
+}
+
+function isRecord(
+  value: unknown,
+): value is Record<string, unknown> {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value)
+  );
+}
+
+function first(
+  ...values: unknown[]
+): unknown {
+  for (const value of values) {
+    if (
+      value !== undefined &&
+      value !== null
+    ) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function record(
+  value: unknown,
+): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function array(
+  value: unknown,
+): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function normalizeDecision(
+  value: unknown,
+): Decision {
+  const normalized =
+    String(value ?? "")
+      .trim()
+      .toUpperCase();
+
+  switch (normalized) {
+    case "BUY":
+    case "SELL":
+    case "HOLD":
+    case "WAIT":
+    case "REVIEW":
+    case "BLOCKED":
+      return normalized;
+
+    default:
+      return "UNAVAILABLE";
+  }
+}
+
+function normalizeAuthority(
+  value: unknown,
+): AuthorityState {
+  const normalized =
+    String(value ?? "")
+      .trim()
+      .toUpperCase();
+
+  switch (normalized) {
+    case "AVAILABLE":
+    case "READY":
+    case "REVIEW":
+    case "BLOCKED":
+    case "DISABLED":
+    case "UNAVAILABLE":
+      return normalized;
+
+    default:
+      return "UNKNOWN";
+  }
+}
+
+function normalizeStage(
+  value: unknown,
+): ResearchStage["state"] {
+  const normalized =
+    String(value ?? "")
+      .trim()
+      .toUpperCase();
+
+  switch (normalized) {
+    case "PASS":
+    case "ACTIVE":
+    case "PENDING":
+    case "REVIEW":
+    case "BLOCKED":
+    case "FAILED":
+    case "UNAVAILABLE":
+      return normalized;
+
+    default:
+      return "UNKNOWN";
+  }
+}
+
+/**
+ * Backend responses may be wrapped by:
+ *
+ * {
+ *   data: {...}
+ * }
+ *
+ * or
+ *
+ * {
+ *   result: {...}
+ * }
+ *
+ * or
+ *
+ * {
+ *   terminal: {...}
+ * }
+ *
+ * or directly return the terminal object.
+ */
+function unwrap(
+  payload: unknown,
+): Record<string, unknown> {
+  const root = record(payload);
+
+  const candidates = [
+    root.research,
+    root.intelligence,
+    root.terminal,
+    root.data,
+    root.result,
+    root.state,
+  ];
+
+  for (const candidate of candidates) {
+    if (isRecord(candidate)) {
+      return candidate;
+    }
+  }
+
+  return root;
+}
+
+function normalizeInstrument(
+  root: Record<string, unknown>,
+): ResearchInstrument {
+  const source = record(root.instrument);
+
+  return {
+    symbol: stringOrUndefined(
+      first(
+        source.symbol,
+        root.symbol,
+        source.instrument,
+      ),
+    ),
+
+    market: stringOrUndefined(
+      first(
+        source.market,
+        root.market,
+      ),
+    ),
+
+    segment: stringOrUndefined(
+      first(
+        source.segment,
+        root.segment,
+      ),
+    ),
+
+    venue: stringOrUndefined(
+      first(
+        source.venue,
+        root.venue,
+      ),
+    ),
+
+    country: stringOrUndefined(
+      first(
+        source.country,
+        root.country,
+      ),
+    ),
+
+    instrumentType: stringOrUndefined(
+      first(
+        source.instrumentType,
+        source.instrument_type,
+        root.instrumentType,
+        root.instrument_type,
+      ),
+    ),
+
+    price: numberOrNull(
+      first(
+        source.price,
+        source.currentPrice,
+        root.price,
+        root.currentPrice,
+      ),
+    ),
+
+    changePercent: numberOrNull(
+      first(
+        source.changePercent,
+        source.change_percent,
+        root.changePercent,
+        root.change_percent,
+      ),
+    ),
+
+    liveState: stringOrUndefined(
+      first(
+        source.liveState,
+        source.live_state,
+        root.liveState,
+        root.live_state,
+      ),
+    ),
+  };
+}
+
+function normalizeDecisionState(
+  root: Record<string, unknown>,
+): ResearchDecision {
+  const source = record(root.decision);
+
+  return {
+    decision: normalizeDecision(
+      first(
+        source.decision,
+        source.action,
+        root.decisionState,
+        root.decision_state,
+        root.decision,
+      ),
+    ),
+
+    direction: stringOrUndefined(
+      first(
+        source.direction,
+        root.direction,
+      ),
+    ),
+
+    score: numberOrNull(
+      first(
+        source.score,
+        source.decisionScore,
+        source.decision_score,
+        root.decisionScore,
+        root.decision_score,
+      ),
+    ),
+
+    grade: stringOrUndefined(
+      first(
+        source.grade,
+        source.qualityGrade,
+        source.quality_grade,
+        root.grade,
+        root.qualityGrade,
+        root.quality_grade,
+      ),
+    ),
+
+    state: stringOrUndefined(
+      first(
+        source.state,
+        source.status,
+      ),
+    ),
+
+    status: stringOrUndefined(
+      source.status,
+    ),
+
+    ready: booleanOrUndefined(
+      first(
+        source.ready,
+        source.decisionReady,
+        source.decision_ready,
+      ),
+    ),
+
+    reason: stringOrUndefined(
+      first(
+        source.reason,
+        source.rationale,
+      ),
+    ),
+
+    message: stringOrUndefined(
+      source.message,
+    ),
+  };
+}
+
+function normalizeEngine(
+  value: unknown,
+  index: number,
+): ResearchEngine {
+  const source = record(value);
+
+  const name =
+    stringOrUndefined(
+      first(
+        source.name,
+        source.engine,
+        source.engineName,
+        source.engine_name,
+        source.code,
+        source.id,
+      ),
+    ) ?? `ENGINE-${index + 1}`;
+
+  return {
+    id:
+      stringOrUndefined(
+        source.id,
+      ) ?? name,
+
+    name,
+
+    shortName:
+      stringOrUndefined(
+        first(
+          source.shortName,
+          source.short_name,
+          source.code,
+          name,
+        ),
+      ) ?? name,
+
+    score: numberOrNull(
+      first(
+        source.score,
+        source.value,
+        source.normalizedScore,
+        source.normalized_score,
+      ),
+    ),
+
+    grade: stringOrUndefined(
+      first(
+        source.grade,
+        source.qualityGrade,
+        source.quality_grade,
+      ),
+    ),
+
+    state: stringOrUndefined(
+      first(
+        source.state,
+        source.status,
+        source.context,
+      ),
+    ),
+
+    direction: stringOrUndefined(
+      first(
+        source.direction,
+        source.bias,
+      ),
+    ),
+
+    status: stringOrUndefined(
+      source.status,
+    ),
+
+    message: stringOrUndefined(
+      source.message,
+    ),
+
+    reason: stringOrUndefined(
+      source.reason,
+    ),
+
+    source: stringOrUndefined(
+      source.source,
+    ),
+
+    timestamp: stringOrUndefined(
+      first(
+        source.timestamp,
+        source.asOf,
+        source.as_of,
+      ),
+    ),
+  };
+}
+
+function normalizeEngines(
+  root: Record<string, unknown>,
+): ResearchEngine[] {
+  const intelligence =
+    record(root.intelligence);
+
+  const raw = first(
+    root.engines,
+    root.engineStrip,
+    root.engine_strip,
+    intelligence.engines,
+    intelligence.items,
+    root.intelligenceItems,
+    root.intelligence_items,
+  );
+
+  if (Array.isArray(raw)) {
+    return raw.map(normalizeEngine);
+  }
+
+  /*
+   * Object form:
+   *
+   * {
+   *   engines: {
+   *     EQE: {...},
+   *     MCT: {...}
+   *   }
+   * }
+   */
+  if (isRecord(raw)) {
+    return Object.entries(raw).map(
+      ([key, value], index) => {
+        const item = normalizeEngine(
+          value,
+          index,
+        );
+
+        return {
+          ...item,
+          id: item.id || key,
+          name: item.name || key,
+          shortName:
+            item.shortName || key,
+        };
+      },
+    );
+  }
+
+  return [];
+}
+
+function normalizeStages(
+  root: Record<string, unknown>,
+): ResearchStage[] {
+  const raw = first(
+    root.stages,
+    root.decisionStages,
+    root.decision_stages,
+    record(root.intelligence).stages,
+  );
+
+  if (Array.isArray(raw)) {
+    return raw.map(
+      (value, index) => {
+        const source = record(value);
+
+        const id =
+          stringOrUndefined(
+            first(
+              source.id,
+              source.stage,
+              source.name,
+            ),
+          ) ?? `D${index + 1}`;
+
+        return {
+          id,
+
+          label:
+            stringOrUndefined(
+              first(
+                source.label,
+                source.name,
+                source.stage,
+              ),
+            ) ?? id,
+
+          state: normalizeStage(
+            first(
+              source.state,
+              source.status,
+            ),
+          ),
+
+          message:
+            stringOrUndefined(
+              source.message,
+            ),
+        };
+      },
+    );
+  }
+
+  if (isRecord(raw)) {
+    return Object.entries(raw).map(
+      ([key, value]) => {
+        const source = record(value);
+
+        return {
+          id: key,
+
+          label:
+            stringOrUndefined(
+              first(
+                source.label,
+                source.name,
+              ),
+            ) ?? key,
+
+          state: normalizeStage(
+            first(
+              source.state,
+              source.status,
+              value,
+            ),
+          ),
+
+          message:
+            stringOrUndefined(
+              source.message,
+            ),
+        };
+      },
+    );
+  }
+
+  return [];
+}
+
+function normalizeEvidence(
+  root: Record<string, unknown>,
+): ResearchEvidenceState {
+  const source = record(root.evidence);
+
+  const rawItems = first(
+    source.items,
+    source.evidence,
+    root.evidenceItems,
+    root.evidence_items,
+  );
+
+  const items = array(rawItems).map(
+    (value, index): ResearchEvidence => {
+      const item = record(value);
+
+      return {
+        id:
+          stringOrUndefined(
+            first(
+              item.id,
+              item.evidenceId,
+              item.evidence_id,
+            ),
+          ) ?? `EV-${index + 1}`,
+
+        source:
+          stringOrUndefined(
+            item.source,
+          ),
+
+        dimension:
+          stringOrUndefined(
+            item.dimension,
+          ),
+
+        value: item.value,
+
+        disposition:
+          stringOrUndefined(
+            item.disposition,
+          ),
+
+        validity:
+          stringOrUndefined(
+            item.validity,
+          ),
+
+        reason:
+          stringOrUndefined(
+            item.reason,
+          ),
+
+        observedAt:
+          stringOrUndefined(
+            first(
+              item.observedAt,
+              item.observed_at,
+              item.asOf,
+              item.as_of,
+            ),
+          ),
+      };
+    },
+  );
+
+  return {
+    state:
+      stringOrUndefined(
+        first(
+          source.state,
+          source.status,
+        ),
+      ),
+
+    status:
+      stringOrUndefined(
+        source.status,
+      ),
+
+    packageState:
+      stringOrUndefined(
+        first(
+          source.packageState,
+          source.package_state,
+        ),
+      ),
+
+    supportingCount:
+      numberOrNull(
+        first(
+          source.supportingCount,
+          source.supporting_count,
+        ),
+      ) ?? undefined,
+
+    conflictingCount:
+      numberOrNull(
+        first(
+          source.conflictingCount,
+          source.conflicting_count,
+        ),
+      ) ?? undefined,
+
+    acceptedCount:
+      numberOrNull(
+        first(
+          source.acceptedCount,
+          source.accepted_count,
+        ),
+      ) ?? undefined,
+
+    rejectedCount:
+      numberOrNull(
+        first(
+          source.rejectedCount,
+          source.rejected_count,
+        ),
+      ) ?? undefined,
+
+    provenance:
+      stringOrUndefined(
+        source.provenance,
+      ),
+
+    temporal:
+      stringOrUndefined(
+        first(
+          source.temporal,
+          source.temporalValidation,
+          source.temporal_validation,
+        ),
+      ),
+
+    items,
+  };
+}
+
+function normalizeContradictions(
+  root: Record<string, unknown>,
+): ResearchContradiction[] {
+  const intelligence =
+    record(root.intelligence);
+
+  const raw = first(
+    root.contradictions,
+    intelligence.contradictions,
+  );
+
+  return array(raw).map(
+    (value, index) => {
+      const item = record(value);
+
+      return {
+        id:
+          stringOrUndefined(
+            first(
+              item.id,
+              item.conflictId,
+              item.conflict_id,
+              item.type,
+            ),
+          ) ?? `CON-${index + 1}`,
+
+        type:
+          stringOrUndefined(
+            item.type,
+          ),
+
+        severity:
+          stringOrUndefined(
+            item.severity,
+          ),
+
+        state:
+          stringOrUndefined(
+            item.state,
+          ),
+
+        message:
+          stringOrUndefined(
+            first(
+              item.message,
+              item.reason,
+            ),
+          ),
+
+        resolution:
+          stringOrUndefined(
+            item.resolution,
+          ),
+
+        source:
+          stringOrUndefined(
+            item.source,
+          ),
+      };
+    },
+  );
+}
+
+function normalizeDecisionMap(
+  root: Record<string, unknown>,
+): ResearchDecisionMap {
+  const source = record(
+    first(
+      root.decisionMap,
+      root.decision_map,
+    ),
+  );
+
+  return {
+    marketState:
+      stringOrUndefined(
+        first(
+          source.marketState,
+          source.market_state,
+          root.marketState,
+          root.market_state,
+        ),
+      ),
+
+    transition:
+      stringOrUndefined(
+        first(
+          source.transition,
+          source.transitionType,
+          source.transition_type,
+          root.transition,
+          root.transitionType,
+          root.transition_type,
+        ),
+      ),
+
+    scenario:
+      stringOrUndefined(
+        first(
+          source.scenario,
+          source.scenarioType,
+          source.scenario_type,
+          root.scenario,
+          root.scenarioType,
+          root.scenario_type,
+        ),
+      ),
+
+    direction:
+      stringOrUndefined(
+        first(
+          source.direction,
+          root.direction,
+        ),
+      ),
+
+    structure:
+      stringOrUndefined(
+        first(
+          source.structure,
+          root.structure,
+        ),
+      ),
+
+    liquidity:
+      stringOrUndefined(
+        first(
+          source.liquidity,
+          root.liquidity,
+        ),
+      ),
+
+    accumulation:
+      stringOrUndefined(
+        first(
+          source.accumulation,
+          root.accumulation,
+        ),
+      ),
+
+    distribution:
+      stringOrUndefined(
+        first(
+          source.distribution,
+          root.distribution,
+        ),
+      ),
+
+    volatility:
+      stringOrUndefined(
+        first(
+          source.volatility,
+          root.volatility,
+        ),
+      ),
+
+    timing:
+      stringOrUndefined(
+        first(
+          source.timing,
+          root.timing,
+        ),
+      ),
+
+    regime:
+      stringOrUndefined(
+        first(
+          source.regime,
+          root.regime,
+        ),
+      ),
+  };
+}
+
+function normalizeTradeAuthority(
+  root: Record<string, unknown>,
+): ResearchTradeAuthority {
+  const source = record(
+    first(
+      root.tradeAuthority,
+      root.trade_authority,
+    ),
+  );
+
+  const auto = record(source.auto);
+  const manual = record(source.manual);
+  const policy = record(
+    source.userPolicy,
+  );
+
+  const actions = record(
+    source.actions,
+  );
+
+  const normalizeAction = (
+    value: unknown,
+  ): ResearchAction => {
+    const action = record(value);
+
+    return {
+      state: normalizeAuthority(
+        action.state,
+      ),
+
+      enabled:
+        booleanOrUndefined(
+          action.enabled,
+        ),
+
+      reason:
+        stringOrUndefined(
+          action.reason,
+        ),
+
+      message:
+        stringOrUndefined(
+          action.message,
+        ),
+    };
+  };
+
+  return {
+    userPolicy: {
+      enabled:
+        booleanOrUndefined(
+          policy.enabled,
+        ),
+
+      minimumScore:
+        numberOrNull(
+          first(
+            policy.minimumScore,
+            policy.minimum_score,
+          ),
+        ),
+
+      belowMinimumAction:
+        normalizeDecision(
+          first(
+            policy.belowMinimumAction,
+            policy.below_minimum_action,
+          ),
+        ),
+
+      description:
+        stringOrUndefined(
+          policy.description,
+        ),
+    },
+
+    auto: {
+      state: normalizeAuthority(
+        auto.state,
+      ),
+
+      decision: normalizeDecision(
+        auto.decision,
+      ),
+
+      enabled:
+        booleanOrUndefined(
+          auto.enabled,
+        ),
+
+      reason:
+        stringOrUndefined(
+          auto.reason,
+        ),
+
+      message:
+        stringOrUndefined(
+          auto.message,
+        ),
+    },
+
+    manual: {
+      state: normalizeAuthority(
+        manual.state,
+      ),
+
+      decision: normalizeDecision(
+        manual.decision,
+      ),
+
+      enabled:
+        booleanOrUndefined(
+          manual.enabled,
+        ),
+
+      reason:
+        stringOrUndefined(
+          manual.reason,
+        ),
+
+      message:
+        stringOrUndefined(
+          manual.message,
+        ),
+    },
+
+    actions: {
+      buy: normalizeAction(
+        actions.buy,
+      ),
+
+      sell: normalizeAction(
+        actions.sell,
+      ),
+
+      hold: normalizeAction(
+        actions.hold,
+      ),
+
+      wait: normalizeAction(
+        actions.wait,
+      ),
+    },
+  };
+}
+
+function normalizeScenarios(
+  root: Record<string, unknown>,
+): ResearchScenarios[] {
+  const intelligence =
+    record(root.intelligence);
+
+  const raw = first(
+    root.scenarios,
+    root.futureScenarios,
+    root.future_scenarios,
+    intelligence.scenarios,
+  );
+
+  return array(raw).map(
+    (value) => {
+      const item = record(value);
+
+      return {
+        id:
+          stringOrUndefined(
+            item.id,
+          ),
+
+        type:
+          stringOrUndefined(
+            first(
+              item.type,
+              item.scenarioType,
+              item.scenario_type,
+            ),
+          ),
+
+        direction:
+          stringOrUndefined(
+            item.direction,
+          ),
+
+        state:
+          stringOrUndefined(
+            item.state,
+          ),
+
+        description:
+          stringOrUndefined(
+            first(
+              item.description,
+              item.statement,
+              item.reason,
+            ),
+          ),
+
+        invalidation:
+          stringOrUndefined(
+            item.invalidation,
+          ),
+      };
+    },
+  );
+}
+
+function normalizeSystem(
+  root: Record<string, unknown>,
+): ResearchSystemState {
+  const source = record(root.system);
+
+  return {
+    marketData:
+      stringOrUndefined(
+        first(
+          source.marketData,
+          source.market_data,
+        ),
+      ),
+
+    evidence:
+      stringOrUndefined(
+        source.evidence,
+      ),
+
+    intelligence:
+      stringOrUndefined(
+        source.intelligence,
+      ),
+
+    risk:
+      stringOrUndefined(
+        source.risk,
+      ),
+
+    execution:
+      stringOrUndefined(
+        source.execution,
+      ),
+
+    cas:
+      stringOrUndefined(
+        source.cas,
+      ),
+  };
+}
+
+function normalizeResearch(
+  payload: unknown,
+): ResearchApiState {
+  const root = unwrap(payload);
+
+  const rawIntelligence =
+    record(root.intelligence);
+
+  const engines =
+    normalizeEngines(root);
+
+  const intelligenceItems =
+    engines.length > 0
+      ? engines
+      : array(
+          first(
+            rawIntelligence.items,
+            rawIntelligence.engines,
+          ),
+        ).map(normalizeEngine);
+
+  return {
+    requestId:
+      stringOrUndefined(
+        first(
+          root.requestId,
+          root.request_id,
+        ),
+      ),
+
+    generatedAt:
+      stringOrUndefined(
+        first(
+          root.generatedAt,
+          root.generated_at,
+          root.asOf,
+          root.as_of,
+        ),
+      ),
+
+    instrument:
+      normalizeInstrument(root),
+
+    decision:
+      normalizeDecisionState(root),
+
+    intelligence: {
+      state:
+        stringOrUndefined(
+          first(
+            rawIntelligence.state,
+            rawIntelligence.status,
+          ),
+        ),
+
+      score:
+        numberOrNull(
+          first(
+            rawIntelligence.score,
+            rawIntelligence.intelligenceScore,
+            rawIntelligence.intelligence_score,
+          ),
+        ),
+
+      grade:
+        stringOrUndefined(
+          first(
+            rawIntelligence.grade,
+            rawIntelligence.qualityGrade,
+            rawIntelligence.quality_grade,
+          ),
+        ),
+
+      direction:
+        stringOrUndefined(
+          rawIntelligence.direction,
+        ),
+
+      items: intelligenceItems,
+
+      contradictions:
+        normalizeContradictions(root),
+    },
+
+    engines,
+
+    stages:
+      normalizeStages(root),
+
+    decisionMap:
+      normalizeDecisionMap(root),
+
+    evidence:
+      normalizeEvidence(root),
+
+    contradictions:
+      normalizeContradictions(root),
+
+    tradeAuthority:
+      normalizeTradeAuthority(root),
+
+    scenarios:
+      normalizeScenarios(root),
+
+    system:
+      normalizeSystem(root),
+
+    raw: payload,
+  };
+}
+
+function parseApiError(
+  payload: unknown,
+  status: number,
+): ResearchApiError {
+  const root = unwrap(payload);
+  const error = record(root.error);
+
+  return {
+    code:
+      stringOrUndefined(
+        error.code,
+      ) ?? `HTTP_${status}`,
+
+    message:
+      stringOrUndefined(
+        error.message,
+      ) ??
+      `Research backend returned HTTP ${status}.`,
+
+    retryable:
+      typeof error.retryable === "boolean"
+        ? error.retryable
+        : status >= 500,
+
+    requestId:
+      stringOrUndefined(
+        error.requestId,
+      ),
+  };
+}
+
+/**
+ * Fetch the authoritative Research / Intelligence state.
+ *
+ * The backend endpoint is kept in one place so the page itself
+ * does not contain transport logic.
+ */
+export async function getResearch(
+  signal?: AbortSignal,
+): Promise<ResearchApiState> {
+  let response: Response;
+
+  try {
+    response = await fetch(
+      RESEARCH_ENDPOINT,
+      {
+        method: "GET",
+
+        headers: {
+          Accept:
+            "application/json",
+        },
+
+        cache: "no-store",
+
+        signal,
+      },
+    );
+  } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
+      throw error;
+    }
+
+    throw new ResearchApiException({
+      code: "NETWORK_ERROR",
+      message:
+        "Unable to reach the ROBOMLM_PLUS backend.",
+      retryable: true,
+    });
+  }
+
+  let payload: unknown = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    payload = null;
+  }
+
+  if (!response.ok) {
+    throw new ResearchApiException(
+      parseApiError(
+        payload,
+        response.status,
+      ),
+    );
+  }
+
+  return normalizeResearch(
+    payload,
+  );
+}
+
+/**
+ * Convenience polling helper.
+ *
+ * It intentionally returns the complete backend snapshot.
+ * It does not patch individual UI fields or synthesize state.
+ */
+export function createResearchPoller(
+  callback: (
+    state: ResearchApiState,
+  ) => void,
+  onError?: (
+    error: unknown,
+  ) => void,
+  intervalMs = 5000,
+): () => void {
+  let stopped = false;
+  let timer: number | undefined;
+
+  const poll = async () => {
+    if (stopped) {
+      return;
+    }
+
+    try {
+      const state =
+        await getResearch();
+
+      if (!stopped) {
+        callback(state);
+      }
+    } catch (error) {
+      if (!stopped) {
+        onError?.(error);
+      }
+    } finally {
+      if (!stopped) {
+        timer = window.setTimeout(
+          poll,
+          intervalMs,
+        );
+      }
+    }
+  };
+
+  void poll();
+
+  return () => {
+    stopped = true;
+
+    if (timer !== undefined) {
+      window.clearTimeout(timer);
+    }
+  };
+}
+
+/**
+ * Type guard useful to pages/components that receive
+ * unknown backend payloads.
+ */
+export function isResearchApiState(
+  value: unknown,
+): value is ResearchApiState {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    "instrument" in value &&
+    "decision" in value &&
+    "intelligence" in value &&
+    "engines" in value
+  );
+}
+
+export default getResearch;
+```

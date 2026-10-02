@@ -1,0 +1,698 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Chart } from "../src/components/Chart";
+import "./discovery.css";
+
+const API_BASE =
+  (import.meta as ImportMeta & { env?: Record<string, string> }).env
+    ?.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+type TabId = "scanner" | "top10" | "intraday" | "favorites";
+type AnyRecord = Record<string, any>;
+
+type PipelineStage = {
+  stage: string;
+  status: string;
+  produces_trade_instruction?: boolean;
+  data?: AnyRecord;
+};
+
+type DiscoveryResponse = {
+  status?: string;
+  stage?: string;
+  surface?: string;
+  pipeline_order?: string[];
+  stages?: PipelineStage[];
+  data?: AnyRecord;
+  candidates?: AnyRecord[];
+  top10?: AnyRecord[] | AnyRecord;
+  opportunities?: AnyRecord[];
+  [key: string]: any;
+};
+
+type Candidate = AnyRecord & {
+  __index?: number;
+  __symbol?: string;
+  __score?: number | null;
+  __confidence?: number | null;
+  __status?: string;
+  __market?: string;
+  __venue?: string;
+  __rank?: number | null;
+  __direction?: string | null;
+};
+
+const TAB_ENDPOINTS: Record<TabId, string> = {
+  scanner: "/api/discovery/scanner",
+  top10: "/api/discovery/top10",
+  intraday: "/api/discovery/intraday",
+  favorites: "/api/discovery/favorites",
+};
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: "scanner", label: "SCANNER" },
+  { id: "top10", label: "TOP 10" },
+  { id: "intraday", label: "INTRADAY" },
+  { id: "favorites", label: "FAVORITES" },
+];
+
+// -------------------- helpers (unchanged) --------------------
+
+function isRecord(value: unknown): value is AnyRecord {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim() !== "") {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+function firstNumber(record: AnyRecord, names: string[]): number | null {
+  for (const name of names) {
+    const value = asNumber(record[name]);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
+function firstString(record: AnyRecord, names: string[]): string | null {
+  for (const name of names) {
+    const value = record[name];
+    if (typeof value === "string" && value.trim()) return value;
+    if (typeof value === "number") return String(value);
+  }
+  return null;
+}
+
+function formatNumber(value: number | null, digits = 2): string {
+  if (value === null) return "—";
+  return new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: digits,
+  }).format(value);
+}
+
+function formatPercent(value: number | null): string {
+  if (value === null) return "—";
+  const normalized = Math.abs(value) <= 1 ? value * 100 : value;
+  return `${formatNumber(normalized, 2)}%`;
+}
+
+function normalizeCandidate(
+  value: unknown,
+  index: number,
+  fallbackMarket: string,
+  fallbackVenue: string,
+): Candidate | null {
+  if (!isRecord(value)) return null;
+
+  const symbol =
+    firstString(value, [
+      "symbol", "ticker", "instrument_symbol",
+      "exchange_symbol", "asset", "name",
+    ]) || "UNKNOWN";
+
+  const score = firstNumber(value, [
+    "ranking_score", "normalized_score", "score",
+    "rank_score", "opportunity_score",
+  ]);
+
+  const confidence = firstNumber(value, [
+    "confidence", "confidence_score", "confidence_pct",
+    "evidence_completeness",
+  ]);
+
+  const status =
+    firstString(value, [
+      "status", "state", "decision", "eligibility", "opportunity_status",
+    ]) || "AVAILABLE";
+
+  const direction = firstString(value, ["direction", "bias", "signal"]);
+
+  const rank = firstNumber(value, ["rank", "ranking"]);
+
+  const market =
+    firstString(value, ["market", "market_id", "asset_class"]) ||
+    fallbackMarket;
+
+  const venue =
+    firstString(value, [
+      "venue", "venue_id", "exchange", "exchange_name", "primary_exchange",
+    ]) || fallbackVenue;
+
+  return {
+    ...value,
+    __index: index,
+    __symbol: symbol,
+    __score: score,
+    __confidence: confidence,
+    __status: status,
+    __market: market,
+    __venue: venue,
+    __rank: rank,
+    __direction: direction,
+  };
+}
+
+function extractCandidates(payload: DiscoveryResponse): Candidate[] {
+  const sources: unknown[] = [
+    payload.data?.candidates,
+    payload.data?.top10?.candidates,
+    payload.candidates,
+    payload.opportunities,
+    payload.results,
+    payload.assets,
+    payload.items,
+  ];
+
+  // top10 can be array or object
+  if (Array.isArray(payload.top10)) {
+    sources.push(payload.top10);
+  } else if (isRecord(payload.top10)) {
+    sources.push(payload.top10.candidates);
+    sources.push(payload.top10.ranked);
+    sources.push(payload.top10.decisions);
+  }
+
+  const found: unknown[] = [];
+  for (const source of sources) {
+    if (Array.isArray(source)) found.push(...source);
+  }
+
+  const market = firstString(payload, ["market", "market_id"]) || "UNKNOWN";
+  const venue = firstString(payload, ["venue", "venue_id", "exchange"]) || "UNKNOWN";
+
+  const normalized = found
+    .map((item, index) => normalizeCandidate(item, index, market, venue))
+    .filter((item): item is Candidate => item !== null);
+
+  const seen = new Set<string>();
+  return normalized.filter((c) => {
+    const key = `${c.__symbol}|${c.__market}|${c.__venue}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function calculatePriceChange(candidate: Candidate): number | null {
+  const open = firstNumber(candidate, ["open", "o"]);
+  const close = firstNumber(candidate, ["close", "c", "price", "last"]);
+  if (open === null || close === null || open === 0) return null;
+  return ((close - open) / open) * 100;
+}
+
+function extractStages(payload: DiscoveryResponse): PipelineStage[] {
+  if (Array.isArray(payload.stages)) return payload.stages;
+  return [];
+}
+
+async function fetchJson<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+
+  const text = await response.text();
+  let data: any = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(`Non-JSON response (${response.status}).`);
+  }
+
+  if (!response.ok) {
+    const message =
+      firstString(data, ["detail", "message", "error"]) ||
+      `Request failed with HTTP ${response.status}.`;
+    throw new Error(message);
+  }
+
+  return data as T;
+}
+
+async function getDiscovery(
+  tab: TabId,
+  market: string,
+  venue: string,
+  timeframe: string,
+  limit: number,
+): Promise<DiscoveryResponse> {
+  const endpoint = TAB_ENDPOINTS[tab];
+  const params = new URLSearchParams();
+  if (market) params.set("market", market);
+  if (venue) params.set("venue", venue);
+  if (timeframe) params.set("timeframe", timeframe);
+  params.set("limit", String(limit));
+  return fetchJson<DiscoveryResponse>(`${API_BASE}${endpoint}?${params.toString()}`);
+}
+
+async function getPipeline(
+  market: string,
+  venue: string,
+  timeframe: string,
+  limit: number,
+): Promise<PipelineStage[]> {
+  const params = new URLSearchParams();
+  if (market) params.set("market", market);
+  if (venue) params.set("venue", venue);
+  if (timeframe) params.set("timeframe", timeframe);
+  params.set("limit", String(limit));
+  const data = await fetchJson<DiscoveryResponse>(
+    `${API_BASE}/api/discovery?${params.toString()}`,
+  );
+  return extractStages(data);
+}
+
+// -------------------- Stage component --------------------
+
+function Stage({ name, status }: { name: string; status: string }) {
+  const statusClass = status.toUpperCase().includes("ERROR")
+    ? "stage-error"
+    : status.toUpperCase().includes("NOT") ||
+        status.toUpperCase().includes("WAIT") ||
+        status.toUpperCase().includes("EMPTY")
+      ? "stage-muted"
+      : "stage-ready";
+
+  return (
+    <div className="discovery-stage">
+      <span className="stage-name">{name}</span>
+      <span className={`stage-status ${statusClass}`}>{status}</span>
+    </div>
+  );
+}
+
+// -------------------- main --------------------
+
+export default function DiscoveryScanner() {
+  const [tab, setTab] = useState<TabId>("scanner");
+  const [market, setMarket] = useState("CRYPTO");
+  const [venue, setVenue] = useState("BINANCE");
+  const [instrument, setInstrument] = useState("");
+  const [timeframe, setTimeframe] = useState("1h");
+  const [limit, setLimit] = useState(10);
+
+  const [data, setData] = useState<DiscoveryResponse | null>(null);
+  const [stages, setStages] = useState<PipelineStage[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selected, setSelected] = useState<Candidate | null>(null);
+  const [notExposed, setNotExposed] = useState(false);
+
+  const runDiscovery = useCallback(async () => {
+    setLoading(true);
+    setError("");
+    setNotExposed(false);
+    try {
+      const [tabResult, pipelineResult] = await Promise.all([
+        getDiscovery(tab, market, venue, timeframe, limit),
+        getPipeline(market, venue, timeframe, limit).catch(() => [] as PipelineStage[]),
+      ]);
+
+      if (tabResult.status === "NOT_EXPOSED") {
+        setNotExposed(true);
+        setData(null);
+      } else {
+        setData(tabResult);
+      }
+      setStages(pipelineResult);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load Discovery.");
+      setData(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [tab, market, venue, timeframe, limit]);
+
+  useEffect(() => {
+    runDiscovery();
+  }, [runDiscovery]);
+
+  const candidates = useMemo(
+    () => (data ? extractCandidates(data) : []),
+    [data],
+  );
+
+  useEffect(() => {
+    if (candidates.length > 0) {
+      setSelected((prev) => prev ?? candidates[0]);
+    } else {
+      setSelected(null);
+    }
+  }, [candidates]);
+
+  const calculated = useMemo(() => {
+    const prices = candidates
+      .map((c) => firstNumber(c, ["price", "last", "close", "c"]))
+      .filter((v): v is number => v !== null);
+    const volumes = candidates
+      .map((c) => firstNumber(c, ["volume", "v"]))
+      .filter((v): v is number => v !== null);
+    const scores = candidates
+      .map((c) => c.__score)
+      .filter((v): v is number => v !== null);
+    const avgScore = scores.length > 0
+      ? scores.reduce((a, b) => a + b, 0) / scores.length
+      : null;
+    return {
+      count: candidates.length,
+      prices: prices.length,
+      volumes: volumes.length,
+      scored: scores.length,
+      avgScore,
+      minPrice: prices.length > 0 ? Math.min(...prices) : null,
+      maxPrice: prices.length > 0 ? Math.max(...prices) : null,
+    };
+  }, [candidates]);
+
+  return (
+    <div className="discovery-page">
+      {/* HEADER */}
+      <header className="discovery-header">
+        <div>
+          <div className="eyebrow">ROBOMLM</div>
+          <h1>DISCOVERY</h1>
+          <p>Market universe discovery from backend-provided exchange data.</p>
+        </div>
+        <div className="discovery-header-status">
+          <span
+            className={
+              loading
+                ? "status-dot loading"
+                : error
+                  ? "status-dot error"
+                  : "status-dot ready"
+            }
+          />
+          {loading ? "LOADING" : error ? "ERROR" : "BACKEND CONNECTED"}
+        </div>
+      </header>
+
+      {/* CONTROLS */}
+      <section className="discovery-controls">
+        <label>
+          <span>Market / Segment</span>
+          <select value={market} onChange={(e) => setMarket(e.target.value)}>
+            <option value="CRYPTO">CRYPTO</option>
+            <option value="EQUITY">EQUITY</option>
+            <option value="FOREX">FOREX</option>
+            <option value="OPTIONS">OPTIONS</option>
+            <option value="FUTURES">FUTURES</option>
+            <option value="INDEX">INDEX</option>
+            <option value="COMMODITY">COMMODITY</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Venue / Source</span>
+          <select value={venue} onChange={(e) => setVenue(e.target.value)}>
+            <option value="BINANCE">BINANCE</option>
+            <option value="MASSIVE">MASSIVE</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Instrument / Asset</span>
+          <input
+            value={instrument}
+            onChange={(e) => setInstrument(e.target.value)}
+            placeholder="Optional"
+          />
+        </label>
+
+        <label>
+          <span>Timeframe</span>
+          <select value={timeframe} onChange={(e) => setTimeframe(e.target.value)}>
+            <option value="1m">1m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="1h">1h</option>
+            <option value="4h">4h</option>
+            <option value="1d">1d</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Limit</span>
+          <select value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </label>
+
+        <button className="discovery-run" onClick={runDiscovery} disabled={loading}>
+          {loading ? "LOADING..." : "RUN DISCOVERY"}
+        </button>
+      </section>
+
+      {/* TABS */}
+      <div className="discovery-tabs">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            className={`discovery-tab ${tab === t.id ? "discovery-tab-active" : ""}`}
+            onClick={() => setTab(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {error && (
+        <section className="discovery-error">
+          <strong>BACKEND ERROR</strong>
+          <span>{error}</span>
+        </section>
+      )}
+
+      {/* PIPELINE */}
+      {stages.length > 0 && (
+        <section className="discovery-pipeline">
+          {stages.map((s) => (
+            <Stage key={s.stage} name={s.stage} status={s.status || "UNKNOWN"} />
+          ))}
+        </section>
+      )}
+
+      {/* METRICS */}
+      <section className="discovery-metrics">
+        <div className="metric-card">
+          <span>RECEIVED</span>
+          <strong>{calculated.count}</strong>
+          <small>backend candidates</small>
+        </div>
+        <div className="metric-card">
+          <span>PRICE DATA</span>
+          <strong>{calculated.prices}</strong>
+          <small>records with price</small>
+        </div>
+        <div className="metric-card">
+          <span>VOLUME DATA</span>
+          <strong>{calculated.volumes}</strong>
+          <small>records with volume</small>
+        </div>
+        <div className="metric-card">
+          <span>SCORED</span>
+          <strong>{calculated.scored}</strong>
+          <small>backend score present</small>
+        </div>
+        <div className="metric-card">
+          <span>AVG SCORE</span>
+          <strong>{formatNumber(calculated.avgScore)}</strong>
+          <small>display calculation only</small>
+        </div>
+        <div className="metric-card">
+          <span>PRICE RANGE</span>
+          <strong>
+            {formatNumber(calculated.minPrice)} — {formatNumber(calculated.maxPrice)}
+          </strong>
+          <small>received data</small>
+        </div>
+      </section>
+
+      {/* TABLE + CHART */}
+      <section className="discovery-results">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">BACKEND RESULT</span>
+            <h2>{tab === "top10" ? "TOP 10" : tab.toUpperCase()} CANDIDATES</h2>
+          </div>
+          <span className="result-status">{data?.status || (notExposed ? "NOT EXPOSED" : "WAITING")}</span>
+        </div>
+
+        <div className="discovery-split">
+          <div className="discovery-table-wrap">
+            {notExposed ? (
+              <div className="empty-state">
+                <strong>ENDPOINT NOT EXPOSED</strong>
+                <span>
+                  The backend reports this discovery view as NOT_EXPOSED.
+                  No frontend fallback is created.
+                </span>
+              </div>
+            ) : candidates.length === 0 ? (
+              <div className="empty-state">
+                <strong>NO CANDIDATES RECEIVED</strong>
+                <span>
+                  Frontend will not create or invent candidates.
+                  When the backend/provider returns instruments, they will appear here automatically.
+                </span>
+              </div>
+            ) : (
+              <table className="discovery-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>ASSET</th>
+                    <th>MARKET</th>
+                    <th>VENUE</th>
+                    <th>PRICE</th>
+                    <th>CHANGE</th>
+                    <th>VOLUME</th>
+                    <th>SCORE</th>
+                    <th>CONFIDENCE</th>
+                    <th>STATUS</th>
+                    <th>ACTION</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {candidates.slice(0, 10).map((candidate, index) => {
+                    const price = firstNumber(candidate, ["price", "last", "close", "c"]);
+                    const volume = firstNumber(candidate, ["volume", "v"]);
+                    const change =
+                      firstNumber(candidate, [
+                        "change_pct", "changePercent", "percent_change", "pct_change",
+                      ]) ?? calculatePriceChange(candidate);
+
+                    const isSelected =
+                      selected?.__symbol === candidate.__symbol &&
+                      selected?.__market === candidate.__market;
+
+                    return (
+                      <tr
+                        key={`${candidate.__symbol}-${index}`}
+                        className={isSelected ? "row-selected" : ""}
+                        onClick={() => setSelected(candidate)}
+                      >
+                        <td>{index + 1}</td>
+                        <td><strong>{candidate.__symbol}</strong></td>
+                        <td>{candidate.__market}</td>
+                        <td>{candidate.__venue}</td>
+                        <td>{formatNumber(price)}</td>
+                        <td>{formatPercent(change)}</td>
+                        <td>{formatNumber(volume, 0)}</td>
+                        <td>{formatNumber(candidate.__score ?? null)}</td>
+                        <td>{formatPercent(candidate.__confidence ?? null)}</td>
+                        <td>
+                          <span className="candidate-status">
+                            {candidate.__status}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="open-button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const params = new URLSearchParams({
+                                symbol: candidate.__symbol || "",
+                                timeframe,
+                                market: candidate.__market || market,
+                                venue: candidate.__venue || venue,
+                              });
+                              window.location.href = `/discovery/asset?${params.toString()}`;
+                            }}
+                          >
+                            OPEN
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <aside className="discovery-chart-panel">
+            {selected ? (
+              <>
+                <div className="chart-panel-head">
+                  <div>
+                    <div className="chart-panel-symbol">{selected.__symbol}</div>
+                    <div className="chart-panel-meta">
+                      {selected.__market} • {selected.__venue}
+                    </div>
+                  </div>
+                  <button
+                    className="open-button"
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        symbol: selected.__symbol || "",
+                        timeframe,
+                        market: selected.__market || market,
+                        venue: selected.__venue || venue,
+                      });
+                      window.location.href = `/discovery/asset?${params.toString()}`;
+                    }}
+                  >
+                    OPEN DETAIL
+                  </button>
+                </div>
+
+                <Chart
+                  symbol={selected.__symbol || ""}
+                  timeframe={timeframe}
+                  height={340}
+                />
+
+                <div className="chart-intelligence">
+                  <div className="chart-intelligence-title">INTELLIGENCE</div>
+                  <div className="chart-intelligence-row">
+                    <span className="ci-label">STATUS</span>
+                    <span className="ci-value">{selected.__status ?? "—"}</span>
+                  </div>
+                  <div className="chart-intelligence-row">
+                    <span className="ci-label">DIRECTION</span>
+                    <span className="ci-value">{selected.__direction ?? "—"}</span>
+                  </div>
+                  <div className="chart-intelligence-row">
+                    <span className="ci-label">SCORE</span>
+                    <span className="ci-value">{formatNumber(selected.__score ?? null)}</span>
+                  </div>
+                  <div className="chart-intelligence-row">
+                    <span className="ci-label">CONFIDENCE</span>
+                    <span className="ci-value">{formatPercent(selected.__confidence ?? null)}</span>
+                  </div>
+                  <div className="chart-intelligence-row">
+                    <span className="ci-label">RANK</span>
+                    <span className="ci-value">{selected.__rank ?? "—"}</span>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="chart-panel-empty">
+                <strong>SELECT A ROW</strong>
+                <span>Click any row to view chart and intelligence.</span>
+              </div>
+            )}
+          </aside>
+        </div>
+      </section>
+
+      <section className="discovery-note">
+        <strong>ROBOMLM DATA RULE</strong>
+        <span>
+          Values displayed here come from the backend response. The frontend
+          does not fabricate market prices, candidates, scores, confidence,
+          rankings, or trades. Discovery is inspection-only — no buy or sell
+          instruction is produced here.
+        </span>
+      </section>
+    </div>
+  );
+}

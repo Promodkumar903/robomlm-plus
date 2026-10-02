@@ -1,0 +1,248 @@
+===== EQE =====
+10:weights and an automatic Entry_Allowed gate.
+19:4. Decision authority
+22:No BUY/SELL decision is generated.
+59:MIN_SCORE = 0.0
+60:MAX_SCORE = 100.0
+67:class EQEStatus(str, Enum):
+78:class EQEQuality(str, Enum):
+89:class EQEMappingState(str, Enum):
+99:class EQEComponent(str, Enum):
+117:class EQEInput:
+121:    All component scores must already be normalized to 0..100.
+124:        The component scores are measurements supplied by upstream
+141:    signal_age_score: Optional[float] = None
+142:    mtf_score: Optional[float] = None
+143:    momentum_score: Optional[float] = None
+144:    volume_oi_score: Optional[float] = None
+145:    exhaustion_score: Optional[float] = None
+146:    rr_score: Optional[float] = None
+147:    spread_score: Optional[float] = None
+150:    signal_age_weight: Optional[float] = None
+151:    mtf_weight: Optional[float] = None
+152:    momentum_weight: Optional[float] = None
+153:    volume_oi_weight: Optional[float] = None
+154:    exhaustion_weight: Optional[float] = None
+155:    rr_weight: Optional[float] = None
+156:    spread_weight: Optional[float] = None
+168:class EQEState:
+177:        - fabricated confidence
+184:    signal_age_score: Optional[float]
+185:    mtf_score: Optional[float]
+186:    momentum_score: Optional[float]
+187:    volume_oi_score: Optional[float]
+188:    exhaustion_score: Optional[float]
+189:    rr_score: Optional[float]
+190:    spread_score: Optional[float]
+194:    decision_authority: str = "NONE"
+203:    def as_dict(self) -> dict[str, Any]:
+208:            "signal_age_score": self.signal_age_score,
+209:            "mtf_score": self.mtf_score,
+210:            "momentum_score": self.momentum_score,
+211:            "volume_oi_score": self.volume_oi_score,
+212:            "exhaustion_score": self.exhaustion_score,
+213:            "rr_score": self.rr_score,
+214:            "spread_score": self.spread_score,
+219:            "decision_authority":
+220:                self.decision_authority,
+238:class EQEResult:
+247:    weighted_sum: Optional[float]
+272:    def is_valid(self) -> bool:
+276:    def score(self) -> Optional[float]:
+280:    def entry_authorized(self) -> bool:
+289:    def as_dict(self) -> dict[str, Any]:
+297:            "score":
+298:                self.score,
+306:            "weighted_sum":
+307:                self.weighted_sum,
+342:                else self.eqe_state.as_dict(),
+350:class EQEEngine:
+364:        "Σ(component_score_i * calibrated_weight_i)"
+367:    def calculate(
+382:                inputs.signal_age_score,
+385:                inputs.mtf_score,
+388:                inputs.momentum_score,
+391:                inputs.volume_oi_score,
+394:                inputs.exhaustion_score,
+397:                inputs.rr_score,
+400:                inputs.spread_score,
+403:        weights = {
+405:                inputs.signal_age_weight,
+408:                inputs.mtf_weight,
+411:                inputs.momentum_weight,
+414:                inputs.volume_oi_weight,
+417:                inputs.exhaustion_weight,
+420:                inputs.rr_weight,
+423:                inputs.spread_weight,
+437:            error = self._validate_score(
+481:                weighted_sum=None,
+505:        # WEIGHTS
+508:        supplied_weights = [
+510:            for value in weights.values()
+514:        if not supplied_weights:
+536:                weighted_sum=None,
+550:                    "no explicit calibrated weights supplied.",
+557:                    "legacy_v5_weights":
+565:        # COMPLETE WEIGHTS
+568:        missing_weights = [
+570:            for component, weight
+571:            in weights.items()
+572:            if weight is None
+575:        if missing_weights:
+597:                weighted_sum=None,
+611:                    "missing weights: "
+612:                    + ", ".join(missing_weights),
+623:        # VALIDATE WEIGHTS
+626:        for component, weight in weights.items():
+628:            error = self._validate_weight(
+629:                weight,
+630:                f"{component.value}_weight",
+641:        weight_sum = sum(
+642:            float(weight)
+643:            for weight in weights.values()
+647:            weight_sum - 1.0
+651:                "EQE calibrated weights must sum to 1.0."
+687:                weighted_sum=None,
+718:        weighted_sum = sum(
+720:            * float(weights[component])
+725:            MIN_SCORE
+726:            <= weighted_sum
+727:            <= MAX_SCORE
+731:                "EQE weighted result left 0..100 domain."
+735:            weighted_sum
+738:        quality = self._quality_from_score(
+762:            weighted_sum=weighted_sum,
+780:                "weight_sum":
+781:                    weight_sum,
+783:                "decision_authority":
+798:    def _quality_from_score(
+799:        score: float,
+805:        if score >= 80.0:
+808:        if score >= 60.0:
+818:    def _build_state(
+830:            signal_age_score=
+831:                inputs.signal_age_score,
+833:            mtf_score=
+834:                inputs.mtf_score,
+836:            momentum_score=
+837:                inputs.momentum_score,
+839:            volume_oi_score=
+840:                inputs.volume_oi_score,
+842:            exhaustion_score=
+843:                inputs.exhaustion_score,
+845:            rr_score=
+846:                inputs.rr_score,
+848:            spread_score=
+849:                inputs.spread_score,
+853:            decision_authority="NONE",
+868:                "decision_authority":
+878:    def _validate_score(
+904:            MIN_SCORE
+906:            <= MAX_SCORE
+915:    def _validate_weight(
+952:    def _invalid(
+965:            weighted_sum=None,
+977:                "Σ(component_score_i * calibrated_weight_i)"
+994:def calculate_eqe(
+1007:def _run_self_tests() -> None:
+1010:    # Equal weights
+1013:    weight = 1.0 / 7.0
+1036:            signal_age_score=100,
+1037:            mtf_score=100,
+1038:            momentum_score=100,
+1039:            volume_oi_score=100,
+1040:            exhaustion_score=100,
+1041:            rr_score=100,
+1042:            spread_score=100,
+1059:            signal_age_score=100,
+1060:            mtf_score=100,
+1061:            momentum_score=100,
+1062:            volume_oi_score=100,
+1063:            exhaustion_score=100,
+1064:            rr_score=100,
+1065:            spread_score=100,
+1067:            signal_age_weight=weight,
+1068:            mtf_weight=weight,
+1069:            momentum_weight=weight,
+1070:            volume_oi_weight=weight,
+1071:            exhaustion_weight=weight,
+1072:            rr_weight=weight,
+1073:            spread_weight=weight,
+1097:            signal_age_score=0,
+1098:            mtf_score=0,
+1099:            momentum_score=0,
+1100:            volume_oi_score=0,
+1101:            exhaustion_score=0,
+1102:            rr_score=0,
+1103:            spread_score=0,
+1105:            signal_age_weight=weight,
+1106:            mtf_weight=weight,
+1107:            momentum_weight=weight,
+1108:            volume_oi_weight=weight,
+1109:            exhaustion_weight=weight,
+1110:            rr_weight=weight,
+1111:            spread_weight=weight,
+1119:    # TEST 5 — Mid score
+1124:            signal_age_score=50,
+1125:            mtf_score=50,
+1126:            momentum_score=50,
+1127:            volume_oi_score=50,
+1128:            exhaustion_score=50,
+1129:            rr_score=50,
+1130:            spread_score=50,
+1132:            signal_age_weight=weight,
+1133:            mtf_weight=weight,
+1134:            momentum_weight=weight,
+1135:            volume_oi_weight=weight,
+1136:            exhaustion_weight=weight,
+1137:            rr_weight=weight,
+1138:            spread_weight=weight,
+1157:            signal_age_score=100,
+1158:            mtf_score=100,
+1159:            momentum_score=100,
+1160:            volume_oi_score=100,
+1161:            exhaustion_score=100,
+1162:            rr_score=100,
+1164:            spread_score=None,
+1166:            signal_age_weight=weight,
+1167:            mtf_weight=weight,
+1168:            momentum_weight=weight,
+1169:            volume_oi_weight=weight,
+1170:            exhaustion_weight=weight,
+1171:            rr_weight=weight,
+1172:            spread_weight=weight,
+1184:    # TEST 7 — Bad weight sum
+1189:            signal_age_score=50,
+1190:            mtf_score=50,
+1191:            momentum_score=50,
+1192:            volume_oi_score=50,
+1193:            exhaustion_score=50,
+1194:            rr_score=50,
+1195:            spread_score=50,
+1197:            signal_age_weight=0.20,
+1198:            mtf_weight=0.20,
+1199:            momentum_weight=0.20,
+1200:            volume_oi_weight=0.10,
+1201:            exhaustion_weight=0.10,
+1202:            rr_weight=0.05,
+1203:            spread_weight=0.05,
+1213:    # TEST 8 — Invalid score
+1218:            signal_age_score=101,
+1233:            mtf_score=True,
+1248:            signal_age_score=100,
+1249:            mtf_score=100,
+1250:            momentum_score=100,
+1251:            volume_oi_score=100,
+1252:            exhaustion_score=100,
+1253:            rr_score=100,
+1254:            spread_score=100,
+1256:            signal_age_weight=weight,
+1257:            mtf_weight=weight,
+1258:            momentum_weight=weight,
+1259:            volume_oi_weight=weight,
+1260:            exhaustion_weight=weight,
+1261:            rr_weight=weight,
+1262:            spread_weight=weight,
+1269:        result.eqe_state.decision_authority
+1279:    # TEST 11 — Score property
+1283:        result.score

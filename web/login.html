@@ -3,36 +3,720 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ROBOMLM — Sign In</title>
+  <title>ROBOMLM — Login</title>
   <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font-sans);
+    }
+    .auth-card {
+      width: 440px; max-width: 100%;
+      padding: 32px 36px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    /* BRAND */
+    .brand { text-align: center; margin-bottom: 24px; }
+    .brand-mark {
+      width: 56px; height: 56px; margin: 0 auto 10px;
+      background: linear-gradient(135deg, #818cf8, #6366f1);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 700; color: #fff;
+      box-shadow: 0 6px 20px rgba(99,102,241,.35);
+    }
+    .brand-name { font-size: 19px; font-weight: 700; letter-spacing: 1px; }
+    .brand-tag {
+      font-size: 10.5px; color: var(--text-4);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin-top: 3px;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex; gap: 4px;
+      background: var(--bg-3);
+      padding: 4px; border-radius: 8px;
+      margin-bottom: 22px;
+    }
+    .tab {
+      flex: 1; padding: 9px 12px;
+      text-align: center; font-size: 12.5px;
+      font-weight: 600; color: var(--text-3);
+      border-radius: 6px; cursor: pointer;
+      letter-spacing: .3px; transition: all .15s; user-select: none;
+    }
+    .tab:hover { color: var(--text-2); }
+    .tab.active {
+      background: var(--bg-2); color: var(--text);
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    /* FIELDS */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 10.5px;
+      color: var(--text-4);
+      text-transform: uppercase; letter-spacing: 1px;
+      font-weight: 600; margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      background: var(--bg-3); color: var(--text);
+      border: 1px solid var(--border-2);
+      border-radius: 6px;
+      padding: 11px 14px;
+      font-size: 13px; font-family: var(--font-mono);
+    }
+    .field input::placeholder { color: var(--text-4); opacity: .7; }
+    .field input:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+    }
+
+    /* BUTTONS */
+    .btn-primary {
+      width: 100%; padding: 12px;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      color: #fff; border: none; border-radius: 6px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; letter-spacing: .5px;
+      margin-top: 6px; transition: all .15s;
+    }
+    .btn-primary:hover:not(:disabled) { box-shadow: 0 4px 14px rgba(99,102,241,.4); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+    .btn-ghost {
+      width: 100%; padding: 9px;
+      background: var(--bg-3); color: var(--text-3);
+      border: 1px solid var(--border-2);
+      border-radius: 6px;
+      font-size: 12px; cursor: pointer;
+      font-family: var(--font-mono);
+      margin-top: 8px;
+    }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+    .btn-ghost:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* LINKS */
+    .link-row { text-align: center; margin-top: 14px; font-size: 12px; color: var(--text-3); }
+    .link-row a { color: #818cf8; cursor: pointer; text-decoration: none; }
+    .link-row a:hover { text-decoration: underline; }
+
+    /* MESSAGES */
+    .error {
+      color: #f87171; font-size: 12px;
+      margin-top: 10px; min-height: 16px;
+      text-align: center;
+    }
+    .hint {
+      font-size: 11px; color: var(--text-4);
+      text-align: center; margin-top: 16px;
+      font-family: var(--font-mono);
+    }
+
+    /* SUCCESS BANNER */
+    .banner {
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin: 14px 0;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+    .banner.success {
+      background: rgba(34,197,94,.10);
+      border: 1px solid rgba(34,197,94,.35);
+      color: #86efac;
+    }
+    .banner.info {
+      background: rgba(129,140,248,.10);
+      border: 1px solid rgba(129,140,248,.35);
+      color: #a5b4fc;
+    }
+    .banner.warn {
+      background: rgba(251,191,36,.10);
+      border: 1px solid rgba(251,191,36,.35);
+      color: #fcd34d;
+    }
+    .banner-icon { font-size: 16px; line-height: 1; }
+    .banner b { color: #fff; }
+
+    /* OTP */
+    .otp-input {
+      text-align: center !important;
+      font-size: 22px !important;
+      font-weight: 700 !important;
+      letter-spacing: 6px !important;
+      font-family: 'Courier New', monospace !important;
+      padding: 14px 10px 14px 16px !important;
+    }
+    .otp-counter {
+      font-size: 11px; color: var(--text-4);
+      text-align: center; margin-top: 6px;
+      font-family: var(--font-mono);
+    }
+    .otp-counter.done { color: #4ade80; }
+
+    .dev-otp {
+      background: rgba(129,140,248,.12);
+      border: 1px solid rgba(129,140,248,.35);
+      color: #a5b4fc;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      text-align: center;
+      margin-top: 10px;
+      font-family: var(--font-mono);
+    }
+    .dev-otp b { color: #c7d2fe; letter-spacing: 2px; }
+
+    .step-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .step-sub {
+      font-size: 12px;
+      color: var(--text-3);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
-  <div class="login-wrap">
-    <div class="login-card">
-      <div class="login-logo">📈</div>
-      <div class="login-title">ROBOMLM</div>
-      <div class="login-sub">Market Intelligence OS</div>
 
-      <div class="login-status">
-        <span class="status-dot"></span> All Systems Online
+  <div class="auth-card">
+
+    <!-- BRAND -->
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div class="brand-name">ROBOMLM</div>
+      <div class="brand-tag">Intelligence OS</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs" id="tabs">
+      <div class="tab active" data-view="login">Login</div>
+      <div class="tab" data-view="signup">Sign Up</div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- VIEW: LOGIN                                       -->
+    <!-- ================================================ -->
+    <div id="view-login">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="li-email" placeholder="you@example.com" autocomplete="email"/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-primary" id="btn-login">→ Login</button>
+      <div class="link-row"><a id="link-forgot">Forgot password?</a></div>
+      <div class="error" id="li-err"></div>
+      <div class="hint">Demo: demo@robomlm.io / demo123</div>
+    </div>
+
+    <!-- ================================================ -->
+    <!-- VIEW: SIGNUP                                      -->
+    <!-- ================================================ -->
+    <div id="view-signup" class="hidden">
+
+      <!-- STEP 1 -->
+      <div id="signup-step-1">
+        <div class="field">
+          <label>Display Name</label>
+          <input type="text" id="su-name" placeholder="Your name" autocomplete="name"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="su-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="su-pass" placeholder="min 6 characters" autocomplete="new-password"/>
+        </div>
+        <button class="btn-primary" id="btn-signup">→ Send OTP</button>
+        <div class="error" id="su-err"></div>
       </div>
 
-      <a href="/terminal" class="btn btn-block btn-lg">
-        <span class="btn-icon">🚀</span>
-        Enter Terminal
-      </a>
+      <!-- STEP 2 -->
+      <div id="signup-step-2" class="hidden">
+        <div class="step-title">📧 Verify your email</div>
+        <div class="step-sub">
+          We sent a 6-digit code to <b id="su-email-display">—</b>
+        </div>
 
-      <div class="login-links">
-        <a href="/constitution">Constitution</a>
-        <span class="sep">·</span>
-        <a href="/risk-disclosure">Risk Disclosure</a>
-      </div>
+        <div id="su-banner-sent" class="banner success">
+          <span class="banner-icon">✅</span>
+          <div>
+            <b>OTP sent successfully</b><br>
+            Check your email inbox (also check spam). In dev mode, also check server console.
+          </div>
+        </div>
 
-      <div class="login-footer">
-        v0.1 · UI Layer · Presentation Only<br>
-        ROBOMLM Market Intelligence OS
+        <div class="field">
+          <label>Enter 6-digit OTP</label>
+          <input type="text" id="su-otp" maxlength="6" inputmode="numeric" pattern="\d*" class="otp-input" placeholder="••••••" autocomplete="one-time-code"/>
+          <div class="otp-counter" id="su-otp-count">0 / 6 digits</div>
+        </div>
+
+        <button class="btn-primary" id="btn-signup-verify" disabled>✓ Verify &amp; Create Account</button>
+
+        <button class="btn-ghost" id="btn-signup-resend" disabled>Resend OTP in 30s</button>
+
+        <div class="link-row"><a id="link-signup-back">← Change email</a></div>
+        <div class="error" id="su-err2"></div>
+        <div class="dev-otp hidden" id="su-devotp">OTP (dev): <b>------</b></div>
       </div>
     </div>
+
+    <!-- ================================================ -->
+    <!-- VIEW: FORGOT PASSWORD                             -->
+    <!-- ================================================ -->
+    <div id="view-forgot" class="hidden">
+
+      <!-- STEP 1 -->
+      <div id="forgot-step-1">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="fp-email" placeholder="your registered email"/>
+        </div>
+        <button class="btn-primary" id="btn-forgot">→ Send Reset OTP</button>
+        <div class="link-row"><a id="link-forgot-back">← Back to Login</a></div>
+        <div class="error" id="fp-err"></div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="forgot-step-2" class="hidden">
+        <div class="step-title">🔐 Reset your password</div>
+        <div class="step-sub">
+          Enter the 6-digit code we sent to <b id="fp-email-display">—</b>
+        </div>
+
+        <div id="fp-banner-sent" class="banner success">
+          <span class="banner-icon">✅</span>
+          <div>
+            <b>OTP sent</b><br>
+            Check your email inbox (also check spam). In dev mode, also check server console.
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Enter 6-digit OTP</label>
+          <input type="text" id="fp-otp" maxlength="6" inputmode="numeric" pattern="\d*" class="otp-input" placeholder="••••••" autocomplete="one-time-code"/>
+          <div class="otp-counter" id="fp-otp-count">0 / 6 digits</div>
+        </div>
+
+        <button class="btn-primary" id="btn-forgot-verify" disabled>✓ Verify OTP</button>
+        <button class="btn-ghost" id="btn-forgot-resend" disabled>Resend OTP in 30s</button>
+
+        <div class="link-row"><a id="link-forgot-2-back">← Change email</a></div>
+        <div class="error" id="fp-err2"></div>
+        <div class="dev-otp hidden" id="fp-devotp">OTP (dev): <b>------</b></div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div id="forgot-step-3" class="hidden">
+        <div class="step-title">🔑 Set new password</div>
+        <div class="step-sub">Choose a new password for your account.</div>
+        <div class="field">
+          <label>New Password</label>
+          <input type="password" id="fp-newpass" placeholder="min 6 characters"/>
+        </div>
+        <div class="field">
+          <label>Confirm New Password</label>
+          <input type="password" id="fp-confirm" placeholder="repeat password"/>
+        </div>
+        <button class="btn-primary" id="btn-reset">✓ Set New Password</button>
+        <div class="error" id="fp-err3"></div>
+      </div>
+
+      <!-- DONE -->
+      <div id="forgot-done" class="hidden" style="text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:12px;">✅</div>
+        <div class="step-title">Password reset successful</div>
+        <div class="hint" style="margin-top:16px;">Redirecting to login...</div>
+      </div>
+    </div>
+
   </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const show = el => el.classList.remove("hidden");
+    const hide = el => el.classList.add("hidden");
+    let FORGOT_EMAIL = "";
+    let SU_EMAIL = "";
+
+    // =========================================================
+    // TAB SWITCHING
+    // =========================================================
+    document.querySelectorAll(".tab").forEach(t => {
+      t.addEventListener("click", () => {
+        document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+        t.classList.add("active");
+        const v = t.dataset.view;
+        hide($("view-login")); hide($("view-signup")); hide($("view-forgot"));
+        show($("view-" + v));
+      });
+    });
+
+    // =========================================================
+    // RESEND TIMER
+    // =========================================================
+    function startResendTimer(btnId, label, onReady) {
+      const btn = $(btnId);
+      let n = 30;
+      btn.disabled = true;
+      btn.textContent = `Resend ${label} in ${n}s`;
+      const timer = setInterval(() => {
+        n--;
+        if (n <= 0) {
+          clearInterval(timer);
+          btn.disabled = false;
+          btn.textContent = `↻ Resend ${label}`;
+          btn.dataset.ready = "1";
+        } else {
+          btn.textContent = `Resend ${label} in ${n}s`;
+        }
+      }, 1000);
+      btn.onclick = () => {
+        if (btn.dataset.ready === "1" && onReady) onReady();
+      };
+    }
+
+    // =========================================================
+    // OTP INPUT WIRING
+    // =========================================================
+    function wireOtp(inputId, counterId, verifyBtnId) {
+      const inp = $(inputId);
+      const counter = $(counterId);
+      const btn = $(verifyBtnId);
+      if (!inp) return;
+
+      function refresh() {
+        inp.value = inp.value.replace(/\D/g, "").slice(0, 6);
+        const n = inp.value.length;
+        if (counter) {
+          counter.textContent = n + " / 6 digits";
+          counter.classList.toggle("done", n === 6);
+        }
+        if (btn) btn.disabled = n !== 6;
+      }
+
+      inp.addEventListener("input", refresh);
+      inp.addEventListener("paste", (e) => {
+        const txt = (e.clipboardData || window.clipboardData).getData("text") || "";
+        const digits = txt.replace(/\D/g, "").slice(0, 6);
+        if (digits) { e.preventDefault(); inp.value = digits; refresh(); }
+      });
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && inp.value.length === 6 && btn) btn.click();
+      });
+      refresh();
+    }
+
+    wireOtp("su-otp", "su-otp-count", "btn-signup-verify");
+    wireOtp("fp-otp", "fp-otp-count", "btn-forgot-verify");
+
+    // =========================================================
+    // LOGIN
+    // =========================================================
+    async function doLogin() {
+      const email = $("li-email").value.trim().toLowerCase();
+      const pass = $("li-pass").value;
+      $("li-err").textContent = "";
+      if (!email || !pass) { $("li-err").textContent = "Email and password required"; return; }
+
+      const btn = $("btn-login");
+      btn.disabled = true;
+      btn.textContent = "Logging in...";
+
+      try {
+        const r = await fetch("/api/auth/login", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass }),
+        });
+        const d = await r.json();
+        if (!d.ok) {
+          $("li-err").textContent = d.error || "Login failed";
+          btn.disabled = false; btn.textContent = "→ Login";
+          return;
+        }
+        localStorage.setItem("robomlm_token", d.token);
+        localStorage.setItem("robomlm_user", d.user_id);
+        localStorage.setItem("robomlm_email", d.email);
+        localStorage.setItem("robomlm_name", d.display_name || "");
+        window.location.href = "/constitution";
+      } catch (e) {
+        $("li-err").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "→ Login";
+      }
+    }
+    $("btn-login").addEventListener("click", doLogin);
+    $("li-pass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+    $("li-email").addEventListener("keydown", e => { if (e.key === "Enter") $("li-pass").focus(); });
+
+    // =========================================================
+    // SIGNUP
+    // =========================================================
+    async function sendSignupOtp() {
+      const name = $("su-name").value.trim();
+      const email = $("su-email").value.trim().toLowerCase();
+      const pass = $("su-pass").value;
+      $("su-err").textContent = "";
+
+      if (!name) { $("su-err").textContent = "Display name required"; return; }
+      if (!email || !email.includes("@")) { $("su-err").textContent = "Valid email required"; return; }
+      if (pass.length < 6) { $("su-err").textContent = "Password must be at least 6 characters"; return; }
+
+      const btn = $("btn-signup");
+      btn.disabled = true;
+      btn.textContent = "Sending OTP...";
+
+      try {
+        const r = await fetch("/api/auth/signup/start", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ display_name: name, email, password: pass }),
+        });
+        const d = await r.json();
+
+        btn.disabled = false;
+        btn.textContent = "→ Send OTP";
+
+        if (!d.ok) { $("su-err").textContent = d.error || "Signup failed"; return; }
+
+        SU_EMAIL = email;
+        hide($("signup-step-1"));
+        show($("signup-step-2"));
+        $("su-email-display").textContent = email;
+        $("su-otp").value = "";
+        $("su-otp").dispatchEvent(new Event("input"));
+        $("su-otp").focus();
+
+        // Show dev OTP if returned
+        if (d.dev_otp) {
+          $("su-devotp").classList.remove("hidden");
+          $("su-devotp").innerHTML = 'OTP (dev): <b>' + d.dev_otp + '</b>';
+        } else {
+          $("su-devotp").classList.add("hidden");
+        }
+
+        startResendTimer("btn-signup-resend", "OTP", sendSignupOtp);
+      } catch (e) {
+        $("su-err").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "→ Send OTP";
+      }
+    }
+    $("btn-signup").addEventListener("click", sendSignupOtp);
+
+    $("btn-signup-verify").addEventListener("click", async () => {
+      const otp = $("su-otp").value.trim();
+      $("su-err2").textContent = "";
+
+      if (otp.length !== 6) {
+        $("su-err2").textContent = "OTP must be exactly 6 digits (you entered " + otp.length + ")";
+        return;
+      }
+
+      const btn = $("btn-signup-verify");
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+
+      try {
+        const r = await fetch("/api/auth/signup/verify", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: SU_EMAIL, otp }),
+        });
+        const d = await r.json();
+        if (!d.ok) {
+          $("su-err2").textContent = d.error || "Verification failed";
+          btn.disabled = false; btn.textContent = "✓ Verify & Create Account";
+          return;
+        }
+        localStorage.setItem("robomlm_token", d.token);
+        localStorage.setItem("robomlm_user", d.user_id);
+        localStorage.setItem("robomlm_email", d.email);
+        window.location.href = "/constitution";
+      } catch (e) {
+        $("su-err2").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "✓ Verify & Create Account";
+      }
+    });
+
+    $("link-signup-back").addEventListener("click", () => {
+      hide($("signup-step-2"));
+      show($("signup-step-1"));
+      $("su-err2").textContent = "";
+    });
+
+    // =========================================================
+    // FORGOT PASSWORD
+    // =========================================================
+    $("link-forgot").addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+      hide($("view-login")); hide($("view-signup"));
+      show($("view-forgot"));
+      hide($("forgot-step-2")); hide($("forgot-step-3")); hide($("forgot-done"));
+      show($("forgot-step-1"));
+    });
+
+    $("link-forgot-back").addEventListener("click", () => {
+      hide($("view-forgot"));
+      show($("view-login"));
+      document.querySelectorAll(".tab")[0].classList.add("active");
+    });
+
+    $("link-forgot-2-back").addEventListener("click", () => {
+      hide($("forgot-step-2"));
+      show($("forgot-step-1"));
+      $("fp-err2").textContent = "";
+    });
+
+    async function sendForgotOtp() {
+      const email = $("fp-email").value.trim().toLowerCase();
+      $("fp-err").textContent = "";
+      if (!email) { $("fp-err").textContent = "Email required"; return; }
+
+      const btn = $("btn-forgot");
+      btn.disabled = true;
+      btn.textContent = "Sending OTP...";
+
+      try {
+        const r = await fetch("/api/auth/forgot/start", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        const d = await r.json();
+
+        btn.disabled = false;
+        btn.textContent = "→ Send Reset OTP";
+
+        if (!d.ok) { $("fp-err").textContent = d.error || "Failed"; return; }
+
+        FORGOT_EMAIL = email;
+        hide($("forgot-step-1"));
+        show($("forgot-step-2"));
+        $("fp-email-display").textContent = email;
+        $("fp-otp").value = "";
+        $("fp-otp").dispatchEvent(new Event("input"));
+        $("fp-otp").focus();
+
+        if (d.dev_otp) {
+          $("fp-devotp").classList.remove("hidden");
+          $("fp-devotp").innerHTML = 'OTP (dev): <b>' + d.dev_otp + '</b>';
+        } else {
+          $("fp-devotp").classList.add("hidden");
+        }
+
+        startResendTimer("btn-forgot-resend", "OTP", sendForgotOtp);
+      } catch (e) {
+        $("fp-err").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "→ Send Reset OTP";
+      }
+    }
+    $("btn-forgot").addEventListener("click", sendForgotOtp);
+
+    $("btn-forgot-verify").addEventListener("click", async () => {
+      const otp = $("fp-otp").value.trim();
+      $("fp-err2").textContent = "";
+      if (otp.length !== 6) {
+        $("fp-err2").textContent = "OTP must be exactly 6 digits (you entered " + otp.length + ")";
+        return;
+      }
+
+      const btn = $("btn-forgot-verify");
+      btn.disabled = true;
+      btn.textContent = "Verifying...";
+
+      try {
+        const r = await fetch("/api/auth/forgot/verify", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: FORGOT_EMAIL, otp }),
+        });
+        const d = await r.json();
+        if (!d.ok) {
+          $("fp-err2").textContent = d.error || "Invalid OTP";
+          btn.disabled = false; btn.textContent = "✓ Verify OTP";
+          return;
+        }
+        hide($("forgot-step-2"));
+        show($("forgot-step-3"));
+      } catch (e) {
+        $("fp-err2").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "✓ Verify OTP";
+      }
+    });
+
+    $("btn-reset").addEventListener("click", async () => {
+      const p1 = $("fp-newpass").value;
+      const p2 = $("fp-confirm").value;
+      $("fp-err3").textContent = "";
+      if (p1.length < 6) { $("fp-err3").textContent = "Password must be at least 6 characters"; return; }
+      if (p1 !== p2) { $("fp-err3").textContent = "Passwords do not match"; return; }
+
+      const btn = $("btn-reset");
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+
+      try {
+        const r = await fetch("/api/auth/forgot/reset", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: FORGOT_EMAIL, new_password: p1 }),
+        });
+        const d = await r.json();
+        if (!d.ok) {
+          $("fp-err3").textContent = d.error || "Failed";
+          btn.disabled = false; btn.textContent = "✓ Set New Password";
+          return;
+        }
+        hide($("forgot-step-3"));
+        show($("forgot-done"));
+
+        setTimeout(() => {
+          hide($("view-forgot"));
+          show($("view-login"));
+          document.querySelectorAll(".tab")[0].classList.add("active");
+          $("li-email").value = FORGOT_EMAIL;
+          $("li-pass").focus();
+        }, 2000);
+      } catch (e) {
+        $("fp-err3").textContent = "Error: " + e.message;
+        btn.disabled = false; btn.textContent = "✓ Set New Password";
+      }
+    });
+
+    // =========================================================
+    // AUTO-REDIRECT IF LOGGED IN
+    // =========================================================
+    const existingToken = localStorage.getItem("robomlm_token");
+    if (existingToken) {
+      fetch("/api/auth/status?token=" + encodeURIComponent(existingToken))
+        .then(r => r.json())
+        .then(d => {
+          if (d.logged_in) {
+            if (!d.constitution_accepted) window.location.href = "/constitution";
+            else if (!d.risk_accepted) window.location.href = "/risk-disclosure";
+            else window.location.href = "/terminal";
+          }
+        })
+        .catch(() => {});
+    }
+  </script>
 </body>
 </html>

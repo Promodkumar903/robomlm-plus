@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping, Optional
 
 
+
 class MarketServiceError(Exception):
     """Base exception for market-service failures."""
 

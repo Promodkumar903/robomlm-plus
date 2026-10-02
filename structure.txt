@@ -1,509 +1,1120 @@
 Folder PATH listing
-Volume serial number is 9889-F6A6
-C:.
-³   main.py
-³   README.md.txt
-³   requirements.txt
-³   structure.txt
-³   
-ÃÄÄÄ.env
-³       __init__.py
-³       
-ÃÄÄÄ.gitignore
-³       __init__.py
-³       
-ÃÄÄÄapp
-³   ³   __init__.py
-³   ³   
-³   ÃÄÄÄadapters
-³   ³   ³   adapter_base.py
-³   ³   ³   __init__.py
-³   ³   ³   
-³   ³   ÃÄÄÄbinance
-³   ³   ³       binance_client.py
-³   ³   ³       binance_market_data.py
-³   ³   ³       binance_orders.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄbybit
-³   ³   ³       bybit_client.py
-³   ³   ³       bybit_market_data.py
-³   ³   ³       bybit_orders.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄcommodity
-³   ³   ³       commodity_market_data.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄdhan
-³   ³   ³       dhan_client.py
-³   ³   ³       dhan_market_data.py
-³   ³   ³       dhan_orders.py
-³   ³   ³       dhan_positions.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄfx
-³   ³   ³       fx_market_data.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÀÄÄÄkotak
-³   ³           kotak_client.py
-³   ³           kotak_market_data.py
-³   ³           __init__.py
-³   ³           
-³   ÃÄÄÄadmin
-³   ³       admin_service.py
-³   ³       deployment_admin.py
-³   ³       experiment_admin.py
-³   ³       research_admin.py
-³   ³       rollback_admin.py
-³   ³       stress_test_admin.py
-³   ³       validation_admin.py
-³   ³       version_admin.py
-³   ³       __init__.py
-³   ³       
-³   ÃÄÄÄauth
-³   ³       auth_service.py
-³   ³       login_service.py
-³   ³       password_service.py
-³   ³       signup_service.py
-³   ³       token_service.py
-³   ³       __init__.py
-³   ³       
-³   ÃÄÄÄauthorization
-³   ³       access_control.py
-³   ³       entitlement_gate.py
-³   ³       permission_service.py
-³   ³       __init__.py
-³   ³       
-³   ÃÄÄÄcore
-³   ³   ³   __init__.py
-³   ³   ³   
-³   ³   ÃÄÄÄconfig
-³   ³   ³       config_loader.py
-³   ³   ³       environment.py
-³   ³   ³       settings.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄconstants
-³   ³   ³       app_constants.py
-³   ³   ³       market_constants.py
-³   ³   ³       permission_constants.py
-³   ³   ³       status_constants.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄlogging
-³   ³   ³       application_logger.py
-³   ³   ³       audit_logger.py
-³   ³   ³       blackbox_logger.py
-³   ³   ³       logger.py
-³   ³   ³       system_logger.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄsecurity
-³   ³   ³       hashing.py
-³   ³   ³       secrets.py
-³   ³   ³       security_utils.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÀÄÄÄstartup
-³   ³           dependency_check.py
-³   ³           folder_manager.py
-³   ³           shutdown.py
-³   ³           startup_checks.py
-³   ³           __init__.py
-³   ³           
-³   ÃÄÄÄdatabase
-³   ³   ÃÄÄÄmigrations
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄmodels
-³   ³   ³       audit_model.py
-³   ³   ³       decision_model.py
-³   ³   ³       evidence_model.py
-³   ³   ³       market_model.py
-³   ³   ³       subscription_model.py
-³   ³   ³       trade_model.py
-³   ³   ³       user_model.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÀÄÄÄrepositories
-³   ³           decision_repository.py
-³   ³           evidence_repository.py
-³   ³           trade_repository.py
-³   ³           user_repository.py
-³   ³           __init__.py
-³   ³           
-³   ÃÄÄÄdata_quality
-³   ³       completeness_check.py
-³   ³       consistency_check.py
-³   ³       data_quality_engine.py
-³   ³       freshness_check.py
-³   ³       latency_check.py
-³   ³       source_health.py
-³   ³       __init__.py
-³   ³       
-³   ÃÄÄÄintelligence
-³   ³   ³   commitment_engine.py
-³   ³   ³   confidence_engine.py
-³   ³   ³   decision_orchestrator.py
-³   ³   ³   evidence_orchestrator.py
-³   ³   ³   intelligence_orchestrator.py
-³   ³   ³   magnitude_engine.py
-³   ³   ³   market_context.py
-³   ³   ³   opportunity_intelligence.py
-³   ³   ³   regime_intelligence.py
-³   ³   ³   relationship_intelligence.py
-³   ³   ³   strategy_intelligence.py
-³   ³   ³   timing_intelligence.py
-³   ³   ³   verdict_engine.py
-³   ³   ³   __init__.py
-³   ³   ³   
-³   ³   ÃÄÄÄautorobimlm
-³   ³   ³   ³   automation_engine.py
-³   ³   ³   ³   mode_manager.py
-³   ³   ³   ³   strategy_runner.py
-³   ³   ³   ³   __init__.py
-³   ³   ³   ³   
-³   ³   ³   ÃÄÄÄapi
-³   ³   ³   ³   ÃÄÄÄv1
-³   ³   ³   ³   ³       account_api.py
-³   ³   ³   ³   ³       admin_api.py
-³   ³   ³   ³   ³       auth_api.py
-³   ³   ³   ³   ³       automation_api.py
-³   ³   ³   ³   ³       buyer_api.py
-³   ³   ³   ³   ³       discovery_api.py
-³   ³   ³   ³   ³       memory_api.py
-³   ³   ³   ³   ³       research_api.py
-³   ³   ³   ³   ³       terminal_api.py
-³   ³   ³   ³   ³       __init__.py
-³   ³   ³   ³   ³       
-³   ³   ³   ³   ÀÄÄÄwebsocket
-³   ³   ³   ³           market_stream.py
-³   ³   ³   ³           __init__.py
-³   ³   ³   ³           
-³   ³   ³   ÃÄÄÄexecution
-³   ³   ³   ³       execution_manager.py
-³   ³   ³   ³       order_manager.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÃÄÄÄkill_switch
-³   ³   ³   ³       kill_switch.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÃÄÄÄpositions
-³   ³   ³   ³       position_manager.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÃÄÄÄreconciliation
-³   ³   ³   ³       reconciliation_engine.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÃÄÄÄrisk
-³   ³   ³   ³       automation_risk.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÃÄÄÄterminal
-³   ³   ³   ³       cas_status.py
-³   ³   ³   ³       decision_outlook.py
-³   ³   ³   ³       evidence_strip.py
-³   ³   ³   ³       intelligence_panel.py
-³   ³   ³   ³       market_context.py
-³   ³   ³   ³       risk_panel.py
-³   ³   ³   ³       terminal_service.py
-³   ³   ³   ³       __init__.py
-³   ³   ³   ³       
-³   ³   ³   ÀÄÄÄui
-³   ³   ³       ³   app.py
-³   ³   ³       ³   router.py
-³   ³   ³       ³   __init__.py
-³   ³   ³       ³   
-³   ³   ³       ÃÄÄÄaccount
-³   ³   ³       ³       account_page.py
-³   ³   ³       ³       billing_page.py
-³   ³   ³       ³       notification_page.py
-³   ³   ³       ³       settings_page.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÃÄÄÄautomation
-³   ³   ³       ³       automation_page.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÃÄÄÄbuyer
-³   ³   ³       ³       buyer_page.py
-³   ³   ³       ³       cas_view.py
-³   ³   ³       ³       contract_selector.py
-³   ³   ³       ³       decision_view.py
-³   ³   ³       ³       instrument_selector.py
-³   ³   ³       ³       intelligence_view.py
-³   ³   ³       ³       market_selector.py
-³   ³   ³       ³       plus_view.py
-³   ³   ³       ³       risk_view.py
-³   ³   ³       ³       strategy_preview.py
-³   ³   ³       ³       strategy_selector.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÃÄÄÄdiscovery
-³   ³   ³       ³       commodity_scanner.py
-³   ³   ³       ³       crypto_scanner.py
-³   ³   ³       ³       discovery_page.py
-³   ³   ³       ³       favorites.py
-³   ³   ³       ³       fx_scanner.py
-³   ³   ³       ³       index_scanner.py
-³   ³   ³       ³       stock_scanner.py
-³   ³   ³       ³       universal_scanner.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÃÄÄÄmemory
-³   ³   ³       ³       memory_page.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÃÄÄÄresearch
-³   ³   ³       ³       research_page.py
-³   ³   ³       ³       __init__.py
-³   ³   ³       ³       
-³   ³   ³       ÀÄÄÄterminal
-³   ³   ³               terminal_page.py
-³   ³   ³               __init__.py
-³   ³   ³               
-³   ³   ÃÄÄÄcas
-³   ³   ³       cas_audit.py
-³   ³   ³       cas_orchestrator.py
-³   ³   ³       compliance_gate.py
-³   ³   ³       execution_safety_gate.py
-³   ³   ³       exposure_gate.py
-³   ³   ³       position_gate.py
-³   ³   ³       restriction_engine.py
-³   ³   ³       risk_gate.py
-³   ³   ³       suitability_gate.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄdecision
-³   ³   ³       decision_explainer.py
-³   ³   ³       decision_state.py
-³   ³   ³       opportunity_ranker.py
-³   ³   ³       timing_engine.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄevidence
-³   ³   ³       ace.py
-³   ³   ³       dar.py
-³   ³   ³       dcs.py
-³   ³   ³       evidence_confidence.py
-³   ³   ³       evidence_conflict.py
-³   ³   ³       evidence_engine_base.py
-³   ³   ³       evidence_normalizer.py
-³   ³   ³       evidence_package.py
-³   ³   ³       mbc.py
-³   ³   ³       mdil.py
-³   ³   ³       mkn.py
-³   ³   ³       msdl.py
-³   ³   ³       ned.py
-³   ³   ³       oxe.py
-³   ³   ³       source_reliability.py
-³   ³   ³       tv.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄmemory
-³   ³   ³       decision_memory.py
-³   ³   ³       evidence_memory.py
-³   ³   ³       market_memory.py
-³   ³   ³       memory_retrieval.py
-³   ³   ³       memory_service.py
-³   ³   ³       outcome_memory.py
-³   ³   ³       pattern_memory.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄmetrics
-³   ³   ³       eqe.py
-³   ³   ³       lqs.py
-³   ³   ³       mcs.py
-³   ³   ³       mct.py
-³   ³   ³       mts.py
-³   ³   ³       pfs.py
-³   ³   ³       rds.py
-³   ³   ³       tps.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄopportunity
-³   ³   ³       favorites_engine.py
-³   ³   ³       intraday_engine.py
-³   ³   ³       liquidity_filter.py
-³   ³   ³       opportunity_engine.py
-³   ³   ³       opportunity_explainer.py
-³   ³   ³       ranking_engine.py
-³   ³   ³       risk_filter.py
-³   ³   ³       scanner_engine.py
-³   ³   ³       timing_engine.py
-³   ³   ³       top10_engine.py
-³   ³   ³       universe_engine.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄresearch
-³   ³   ³       candidate_manager.py
-³   ³   ³       dataset.py
-³   ³   ³       deployment_manager.py
-³   ³   ³       experiment.py
-³   ³   ³       hypothesis.py
-³   ³   ³       research_service.py
-³   ³   ³       stress_testing.py
-³   ³   ³       validation.py
-³   ³   ³       version_manager.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÀÄÄÄrobomlm_plus
-³   ³           advanced_decision.py
-³   ³           emergency_control.py
-³   ³           execution_preparation.py
-³   ³           halt_controller.py
-³   ³           plus_orchestrator.py
-³   ³           position_monitor.py
-³   ³           protection.py
-³   ³           reconciliation.py
-³   ³           __init__.py
-³   ³           
-³   ÃÄÄÄmarkets
-³   ³   ³   market_service.py
-³   ³   ³   market_session.py
-³   ³   ³   market_state.py
-³   ³   ³   __init__.py
-³   ³   ³   
-³   ³   ÃÄÄÄcontracts
-³   ³   ³       contract_identity.py
-³   ³   ³       contract_registry.py
-³   ³   ³       contract_service.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄinstruments
-³   ³   ³       instrument_identity.py
-³   ³   ³       instrument_registry.py
-³   ³   ³       instrument_service.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÃÄÄÄregistry
-³   ³   ³       market_registry.py
-³   ³   ³       registry_loader.py
-³   ³   ³       venue_registry.py
-³   ³   ³       __init__.py
-³   ³   ³       
-³   ³   ÀÄÄÄvenues
-³   ³           venue_service.py
-³   ³           __init__.py
-³   ³           
-³   ÃÄÄÄsubscription
-³   ³       entitlement_service.py
-³   ³       plan_service.py
-³   ³       subscription_service.py
-³   ³       __init__.py
-³   ³       
-³   ÃÄÄÄusers
-³   ³       profile_service.py
-³   ³       user_service.py
-³   ³       __init__.py
-³   ³       
-³   ÀÄÄÄv6_bridge
-³           v6_blackbox_bridge.py
-³           v6_bridge.py
-³           v6_compatibility.py
-³           v6_loader.py
-³           v6_mapper.py
-³           v6_normalizer.py
-³           __init__.py
-³           
-ÃÄÄÄdocs
-³   ÃÄÄÄarchitecture
-³   ÃÄÄÄimplementation
-³   ÃÄÄÄintelligence
-³   ÃÄÄÄoperations
-³   ÀÄÄÄresearch
-ÃÄÄÄlegacy
-³   ÃÄÄÄv5
-³   ÀÄÄÄv6_current
-ÃÄÄÄregistries
-³       engine_registry.py
-³       feature_registry.py
-³       permission_registry.py
-³       plan_registry.py
-³       strategy_registry.py
-³       version_registry.py
-³       
-ÃÄÄÄrobomlm_data
-³   ÃÄÄÄbackups
-³   ÃÄÄÄblackbox
-³   ³   ÃÄÄÄdecisions
-³   ³   ÃÄÄÄevidence
-³   ³   ÃÄÄÄmemory
-³   ³   ÀÄÄÄoutcomes
-³   ÃÄÄÄcache
-³   ÃÄÄÄexports
-³   ÀÄÄÄlogs
-ÃÄÄÄschemas
-³   ÃÄÄÄcas
-³   ³       cas_result.py
-³   ³       
-³   ÃÄÄÄcommon
-³   ³       identifiers.py
-³   ³       request_context.py
-³   ³       version.py
-³   ³       
-³   ÃÄÄÄcontract
-³   ³       contract_schema.py
-³   ³       
-³   ÃÄÄÄdecision
-³   ³       decision_result.py
-³   ³       
-³   ÃÄÄÄevidence
-³   ³       evidence_item.py
-³   ³       evidence_package.py
-³   ³       
-³   ÃÄÄÄexecution
-³   ³       authorized_action.py
-³   ³       execution_result.py
-³   ³       
-³   ÃÄÄÄinstrument
-³   ³       instrument_schema.py
-³   ³       
-³   ÃÄÄÄintelligence
-³   ³       intelligence_result.py
-³   ³       
-³   ÃÄÄÄmarket
-³   ³       data_quality.py
-³   ³       market_snapshot.py
-³   ³       market_state.py
-³   ³       
-³   ÀÄÄÄrisk
-³           risk_result.py
-³           
-ÃÄÄÄscripts
-³       adapter_test.py
-³       blackbox_check.py
-³       deployment_check.py
-³       health_check.py
-³       integration_test.py
-³       market_data_test.py
-³       registry_check.py
-³       startup_check.py
-³       v6_bridge_test.py
-³       
-ÀÄÄÄtests
-    ÃÄÄÄe2e
-    ÃÄÄÄintegration
-    ³   ÃÄÄÄbuyer
-    ³   ÃÄÄÄcas
-    ³   ÃÄÄÄexecution
-    ³   ÃÄÄÄintelligence
-    ³   ÃÄÄÄscanner
-    ³   ÀÄÄÄv6_bridge
-    ÃÄÄÄstress
-    ³   ÃÄÄÄdata
-    ³   ÃÄÄÄexecution
-    ³   ÃÄÄÄlatency
-    ³   ÃÄÄÄliquidity
-    ³   ÃÄÄÄportfolio
-    ³   ÀÄÄÄregime
-    ÀÄÄÄunit
-        ÃÄÄÄadapters
-        ÃÄÄÄcas
-        ÃÄÄÄcore
-        ÃÄÄÄintelligence
-        ÀÄÄÄschemas
+Volume serial number is 00000091 9889:F6A6
+C:\USERS\ADMINISTRATOR\ROBOMLM_PLUS\APP
+|   __init__.py
+|   
++---adapters
+|   |   adapter_base.py
+|   |   adapter_base.py.bak
+|   |   __init__.py
+|   |   
+|   +---binance
+|   |   |   binance_client.py
+|   |   |   binance_market_data.py
+|   |   |   binance_orders.py
+|   |   |   binance_raw.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           binance_client.cpython-314.pyc
+|   |           binance_market_data.cpython-314.pyc
+|   |           binance_orders.cpython-314.pyc
+|   |           binance_raw.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---bybit
+|   |   |   bybit_client.py
+|   |   |   bybit_market_data.py
+|   |   |   bybit_orders.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           bybit_client.cpython-314.pyc
+|   |           bybit_market_data.cpython-314.pyc
+|   |           bybit_orders.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---commodity
+|   |   |   commodity_market_data.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           commodity_market_data.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---dhan
+|   |   |   dhan_capability_smoke - Copy.py
+|   |   |   dhan_capability_smoke.py
+|   |   |   dhan_client.py
+|   |   |   dhan_market_data.py
+|   |   |   dhan_orders.py
+|   |   |   dhan_positions.py
+|   |   |   
+|   |   \---__pycache__
+|   |           dhan_capability_smoke.cpython-314.pyc
+|   |           dhan_client.cpython-314.pyc
+|   |           dhan_market_data.cpython-314.pyc
+|   |           dhan_orders.cpython-314.pyc
+|   |           dhan_positions.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---fx
+|   |   |   fx_market_data.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           fx_market_data.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---kotak
+|   |   |   kotak_client.py
+|   |   |   kotak_market_data.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           kotak_client.cpython-314.pyc
+|   |           kotak_market_data.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---massive
+|   |   |   massive_client.py
+|   |   |   massive_market_data.py
+|   |   |   massive_market_snapshot_mapper.py
+|   |   |   massive_raw.py
+|   |   |   massive_reference_data.py
+|   |   |   provider_definitions.py
+|   |   |   
+|   |   \---__pycache__
+|   |           massive_aggregates.cpython-314.pyc
+|   |           massive_client.cpython-314.pyc
+|   |           massive_market_data.cpython-314.pyc
+|   |           massive_market_snapshot_mapper.cpython-314.pyc
+|   |           massive_raw.cpython-314.pyc
+|   |           massive_reference_data - Copy (2).cpython-314.pyc
+|   |           massive_reference_data - Copy (3).cpython-314.pyc
+|   |           massive_reference_data.cpython-314.pyc
+|   |           provider_definitions.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           adapter_base.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---admin
+|   |   admin_service.py
+|   |   deployment_admin.py
+|   |   experiment_admin.py
+|   |   research_admin.py
+|   |   rollback_admin.py
+|   |   stress_test_admin.py
+|   |   validation_admin.py
+|   |   version_admin.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           admin_service.cpython-314.pyc
+|           deployment_admin.cpython-314.pyc
+|           experiment_admin.cpython-314.pyc
+|           research_admin.cpython-314.pyc
+|           rollback_admin.cpython-314.pyc
+|           stress_test_admin.cpython-314.pyc
+|           validation_admin.cpython-314.pyc
+|           version_admin.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---api
+|   |   account_routes.py
+|   |   account_routes.py.bak_20260924_010847
+|   |   account_routes.py.deepseek-backup
+|   |   
+|   +---v1
+|   |   |   account_api.py
+|   |   |   admin_api.py
+|   |   |   auth_api.py
+|   |   |   automation_api.py
+|   |   |   autorobomlm_api.py
+|   |   |   autorobomlm_api.py.bak_20260924_001147
+|   |   |   autorobomlm_api.py.bak_20260924_002730
+|   |   |   autorobomlm_api.py.bak_20260924_003511
+|   |   |   autorobomlm_api.py.bak_20260924_004645
+|   |   |   autorobomlm_api.py.bak_20260924_010847
+|   |   |   autorobomlm_api.py.bak_20260924_012308
+|   |   |   autorobomlm_api.py.bak_20260924_020531
+|   |   |   buyer_api.py
+|   |   |   discovery_api.py
+|   |   |   discovery_api.py se _run_universe.txt
+|   |   |   discovery_api.py.bak
+|   |   |   discovery_api.py.before_indent_fix
+|   |   |   discovery_api.py.broken
+|   |   |   discovery_api.py.broken2
+|   |   |   memory_api.py
+|   |   |   research_api.py
+|   |   |   terminal_api.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           account_api.cpython-314.pyc
+|   |           admin_api.cpython-314.pyc
+|   |           auth_api.cpython-314.pyc
+|   |           automation_api.cpython-314.pyc
+|   |           autorobomlm_api.cpython-314.pyc
+|   |           buyer_api.cpython-314.pyc
+|   |           discovery_api.cpython-314.pyc
+|   |           memory_api.cpython-314.pyc
+|   |           research_api.cpython-314.pyc
+|   |           terminal_api.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---websocket
+|   |   |   market_stream.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           market_stream.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           account_routes.cpython-314.pyc
+|           
++---application
+|   |   robomlm_application - Copy.py
+|   |   robomlm_application.py
+|   |   robomlm_application.py.backup
+|   |   
+|   \---__pycache__
+|           robomlm_application.cpython-314.pyc
+|           
++---auth
+|   |   auth_service.py
+|   |   login_service.py
+|   |   password_service.py
+|   |   signup_service.py
+|   |   token_service.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           auth_service.cpython-314.pyc
+|           login_service.cpython-314.pyc
+|           password_service.cpython-314.pyc
+|           signup_service.cpython-314.pyc
+|           token_service.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---authorization
+|   |   access_control.py
+|   |   entitlement_gate.py
+|   |   permission_service.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           access_control.cpython-314.pyc
+|           entitlement_gate.cpython-314.pyc
+|           permission_service.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---autorobimlm
+|   |   automation_engine.py
+|   |   config.py
+|   |   grade_evaluator.py
+|   |   mode_manager.py
+|   |   strategy_runner.py
+|   |   __init__.py
+|   |   
+|   +---execution
+|   |   |   execution_manager.py
+|   |   |   order_manager.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           execution_manager.cpython-314.pyc
+|   |           order_manager.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---kill_switch
+|   |   |   kill_switch.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           kill_switch.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---positions
+|   |   |   position_manager.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           position_manager.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---reconciliation
+|   |   |   reconciliation_engine.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           reconciliation_engine.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---risk
+|   |   |   automation_risk.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           automation_risk.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           automation_engine.cpython-314.pyc
+|           mode_manager.cpython-314.pyc
+|           strategy_runner.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---autorobomlm
+|   |   account_manager.py.REMOVED_20260924_004645
+|   |   autorobomlm_api.py
+|   |   auto_loop.py
+|   |   auto_loop.py.bak_20260924_012308
+|   |   capital_allocator.py
+|   |   config.py
+|   |   constraint_gate.py
+|   |   grade_evaluator.py
+|   |   objective_gate.py
+|   |   paper_broker.py
+|   |   paper_broker.py.bak_20260924_002730
+|   |   paper_broker.py.bak_20260924_012308
+|   |   portfolio_tracker.py
+|   |   portfolio_tracker.py.bak_20260924_012308
+|   |   resource_gate.py
+|   |   run_demo.py
+|   |   signal_adapter.py
+|   |   signal_adapter.py.bak_20260924_122919
+|   |   sl_tp_calculator.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           account_manager.cpython-314.pyc
+|           autorobomlm_api.cpython-314.pyc
+|           auto_loop.cpython-314.pyc
+|           capital_allocator.cpython-314.pyc
+|           config.cpython-314.pyc
+|           constraint_gate.cpython-314.pyc
+|           grade_evaluator.cpython-314.pyc
+|           objective_gate.cpython-314.pyc
+|           paper_broker.cpython-314.pyc
+|           portfolio_tracker.cpython-314.pyc
+|           resource_gate.cpython-314.pyc
+|           run_demo.cpython-314.pyc
+|           signal_adapter.cpython-314.pyc
+|           sl_tp_calculator.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---core
+|   |   __init__.py
+|   |   
+|   +---config
+|   |   |   config_loader.py
+|   |   |   environment.py
+|   |   |   settings.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           config_loader.cpython-314.pyc
+|   |           environment.cpython-314.pyc
+|   |           settings.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---constants
+|   |   |   app_constants.py
+|   |   |   market_constants.py
+|   |   |   permission_constants.py
+|   |   |   status_constants.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           app_constants.cpython-314.pyc
+|   |           market_constants.cpython-314.pyc
+|   |           permission_constants.cpython-314.pyc
+|   |           status_constants.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---logging
+|   |   |   application_logger.py
+|   |   |   audit_logger.py
+|   |   |   blackbox_logger.py
+|   |   |   logger.py
+|   |   |   system_logger.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           application_logger.cpython-314.pyc
+|   |           audit_logger.cpython-314.pyc
+|   |           blackbox_logger.cpython-314.pyc
+|   |           logger.cpython-314.pyc
+|   |           system_logger.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---security
+|   |   |   hashing.py
+|   |   |   secrets.py
+|   |   |   security_utils.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           hashing.cpython-314.pyc
+|   |           secrets.cpython-314.pyc
+|   |           security_utils.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---startup
+|   |   |   dependency_check.py
+|   |   |   folder_manager.py
+|   |   |   shutdown.py
+|   |   |   startup_checks.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           dependency_check.cpython-314.pyc
+|   |           folder_manager.cpython-314.pyc
+|   |           shutdown.cpython-314.pyc
+|   |           startup_checks.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           __init__.cpython-314.pyc
+|           
++---database
+|   |   __init__.py
+|   |   
+|   +---migrations
+|   |   |   0001_initial_schema.py
+|   |   |   migration_base.py
+|   |   |   migration_manager.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           0001_initial_schema.cpython-314.pyc
+|   |           migration_base.cpython-314.pyc
+|   |           migration_manager.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---models
+|   |   |   audit_model.py
+|   |   |   decision_model.py
+|   |   |   evidence_model.py
+|   |   |   market_model.py
+|   |   |   subscription_model.py
+|   |   |   trade_model.py
+|   |   |   user_model.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           audit_model.cpython-314.pyc
+|   |           decision_model.cpython-314.pyc
+|   |           evidence_model.cpython-314.pyc
+|   |           market_model.cpython-314.pyc
+|   |           subscription_model.cpython-314.pyc
+|   |           trade_model.cpython-314.pyc
+|   |           user_model.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---repositories
+|   |   |   decision_repository.py
+|   |   |   evidence_repository.py
+|   |   |   trade_repository.py
+|   |   |   user_repository.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           decision_repository.cpython-314.pyc
+|   |           evidence_repository.cpython-314.pyc
+|   |           trade_repository.cpython-314.pyc
+|   |           user_repository.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           __init__.cpython-314.pyc
+|           
++---data_quality
+|   |   completeness_check.py
+|   |   consistency_check.py
+|   |   data_quality_engine.py
+|   |   freshness_check.py
+|   |   latency_check.py
+|   |   source_health.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           completeness_check.cpython-314.pyc
+|           consistency_check.cpython-314.pyc
+|           data_quality_engine.cpython-314.pyc
+|           freshness_check.cpython-314.pyc
+|           latency_check.cpython-314.pyc
+|           source_health.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---intelligence
+|   |   commitment_engine.py
+|   |   confidence_engine.py
+|   |   decision_orchestrator.py
+|   |   evidence_orchestrator.py
+|   |   intelligence_orchestrator.py
+|   |   live_signal.py
+|   |   magnitude_engine.py
+|   |   market_context.py
+|   |   opportunity_intelligence.py
+|   |   regime_intelligence.py
+|   |   relationship_intelligence.py
+|   |   strategy_intelligence.py
+|   |   timing_intelligence.py
+|   |   verdict_engine.py
+|   |   __init__.py
+|   |   
+|   +---cas
+|   |   |   cas_audit.py
+|   |   |   cas_orchestrator.py
+|   |   |   cas_orchestrator.py.cas-pre-gate-context.bak
+|   |   |   compliance_gate.py
+|   |   |   execution_safety_gate.py
+|   |   |   exposure_gate.py
+|   |   |   position_gate.py
+|   |   |   position_gate.py.operational.bak
+|   |   |   restriction_engine.py
+|   |   |   risk_gate.py
+|   |   |   suitability_gate.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           cas_audit.cpython-314.pyc
+|   |           cas_orchestrator.cpython-314.pyc
+|   |           compliance_gate.cpython-314.pyc
+|   |           execution_safety_gate.cpython-314.pyc
+|   |           exposure_gate.cpython-314.pyc
+|   |           position_gate.cpython-314.pyc
+|   |           restriction_engine.cpython-314.pyc
+|   |           risk_gate.cpython-314.pyc
+|   |           suitability_gate.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---decision
+|   |   |   10_decision_market_state - Copy.py
+|   |   |   10_decision_market_state.py
+|   |   |   10_decision_market_state.py.bak
+|   |   |   11_decision_transition - Copy.py
+|   |   |   11_decision_transition.py
+|   |   |   11_decision_transition.py.part2.casing.bak
+|   |   |   11_decision_transition.py.part3.bak
+|   |   |   11_decision_transition.py.part3.followthrough.bak
+|   |   |   11_decision_transition.py.part4.provenance.bak
+|   |   |   12_decision_future_scenario - Copy.py
+|   |   |   12_decision_future_scenario.py
+|   |   |   13_decision_decision - Copy.py
+|   |   |   13_decision_decision.py
+|   |   |   14_decision_validation - Copy.py
+|   |   |   14_decision_validation.py
+|   |   |   15_decision_learning.py
+|   |   |   16_decision_intelligence - Copy.py
+|   |   |   16_decision_intelligence.py
+|   |   |   1_Decision_Readiness.py
+|   |   |   2_decision_condition.py
+|   |   |   3_decision_confidence.py
+|   |   |   4_decision_relationships.py
+|   |   |   5_decision_structure.py
+|   |   |   6_decision_flow.py
+|   |   |   7_decision_liquidity_volatility.py
+|   |   |   8_decision_instrument_mechanics.py
+|   |   |   9_decision_time_event.py
+|   |   |   decision_explainer.py
+|   |   |   decision_state.py
+|   |   |   htf_scalper_engine.py
+|   |   |   opportunity_ranker.py
+|   |   |   timing_engine.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           10_decision_market_state.cpython-314.pyc
+|   |           11_decision_transition - Copy.cpython-314.pyc
+|   |           11_decision_transition.cpython-314.pyc
+|   |           12_decision_future_scenario.cpython-314.pyc
+|   |           13_decision_decision - Copy.cpython-314.pyc
+|   |           13_decision_decision.cpython-314.pyc
+|   |           14_decision_validation - Copy.cpython-314.pyc
+|   |           14_decision_validation.cpython-314.pyc
+|   |           15_decision_learning.cpython-314.pyc
+|   |           16_decision_intelligence - Copy.cpython-314.pyc
+|   |           16_decision_intelligence.cpython-314.pyc
+|   |           1_Decision_Readiness.cpython-314.pyc
+|   |           2_decision_condition.cpython-314.pyc
+|   |           3_decision_confidence.cpython-314.pyc
+|   |           4_decision_relationships.cpython-314.pyc
+|   |           5_decision_structure.cpython-314.pyc
+|   |           6_decision_flow.cpython-314.pyc
+|   |           7_decision_liquidity_volatility.cpython-314.pyc
+|   |           8_decision_instrument_mechanics.cpython-314.pyc
+|   |           9_decision_time_event.cpython-314.pyc
+|   |           decision_explainer.cpython-314.pyc
+|   |           decision_state.cpython-314.pyc
+|   |           htf_scalper_engine.cpython-314.pyc
+|   |           opportunity_ranker.cpython-314.pyc
+|   |           timing_engine.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---evidence
+|   |   |   ace.py
+|   |   |   dar.py
+|   |   |   dcs.py
+|   |   |   evidence_confidence.py
+|   |   |   evidence_conflict.py
+|   |   |   evidence_engine_base.py
+|   |   |   evidence_normalizer.py
+|   |   |   evidence_orchestrator.py
+|   |   |   evidence_orchestrator.py.backup
+|   |   |   evidence_package.py
+|   |   |   mbc.py
+|   |   |   mdil.py
+|   |   |   mkn.py
+|   |   |   msdl.py
+|   |   |   ned.py
+|   |   |   oxe.py
+|   |   |   source_reliability.py
+|   |   |   tv.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           ace.cpython-314.pyc
+|   |           dar.cpython-314.pyc
+|   |           dcs.cpython-314.pyc
+|   |           evidence_confidence.cpython-314.pyc
+|   |           evidence_conflict.cpython-314.pyc
+|   |           evidence_engine_base.cpython-314.pyc
+|   |           evidence_normalizer.cpython-314.pyc
+|   |           evidence_orchestrator.cpython-314.pyc
+|   |           evidence_package.cpython-314.pyc
+|   |           mbc.cpython-314.pyc
+|   |           mdil.cpython-314.pyc
+|   |           mkn.cpython-314.pyc
+|   |           msdl.cpython-314.pyc
+|   |           ned.cpython-314.pyc
+|   |           oxe.cpython-314.pyc
+|   |           source_reliability.cpython-314.pyc
+|   |           tv.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---memory
+|   |   |   decision_memory.py
+|   |   |   evidence_memory.py
+|   |   |   market_memory.py
+|   |   |   memory_retrieval.py
+|   |   |   memory_service.py
+|   |   |   outcome_memory.py
+|   |   |   pattern_memory.py
+|   |   |   __init__.py
+|   |   |   __init__.py.bak
+|   |   |   
+|   |   \---__pycache__
+|   |           decision_memory.cpython-314.pyc
+|   |           evidence_memory.cpython-314.pyc
+|   |           market_memory.cpython-314.pyc
+|   |           memory_retrieval.cpython-314.pyc
+|   |           memory_service.cpython-314.pyc
+|   |           outcome_memory.cpython-314.pyc
+|   |           pattern_memory.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---metrics
+|   |   |   eqe.py
+|   |   |   lqs.py
+|   |   |   mcs.py
+|   |   |   mct.py
+|   |   |   mct.py.bak
+|   |   |   mts.py
+|   |   |   pfs.py
+|   |   |   rds.py
+|   |   |   tps.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           eqe.cpython-314.pyc
+|   |           lqs.cpython-314.pyc
+|   |           mcs.cpython-314.pyc
+|   |           mct.cpython-314.pyc
+|   |           mts.cpython-314.pyc
+|   |           pfs.cpython-314.pyc
+|   |           rds.cpython-314.pyc
+|   |           tps.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---opportunity
+|   |   |   favorites_engine.py
+|   |   |   favorites_engine.py.before_fix
+|   |   |   intraday_engine.py
+|   |   |   liquidity_filter.py
+|   |   |   liquidity_filter.py.before_book_test_fix
+|   |   |   opportunity_engine.py
+|   |   |   opportunity_explainer.py
+|   |   |   opportunity_explainer.py.bak_enum_fix
+|   |   |   ranking_engine.py
+|   |   |   risk_filter.py
+|   |   |   scanner_engine.py
+|   |   |   timing_engine.py
+|   |   |   top10_engine.py
+|   |   |   universe_engine.py
+|   |   |   universe_seed.py
+|   |   |   universe_seed.py.bak_20260924_120136
+|   |   |   __init__.py
+|   |   |   
+|   |   +---backup
+|   |   |   |   intraday_engine.py
+|   |   |   |   intraday_engine.py.test19.bak
+|   |   |   |   liquidity_filter.py
+|   |   |   |   opportunity_explainer.py
+|   |   |   |   ranking_engine.py
+|   |   |   |   risk_filter.py
+|   |   |   |   timing_engine.py
+|   |   |   |   universe_engine.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           intraday_engine.cpython-314.pyc
+|   |   |           opportunity_explainer.cpython-314.pyc
+|   |   |           ranking_engine.cpython-314.pyc
+|   |   |           risk_filter.cpython-314.pyc
+|   |   |           timing_engine.cpython-314.pyc
+|   |   |           universe_engine.cpython-314.pyc
+|   |   |           
+|   |   \---__pycache__
+|   |           favorites_engine.cpython-314.pyc
+|   |           intraday_engine.cpython-314.pyc
+|   |           liquidity_filter.cpython-314.pyc
+|   |           opportunity_engine.cpython-314.pyc
+|   |           opportunity_explainer.cpython-314.pyc
+|   |           ranking_engine.cpython-314.pyc
+|   |           risk_filter.cpython-314.pyc
+|   |           scanner_engine.cpython-314.pyc
+|   |           timing_engine.cpython-314.pyc
+|   |           top10_engine.cpython-314.pyc
+|   |           universe_engine.cpython-314.pyc
+|   |           universe_seed.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---real
+|   |   |   advanced_stats_engine.py
+|   |   |   derivatives_engine.py
+|   |   |   derivatives_engine.py.bak_20260924_112228
+|   |   |   flow_direction_engine.py
+|   |   |   levels_engine.py
+|   |   |   market_context_engine.py
+|   |   |   multi_tf_analyzer.py
+|   |   |   obstacle_mapper.py
+|   |   |   obstacle_mapper.py.bak_20260924_105239
+|   |   |   obstacle_mapper.py.bak_20260924_105812
+|   |   |   order_flow_engine.py
+|   |   |   real_discovery_bridge.py
+|   |   |   real_discovery_bridge.py.bak_20260924_121311
+|   |   |   real_discovery_bridge.py.bak_20260924_122233
+|   |   |   real_market_data.py
+|   |   |   shadow_trade_recorder.py
+|   |   |   shadow_trade_recorder.py.bak_20260925_092953
+|   |   |   signal_recorder.py
+|   |   |   signal_recorder.py.bak_20260924_151254
+|   |   |   signal_recorder.py.bak_20260924_151626
+|   |   |   signal_recorder.py.bak_20260924_153203
+|   |   |   structure_analyzer.py
+|   |   |   unified_signal.py
+|   |   |   unified_signal.py.bak_20260924_113944
+|   |   |   unified_signal.py.bak_20260924_114619
+|   |   |   volume_engine.py
+|   |   |   volume_engine.py.bak_20260924_113053
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           advanced_stats_engine.cpython-314.pyc
+|   |           derivatives_engine.cpython-314.pyc
+|   |           flow_direction_engine.cpython-314.pyc
+|   |           levels_engine.cpython-314.pyc
+|   |           market_context_engine.cpython-314.pyc
+|   |           multi_tf_analyzer.cpython-314.pyc
+|   |           obstacle_mapper.cpython-314.pyc
+|   |           order_flow_engine.cpython-314.pyc
+|   |           real_discovery_bridge.cpython-314.pyc
+|   |           real_market_data.cpython-314.pyc
+|   |           shadow_trade_recorder.cpython-314.pyc
+|   |           signal_recorder.cpython-314.pyc
+|   |           structure_analyzer.cpython-314.pyc
+|   |           unified_signal.cpython-314.pyc
+|   |           volume_engine.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---research
+|   |   |   candidate_manager.py
+|   |   |   dataset.py
+|   |   |   deployment_manager.py
+|   |   |   experiment.py
+|   |   |   hypothesis.py
+|   |   |   research_service.py
+|   |   |   stress_testing.py
+|   |   |   validation.py
+|   |   |   version_manager.py
+|   |   |   __init__.py
+|   |   |   __init__.py.bak
+|   |   |   __init__.py.pre_stress_fix.bak
+|   |   |   
+|   |   \---__pycache__
+|   |           candidate_manager.cpython-314.pyc
+|   |           dataset.cpython-314.pyc
+|   |           deployment_manager.cpython-314.pyc
+|   |           experiment.cpython-314.pyc
+|   |           hypothesis.cpython-314.pyc
+|   |           research_service.cpython-314.pyc
+|   |           stress_testing.cpython-314.pyc
+|   |           validation.cpython-314.pyc
+|   |           version_manager.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---robomlm_plus
+|   |   |   advanced_decision.py
+|   |   |   emergency_control.py
+|   |   |   execution_preparation.py
+|   |   |   execution_preparation.py.bak
+|   |   |   execution_preparation.py.bak3
+|   |   |   execution_preparation.py.bak4
+|   |   |   halt_controller.py
+|   |   |   plus_orchestrator.py
+|   |   |   position_monitor.py
+|   |   |   position_monitor.py.bak
+|   |   |   protection.py
+|   |   |   protection.py.bak2
+|   |   |   reconciliation.py
+|   |   |   reconciliation.py.bak
+|   |   |   reconciliation.py.bak3
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           advanced_decision.cpython-314.pyc
+|   |           emergency_control.cpython-314.pyc
+|   |           execution_preparation.cpython-314.pyc
+|   |           halt_controller.cpython-314.pyc
+|   |           plus_orchestrator.cpython-314.pyc
+|   |           position_monitor.cpython-314.pyc
+|   |           protection.cpython-314.pyc
+|   |           reconciliation.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           commitment_engine.cpython-314.pyc
+|           confidence_engine.cpython-314.pyc
+|           decision_orchestrator.cpython-314.pyc
+|           evidence_orchestrator.cpython-314.pyc
+|           intelligence_orchestrator.cpython-314.pyc
+|           live_signal.cpython-314.pyc
+|           magnitude_engine.cpython-314.pyc
+|           market_context.cpython-314.pyc
+|           opportunity_intelligence.cpython-314.pyc
+|           regime_intelligence.cpython-314.pyc
+|           relationship_intelligence.cpython-314.pyc
+|           strategy_intelligence.cpython-314.pyc
+|           timing_intelligence.cpython-314.pyc
+|           verdict_engine.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---markets
+|   |   live_market_data_service.py
+|   |   market_data_health.py
+|   |   market_service.py
+|   |   market_session.py
+|   |   market_snapshot_store.py
+|   |   market_state.py
+|   |   __init__.py
+|   |   
+|   +---contracts
+|   |   |   contract_identity.py
+|   |   |   contract_registry.py
+|   |   |   contract_service.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           contract_identity.cpython-314.pyc
+|   |           contract_registry.cpython-314.pyc
+|   |           contract_service.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---instruments
+|   |   |   instrument_identity.py
+|   |   |   instrument_registry.py
+|   |   |   instrument_service.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           instrument_identity.cpython-314.pyc
+|   |           instrument_registry.cpython-314.pyc
+|   |           instrument_service.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---registry
+|   |   |   market_registry.py
+|   |   |   registry_loader.py
+|   |   |   venue_registry.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           market_registry.cpython-314.pyc
+|   |           registry_loader.cpython-314.pyc
+|   |           venue_registry.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---venues
+|   |   |   venue_service.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           venue_service.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           live_market_data_service.cpython-314.pyc
+|           market_data_health.cpython-314.pyc
+|           market_service.cpython-314.pyc
+|           market_session.cpython-314.pyc
+|           market_snapshot_store.cpython-314.pyc
+|           market_state.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---providers
+|   |   Binance_registration.py
+|   |   provider_bootstrap.py
+|   |   provider_contract.py
+|   |   provider_definitions.py
+|   |   provider_definitions.py.bak_20260924_145535
+|   |   provider_registry.py
+|   |   provider_resolver.py
+|   |   __init__ - Copy.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           provider_bootstrap.cpython-314.pyc
+|           provider_contract.cpython-314.pyc
+|           provider_definitions.cpython-314.pyc
+|           provider_registry.cpython-314.pyc
+|           provider_resolver.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---subscription
+|   |   entitlement_service.py
+|   |   plan_service.py
+|   |   subscription_service.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           entitlement_service.cpython-314.pyc
+|           plan_service.cpython-314.pyc
+|           subscription_service.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---terminal
+|   |   cas_status.py
+|   |   decision_outlook.py
+|   |   evidence_strip.py
+|   |   intelligence_panel.py
+|   |   market_context.py
+|   |   risk_panel.py
+|   |   terminal_runtime.py
+|   |   terminal_service.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           cas_status.cpython-314.pyc
+|           decision_outlook.cpython-314.pyc
+|           evidence_strip.cpython-314.pyc
+|           intelligence_panel.cpython-314.pyc
+|           market_context.cpython-314.pyc
+|           risk_panel.cpython-314.pyc
+|           terminal_runtime.cpython-314.pyc
+|           terminal_service.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---trading
+|       action_contract.py
+|       __init__.py
+|       
++---ui
+|   |   app.py
+|   |   router.py
+|   |   __init__.py
+|   |   
+|   +---account
+|   |   |   account_page.py
+|   |   |   billing_page.py
+|   |   |   notification_page.py
+|   |   |   settings_page.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           account_page.cpython-314.pyc
+|   |           billing_page.cpython-314.pyc
+|   |           notification_page.cpython-314.pyc
+|   |           settings_page.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---automation
+|   |   |   automation_page.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           automation_page.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---buyer
+|   |   |   buyer_page.py
+|   |   |   cas_view.py
+|   |   |   contract_selector.py
+|   |   |   decision_view.py
+|   |   |   instrument_selector.py
+|   |   |   intelligence_view.py
+|   |   |   market_selector.py
+|   |   |   plus_view.py
+|   |   |   risk_view.py
+|   |   |   strategy_preview.py
+|   |   |   strategy_selector.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---discovery
+|   |   |   discovery_page.py
+|   |   |   favorites.py
+|   |   |   universal_scanner.py
+|   |   |   __init__.py
+|   |   |   __init__.py.bak_scanner_imports
+|   |   |   
+|   |   +---engines
+|   |   |   |   accumulation_engine.py
+|   |   |   |   boundary_engine.py
+|   |   |   |   breakout_engine.py
+|   |   |   |   confirmation_engine.py
+|   |   |   |   distribution_engine.py
+|   |   |   |   distribution_engine.py.bak_authority
+|   |   |   |   distribution_engine.py.bak_guessing_key
+|   |   |   |   distribution_engine.py.bak_integrity_registry
+|   |   |   |   distribution_engine.py.bak_registry_name
+|   |   |   |   opportunity_engine.py
+|   |   |   |   regime_engine.py
+|   |   |   |   relationship_engine.py
+|   |   |   |   structure_engine.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           accumulation_engine.cpython-314.pyc
+|   |   |           boundary_engine.cpython-314.pyc
+|   |   |           distribution_engine.cpython-314.pyc
+|   |   |           opportunity_engine.cpython-314.pyc
+|   |   |           regime_engine.cpython-314.pyc
+|   |   |           relationship_engine.cpython-314.pyc
+|   |   |           structure_engine.cpython-314.pyc
+|   |   |           
+|   |   +---future
+|   |   |   |   future_rank_engine.py
+|   |   |   |   growth_projection_engine.py
+|   |   |   |   holdability_engine.py
+|   |   |   |   pullback_engine.py
+|   |   |   |   thesis_engine.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           future_rank_engine.cpython-314.pyc
+|   |   |           growth_projection_engine.cpython-314.pyc
+|   |   |           holdability_engine.cpython-314.pyc
+|   |   |           pullback_engine.cpython-314.pyc
+|   |   |           
+|   |   +---models
+|   |   |   |   future_models.py
+|   |   |   |   opportunity_models.py
+|   |   |   |   scanner_models.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           future_models.cpython-314.pyc
+|   |   |           opportunity_models.cpython-314.pyc
+|   |   |           scanner_models.cpython-314.pyc
+|   |   |           
+|   |   +---scanners
+|   |   |   |   commodity_scanner.py
+|   |   |   |   crypto_scanner.py
+|   |   |   |   equity_scanner.py
+|   |   |   |   fx_scanner.py
+|   |   |   |   index_scanner.py
+|   |   |   |   stock_scanner.py
+|   |   |   |   
+|   |   |   \---__pycache__
+|   |   |           commodity_scanner.cpython-314.pyc
+|   |   |           crypto_scanner.cpython-314.pyc
+|   |   |           equity_scanner.cpython-314.pyc
+|   |   |           fx_scanner.cpython-314.pyc
+|   |   |           index_scanner.cpython-314.pyc
+|   |   |           stock_scanner.cpython-314.pyc
+|   |   |           
+|   |   \---__pycache__
+|   |           discovery_page.cpython-314.pyc
+|   |           favorites.cpython-314.pyc
+|   |           universal_scanner.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---memory
+|   |   |   memory_page.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           __init__.cpython-314.pyc
+|   |           
+|   +---research
+|   |       research_page.py
+|   |       __init__.py
+|   |       
+|   +---terminal
+|   |   |   terminal_page.py
+|   |   |   __init__.py
+|   |   |   
+|   |   \---__pycache__
+|   |           terminal_page.cpython-314.pyc
+|   |           __init__.cpython-314.pyc
+|   |           
+|   \---__pycache__
+|           app.cpython-314.pyc
+|           router.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---users
+|   |   profile_service.py
+|   |   user_service.py
+|   |   user_service.py.bak_authority
+|   |   user_service.py.bak_before_lifecycle_impl
+|   |   user_service.py.bak_before_registry_dataclass_fix
+|   |   user_service.py.bak_before_resolution_impl
+|   |   user_service.py.bak_before_snapshot_fix
+|   |   user_service.py.bak_missing_registry_types
+|   |   user_service.py.bak_operational_authority_fix
+|   |   user_service.py.bak_registry_exists_fix
+|   |   user_service.py.bak_registry_restore
+|   |   user_service.py.bak_resolution
+|   |   user_service.py.bak_resolution2
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           profile_service.cpython-314.pyc
+|           user_service.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
++---v6_bridge
+|   |   v6_blackbox_bridge.py
+|   |   v6_bridge.py
+|   |   v6_compatibility.py
+|   |   v6_loader.py
+|   |   v6_mapper.py
+|   |   v6_normalizer.py
+|   |   __init__.py
+|   |   
+|   \---__pycache__
+|           v6_blackbox_bridge.cpython-314.pyc
+|           v6_bridge.cpython-314.pyc
+|           v6_compatibility.cpython-314.pyc
+|           v6_loader.cpython-314.pyc
+|           v6_mapper.cpython-314.pyc
+|           v6_normalizer.cpython-314.pyc
+|           __init__.cpython-314.pyc
+|           
+\---__pycache__
+        __init__.cpython-314.pyc
+        

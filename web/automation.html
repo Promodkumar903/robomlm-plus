@@ -115,6 +115,95 @@
         </div>
       </div>
 
+      <!-- ============================================================ -->
+      <!-- BOT FUND ALLOCATION                                          -->
+      <!-- ============================================================ -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-title"><span class="ct-icon">💰</span> Bot Fund Allocation</div>
+        <div class="alloc-wrap">
+          <div class="alloc-row">
+            <label>Auto Bot</label>
+            <input type="range" id="alloc-auto" min="0" max="100" value="50" step="5"/>
+            <span class="alloc-val" id="alloc-auto-val">50%</span>
+            <span class="alloc-cap" id="alloc-auto-cap">₹50,000</span>
+          </div>
+          <div class="alloc-row">
+            <label>Mission</label>
+            <input type="range" id="alloc-mission" min="0" max="100" value="50" step="5"/>
+            <span class="alloc-val" id="alloc-mission-val">50%</span>
+            <span class="alloc-cap" id="alloc-mission-cap">₹50,000</span>
+          </div>
+          <div class="alloc-foot">
+            <span class="alloc-hint" id="alloc-hint">0% unallocated (safe in account)</span>
+            <button class="btn" id="alloc-save">💾 Save Allocation</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- BOT FINANCE STRIP                                            -->
+      <!-- ============================================================ -->
+      <div class="bot-strip">
+        <div class="bot-box">
+          <div class="bot-lbl">Allocated</div>
+          <div class="bot-val" id="bot-alloc">—</div>
+        </div>
+        <div class="bot-box">
+          <div class="bot-lbl">Used</div>
+          <div class="bot-val" id="bot-used">—</div>
+        </div>
+        <div class="bot-box">
+          <div class="bot-lbl">Exposure</div>
+          <div class="bot-val" id="bot-expo">—</div>
+        </div>
+        <div class="bot-box">
+          <div class="bot-lbl">Realized P/L</div>
+          <div class="bot-val" id="bot-real">—</div>
+        </div>
+        <div class="bot-box">
+          <div class="bot-lbl">Unrealized P/L</div>
+          <div class="bot-val" id="bot-unreal">—</div>
+        </div>
+        <div class="bot-box">
+          <div class="bot-lbl">Trades · W/L</div>
+          <div class="bot-val" id="bot-trades">—</div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- OPEN TRADES PANEL                                            -->
+      <!-- ============================================================ -->
+      <div class="card bot-trades-card">
+        <div class="card-title">
+          <span class="ct-icon">📊</span> Bot Trades
+          <span class="bot-trade-count" id="bot-trade-count">0</span>
+        </div>
+        <div class="bot-trade-head">
+          <span>Dir</span>
+          <span>Symbol</span>
+          <span>Entry</span>
+          <span>SL</span>
+          <span>TP</span>
+          <span>Size</span>
+          <span>P/L</span>
+          <span>Grade</span>
+          <span>Age</span>
+          <span></span>
+        </div>
+        <div class="bot-trade-list" id="bot-trade-list">
+          <div class="bot-empty">No trades yet</div>
+        </div>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- BOT ACTIVITY LOG                                             -->
+      <!-- ============================================================ -->
+      <div class="card bot-activity-card">
+        <div class="card-title"><span class="ct-icon">📜</span> Bot Activity</div>
+        <div class="bot-activity-list" id="bot-activity-list">
+          <div class="bot-empty">No activity yet</div>
+        </div>
+      </div>
 
       <div class="card">
         <div class="card-title"><span class="ct-icon">📋</span> Rules</div>
@@ -130,5 +219,5 @@
   </div>
 
   <script src="/static/js/automation.js?v=2"></script>
-</body>
+  <script src="/static/js/common.js"></script>`n</body>
 </html>

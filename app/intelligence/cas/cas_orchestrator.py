@@ -1460,155 +1460,71 @@ def _extract_gate_result(
 def execute_suitability_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_suitability_gate_request(
-        request
-    )
-
-    gate_request = build_suitability_request(
-        **payload
-    )
-
-    result = evaluate_suitability(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.SUITABILITY,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_suitability_gate_request(context)
+    gate_request = build_suitability_request(**payload)
+    result = evaluate_suitability(gate_request)
+    return _extract_gate_result(CASGateName.SUITABILITY, result)
 
 
 def execute_risk_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_risk_gate_request(
-        request
-    )
-
-    gate_request = build_risk_request(
-        **payload
-    )
-
-    result = evaluate_risk(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.RISK,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_risk_gate_request(context)
+    gate_request = build_risk_request(**payload)
+    result = evaluate_risk(gate_request)
+    return _extract_gate_result(CASGateName.RISK, result)
 
 
 def execute_exposure_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_exposure_gate_request(
-        request
-    )
-
-    gate_request = build_exposure_request(
-        **payload
-    )
-
-    result = evaluate_exposure(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.EXPOSURE,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_exposure_gate_request(context)
+    gate_request = build_exposure_request(**payload)
+    result = evaluate_exposure(gate_request)
+    return _extract_gate_result(CASGateName.EXPOSURE, result)
 
 
 def execute_position_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_position_gate_request(
-        request
-    )
-
-    gate_request = build_position_request(
-        **payload
-    )
-
-    result = evaluate_position(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.POSITION,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_position_gate_request(context)
+    gate_request = build_position_request(**payload)
+    result = evaluate_position(gate_request)
+    return _extract_gate_result(CASGateName.POSITION, result)
 
 
 def execute_execution_safety_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_execution_safety_gate_request(
-        request
-    )
-
-    gate_request = build_execution_safety_request(
-        **payload
-    )
-
-    result = evaluate_execution_safety(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.EXECUTION_SAFETY,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_execution_safety_gate_request(context)
+    gate_request = build_execution_safety_request(**payload)
+    result = evaluate_execution_safety(gate_request)
+    return _extract_gate_result(CASGateName.EXECUTION_SAFETY, result)
 
 
 def execute_compliance_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_compliance_gate_request(
-        request
-    )
-
-    gate_request = build_compliance_request(
-        **payload
-    )
-
-    result = evaluate_compliance(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.COMPLIANCE,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_compliance_gate_request(context)
+    gate_request = build_compliance_request(**payload)
+    result = evaluate_compliance(gate_request)
+    return _extract_gate_result(CASGateName.COMPLIANCE, result)
 
 
 def execute_restriction_gate(
     request: CASRequest,
 ) -> CASGateExecution:
-
-    payload = build_restriction_gate_request(
-        request
-    )
-
-    gate_request = build_restriction_request(
-        **payload
-    )
-
-    result = evaluate_restriction(
-        gate_request
-    )
-
-    return _extract_gate_result(
-        CASGateName.RESTRICTION,
-        result,
-    )
+    context = build_cas_gate_context(request)
+    payload = build_restriction_gate_request(context)
+    gate_request = build_restriction_request(**payload)
+    result = evaluate_restriction(gate_request)
+    return _extract_gate_result(CASGateName.RESTRICTION, result)
 
 
 # ------------------------------------------------------------
@@ -2587,9 +2503,21 @@ def evaluate_cas(
             evaluated_at=now,
         )
 
-    if not validate_cas_authority_context(
+    requirements = (
+        requirements
+        or build_cas_gate_requirements()
+    )
+
+    authority_context = build_cas_gate_context(
         request
-    ):
+    )
+
+    authority_validation = validate_cas_authority_context(
+        authority_context,
+        requirements,
+    )
+
+    if not authority_validation.valid:
         executions = tuple()
 
         result = CASResult(

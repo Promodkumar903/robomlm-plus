@@ -1,0 +1,835 @@
+/* =========================================================================
+   frontend/src/styles/app.css
+   ROBOMLM+ Terminal — global styles
+   Dark theme, electric blue accent, monospace price data.
+   ⚠️ COMPLETE FILE — replace entire file. Do NOT append.
+   ========================================================================= */
+
+/* ---------- RESET ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-base:      #0a0e14;
+  --bg-panel:     #131820;
+  --bg-elevated:  #1a2230;
+  --bg-hover:     #202a3a;
+  --border:       #1e2633;
+  --border-hi:    #2a3548;
+
+  --text-primary:   #e5e7eb;
+  --text-secondary: #8899a8;
+  --text-muted:     #4a5568;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger:  #ef4444;
+  --info:    #3b82f6;
+  --accent:  #60a5fa;
+
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+
+  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+  --font-ui:   -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button { font-family: inherit; cursor: pointer; }
+input, select { font-family: inherit; }
+
+/* =========================================================================
+   ROOT
+   ========================================================================= */
+
+.rbm-terminal {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--bg-base);
+}
+
+/* =========================================================================
+   HEADER
+   ========================================================================= */
+
+.rbm-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.rbm-logo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 130px;
+}
+
+.rbm-logo-mark {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.rbm-logo-sub {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+}
+
+/* ---------- Search ---------- */
+
+.rbm-search {
+  flex: 1;
+  position: relative;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+.rbm-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.rbm-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.rbm-search-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.15);
+}
+
+.rbm-search-input::placeholder { color: var(--text-muted); }
+
+.rbm-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-hi);
+  border-radius: var(--radius);
+  max-height: 360px;
+  overflow-y: auto;
+  z-index: 200;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.rbm-search-result {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 9px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  text-align: left;
+  font-size: 12px;
+}
+
+.rbm-search-result:last-child { border-bottom: none; }
+.rbm-search-result:hover { background: var(--bg-elevated); }
+
+.rbm-search-result-symbol {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.rbm-search-result-market {
+  color: var(--text-secondary);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.rbm-search-result-tag {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+}
+
+.rbm-search-result-tag.rbm-tone-ok { color: var(--success); }
+.rbm-search-result-tag.rbm-tone-warn { color: var(--warning); }
+
+/* ---------- Header status ---------- */
+
+.rbm-header-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.rbm-status-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.rbm-status-provider {
+  padding: 4px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+
+/* =========================================================================
+   QUICK CHIPS
+   ========================================================================= */
+
+.rbm-chips {
+  display: flex;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--bg-base);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+.rbm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.rbm-chip:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-hi);
+  color: var(--text-primary);
+}
+
+.rbm-chip-active {
+  background: rgba(96, 165, 250, 0.12);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.rbm-chip-warn {
+  color: var(--warning);
+  font-size: 10px;
+}
+
+/* =========================================================================
+   MAIN LAYOUT
+   ========================================================================= */
+
+.rbm-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+/* =========================================================================
+   SIDEBAR
+   ========================================================================= */
+
+.rbm-sidebar {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto;
+}
+
+.rbm-sidebar-block { display: flex; flex-direction: column; gap: 4px; }
+
+.rbm-sidebar-title {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  padding: 0 8px 6px;
+  font-weight: 600;
+}
+
+.rbm-sidebar-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: left;
+  transition: background 0.12s;
+}
+
+.rbm-sidebar-item:hover { background: var(--bg-elevated); }
+
+.rbm-sidebar-symbol {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.rbm-sidebar-market {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+/* =========================================================================
+   MAIN CONTENT
+   ========================================================================= */
+
+.rbm-main {
+  padding: 16px 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+/* ---------- Selector bar ---------- */
+
+.rbm-selector-bar {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.rbm-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.rbm-selector-label {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rbm-selector-input {
+  width: 100%;
+  padding: 7px 8px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  outline: none;
+  cursor: pointer;
+}
+
+.rbm-selector-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.12);
+}
+
+/* ---------- Breadcrumb ---------- */
+
+.rbm-breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  padding: 4px 4px;
+}
+
+/* ---------- Unavailable card ---------- */
+
+.rbm-unavailable-card {
+  padding: 20px 24px;
+  background: rgba(245, 158, 11, 0.06);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius);
+}
+
+.rbm-unavailable-title {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--warning);
+  margin-bottom: 8px;
+}
+
+.rbm-unavailable-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.rbm-unavailable-body strong { color: var(--text-primary); }
+
+/* ---------- Error card ---------- */
+
+.rbm-error-card {
+  padding: 20px 24px;
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius);
+}
+
+.rbm-error-title {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--danger);
+  margin-bottom: 8px;
+}
+
+.rbm-error-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+/* ---------- Loading ---------- */
+
+.rbm-loading {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   CHART ROW
+   ========================================================================= */
+
+.rbm-chart-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 14px;
+  align-items: start;
+}
+
+.rbm-chart-col { min-width: 0; }
+
+.rbm-snapshot-col { min-width: 0; }
+
+/* ---------- Market snapshot ---------- */
+
+.rbm-snapshot {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rbm-snapshot-title {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.rbm-snap-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.rbm-snap-label {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.rbm-snap-value {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+  text-align: right;
+  word-break: break-word;
+}
+
+.rbm-value-strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.rbm-snap-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+/* =========================================================================
+   STRIPS (Evidence / Intelligence)
+   ========================================================================= */
+
+.rbm-strip {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+}
+
+.rbm-strip-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+}
+
+.rbm-strip-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.rbm-strip-item { display: flex; flex-direction: column; gap: 2px; }
+
+.rbm-strip-item-label {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rbm-strip-item-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+/* =========================================================================
+   ENGINE STRIP
+   ========================================================================= */
+
+.rbm-engines {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px;
+  align-items: center;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 16px;
+}
+
+.rbm-engines-label {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  font-weight: 600;
+  border-right: 1px solid var(--border);
+  padding-right: 12px;
+}
+
+.rbm-engines-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.rbm-engine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.rbm-engine-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.rbm-engine-status {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* =========================================================================
+   DECISION ROW
+   ========================================================================= */
+
+.rbm-decision-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.rbm-decision-box,
+.rbm-auth-box {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rbm-box-title {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.rbm-decision-signal {
+  font-family: var(--font-mono);
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+  padding: 12px 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-base);
+  color: var(--text-primary);
+}
+
+.rbm-decision-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* =========================================================================
+   ACTION BAR
+   ========================================================================= */
+
+.rbm-action-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.rbm-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  font-size: 14px;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  transition: all 0.15s;
+}
+
+.rbm-action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rbm-action-label {
+  font-size: 14px;
+  letter-spacing: 0.15em;
+}
+
+.rbm-action-hint {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.rbm-action-buy.rbm-action-active:hover {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.rbm-action-sell.rbm-action-active:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.rbm-action-hold.rbm-action-active {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--warning);
+  color: var(--warning);
+}
+
+.rbm-action-blocked {
+  background: var(--bg-base);
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+/* =========================================================================
+   WHY / CONTRADICTIONS / PIPELINE
+   ========================================================================= */
+
+.rbm-why,
+.rbm-contradictions,
+.rbm-pipeline {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rbm-why-body,
+.rbm-contradictions-body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.rbm-pipeline-rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+}
+
+.rbm-pipeline-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.rbm-pipeline-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+}
+
+.rbm-pipeline-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+/* =========================================================================
+   TONES
+   ========================================================================= */
+
+.rbm-tone-ok    { color: var(--success); }
+.rbm-tone-warn  { color: var(--warning); }
+.rbm-tone-bad   { color: var(--danger); }
+.rbm-tone-muted { color: var(--text-muted); }
+
+/* =========================================================================
+   RESPONSIVE
+   ========================================================================= */
+
+@media (max-width: 1100px) {
+  .rbm-layout { grid-template-columns: 1fr; }
+  .rbm-sidebar {
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 12px;
+    overflow-x: auto;
+  }
+  .rbm-sidebar-block { min-width: 160px; }
+  .rbm-chart-row { grid-template-columns: 1fr; }
+  .rbm-decision-row { grid-template-columns: 1fr; }
+  .rbm-selector-bar { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 700px) {
+  .rbm-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+  .rbm-logo { min-width: auto; }
+  .rbm-search { order: 3; width: 100%; max-width: none; }
+  .rbm-selector-bar { grid-template-columns: repeat(2, 1fr); }
+  .rbm-strip { grid-template-columns: 1fr; }
+  .rbm-strip-label { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .rbm-engines { grid-template-columns: 1fr; }
+  .rbm-engines-label { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .rbm-main { padding: 12px; }
+  .rbm-action-bar { grid-template-columns: 1fr; }
+  .rbm-decision-signal { font-size: 28px; }
+}

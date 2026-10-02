@@ -1,0 +1,41 @@
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import NavRail from "./components/NavRail";
+import TerminalFrontendPanel from "./components/TerminalFrontendPanel";
+import DiscoveryScanner from "../Discovery/DiscoveryScanner";
+import AssetDetail from "../Discovery/AssetDetail";
+import Research from "./pages/Research";
+import Buyer from "./pages/Buyer";
+import Positions from "./pages/Positions";
+import Options from "./pages/Options";
+import HTF from "./pages/HTF";
+import Scalper from "./pages/Scalper";
+import Account from "./pages/Account";
+import "./styles/app.css";
+import "./styles/nav.css";
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="rbm-app">
+        <NavRail />
+        <div className="rbm-app-main">
+          <Routes>
+            <Route path="/" element={<Navigate to="/terminal" replace />} />
+            <Route path="/terminal" element={<TerminalFrontendPanel />} />
+            <Route path="/discovery" element={<DiscoveryScanner />} />
+            <Route path="/discovery/asset" element={<AssetDetail />} />
+            <Route path="/research" element={<Research />} />
+            <Route path="/buyer" element={<Buyer />} />
+            <Route path="/positions" element={<Positions />} />
+            <Route path="/options" element={<Options />} />
+            <Route path="/htf" element={<HTF />} />
+            <Route path="/scalper" element={<Scalper />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="*" element={<Navigate to="/terminal" replace />} />
+          </Routes>
+        </div>
+      </div>
+    </BrowserRouter>
+  );
+}

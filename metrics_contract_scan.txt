@@ -1,0 +1,259 @@
+===== MCT =====
+42:    - calculates weighted contributions
+66:MIN_SCORE = 0.0
+67:MAX_SCORE = 100.0
+70:TREND_WEIGHT = 0.20
+71:VOLUME_WEIGHT = 0.15
+72:LIQUIDITY_WEIGHT = 0.15
+73:RISK_WEIGHT = 0.15
+74:TIMING_WEIGHT = 0.10
+75:DERIVATIVES_WEIGHT = 0.10
+76:PARTICIPATION_WEIGHT = 0.10
+77:RELATIONSHIPS_WEIGHT = 0.05
+79:WEIGHTS = {
+80:    "trend": TREND_WEIGHT,
+81:    "volume": VOLUME_WEIGHT,
+82:    "liquidity": LIQUIDITY_WEIGHT,
+83:    "risk_density": RISK_WEIGHT,
+84:    "timing": TIMING_WEIGHT,
+85:    "derivatives": DERIVATIVES_WEIGHT,
+86:    "participation": PARTICIPATION_WEIGHT,
+87:    "relationships": RELATIONSHIPS_WEIGHT,
+95:class MCTStatus(str, Enum):
+101:class MCTContext(str, Enum):
+114:class MCTComponent:
+152:class MCTInputs:
+184:class MCTResult:
+242:class MCTEngine:
+276:        self.weights = dict(WEIGHTS)
+284:    def calculate(self, inputs: MCTInputs) -> MCTResult:
+335:            if numeric_value < MIN_SCORE or numeric_value > MAX_SCORE:
+407:                context_value = MAX_SCORE - raw_value
+486:    def calculate_from_mapping(
+558:        return self.calculate(inputs)
+564:        expected = dict(WEIGHTS)
+603:        if value < MIN_SCORE:
+604:            return MIN_SCORE
+606:        if value > MAX_SCORE:
+607:            return MAX_SCORE
+658:def calculate_mct(
+688:    return engine.calculate(inputs)
+695:def _run_self_tests() -> None:
+707:    result = engine.calculate(
+732:    result = engine.calculate(
+753:    result = engine.calculate(
+786:    result = engine.calculate(
+806:    result = engine.calculate(
+826:    result = engine.calculate(
+849:    low_risk = engine.calculate(
+862:    high_risk = engine.calculate(
+885:    result = engine.calculate_from_mapping(
+905:    result = engine.calculate(
+925:        sum(WEIGHTS.values()) - 1.0
+933:__all__ = [
+942:    "calculate_mct",
+===== MTS =====
+75:EQUATION_ID = "EQ-0001"
+84:class MTSStatus(str, Enum):
+90:class TrendDirection(str, Enum):
+96:class VolatilityState(str, Enum):
+107:class MTSObservation:
+137:class MTSResult:
+252:class MTSEngine:
+284:    EQUATION = (
+288:    DRIFT_EQUATION = (
+292:    LOG_RETURN_EQUATION = (
+296:    VOLATILITY_EQUATION = (
+300:    TREND_RATIO_EQUATION = (
+308:    def calculate(
+656:            equation=self.EQUATION,
+657:            equation_id=EQUATION_ID,
+661:                "drift_equation": self.DRIFT_EQUATION,
+662:                "log_return_equation": self.LOG_RETURN_EQUATION,
+663:                "volatility_equation": self.VOLATILITY_EQUATION,
+664:                "trend_ratio_equation": self.TREND_RATIO_EQUATION,
+675:    def calculate_from_mapping(
+761:        return self.calculate(converted)
+790:            equation=self.EQUATION,
+791:            equation_id=EQUATION_ID,
+819:            equation=self.EQUATION,
+820:            equation_id=EQUATION_ID,
+842:def calculate_mts(
+849:    return MTSEngine().calculate(
+858:def _run_self_tests() -> None:
+876:    result = calculate_mts(
+903:    result = calculate_mts(
+929:    result = calculate_mts(
+953:    # drift can be calculated, volatility cannot.
+956:    result = calculate_mts(
+979:    result = calculate_mts(
+1020:    result = calculate_mts([])
+1030:    result = calculate_mts(
+1050:    result = calculate_mts(
+1070:    result = calculate_mts(
+1097:    result = calculate_mts(
+1151:__all__ = [
+1154:    "EQUATION_ID",
+1161:    "calculate_mts",
+===== RDS =====
+54:EQ-0008 uncertainty is calculated independently.
+77:EQUATION_ID = "EQ-0008"
+92:class RDSStatus(str, Enum):
+103:class RiskDimension(str, Enum):
+116:class RiskState(str, Enum):
+124:class RDSMappingState(str, Enum):
+135:class RDSInputs:
+201:class RDSState:
+229:    equation_id: str = EQUATION_ID
+271:class RDSResult:
+452:class RDSEngine:
+454:    UNCERTAINTY_EQUATION = (
+461:    RDS_EQUATION = (
+471:    def calculate(
+538:            self._calculate_uncertainty(
+597:                equation=self.RDS_EQUATION,
+598:                equation_id=EQUATION_ID,
+601:                    "No observable/calculated "
+609:        # WEIGHTS
+645:                "RDS 0-100 aggregation not calculated: "
+651:                    "EQ-0008 uncertainty calculated independently; "
+689:                equation=self.RDS_EQUATION,
+690:                equation_id=EQUATION_ID,
+705:                        self.UNCERTAINTY_EQUATION,
+712:        # COMPLETE WEIGHTS REQUIRED
+757:                equation=self.RDS_EQUATION,
+758:                equation_id=EQUATION_ID,
+772:        # VALIDATE WEIGHTS
+854:                equation=self.RDS_EQUATION,
+855:                equation_id=EQUATION_ID,
+870:        # CALIBRATED WEIGHTED RISK DENSITY
+991:            equation=self.RDS_EQUATION,
+992:            equation_id=EQUATION_ID,
+1009:                    self.UNCERTAINTY_EQUATION,
+1023:    def _calculate_uncertainty(
+1239:                    EQUATION_ID,
+1369:                RDSEngine.RDS_EQUATION
+1372:            equation_id=EQUATION_ID,
+1386:def calculate_rds(
+1390:    return RDSEngine().calculate(
+1395:def calculate_uncertainty_eq0008(
+1406:    result = RDSEngine().calculate(
+1425:def _run_self_tests() -> None:
+1433:    result = calculate_rds(
+1448:    result = calculate_rds(
+1475:    result = calculate_rds(
+1523:    result = calculate_rds(
+1547:    result = calculate_rds(
+1571:    result = calculate_rds(
+1598:    result = calculate_rds(
+1631:    uncertainty = calculate_uncertainty_eq0008(
+1651:    uncertainty = calculate_uncertainty_eq0008(
+1671:    result = calculate_rds(
+1692:    result = calculate_rds(
+1707:    result = calculate_rds(
+1722:    result = calculate_rds(
+1742:    result = calculate_rds(
+1791:    result = calculate_rds(
+1813:    result = calculate_rds(
+1891:__all__ = [
+1894:    "EQUATION_ID",
+1907:    "calculate_rds",
+1908:    "calculate_uncertainty_eq0008",
+===== PFS =====
+74:EQUATION_ID = "EQ-0004"
+81:class PFSStatus(str, Enum):
+91:class ParticipationDirection(str, Enum):
+105:class ParticipationPersistence(str, Enum):
+120:class ParticipationQuality(str, Enum):
+125:class ParticipationRegime(str, Enum):
+135:class PFSObservation:
+199:class PFSState:
+320:class PFSResult:
+540:class PFSEngine:
+564:    INSTANTANEOUS_EQUATION = (
+568:    CUMULATIVE_EQUATION = (
+572:    IMBALANCE_EQUATION = (
+578:    PARTICIPATION_EQUATION = (
+586:    def calculate(
+920:            equation_id=EQUATION_ID,
+932:                "equation_id": EQUATION_ID,
+1031:            equation=self.IMBALANCE_EQUATION,
+1033:            equation_id=EQUATION_ID,
+1041:                    self.INSTANTANEOUS_EQUATION,
+1044:                    self.CUMULATIVE_EQUATION,
+1047:                    self.PARTICIPATION_EQUATION,
+1084:    def calculate_interval(
+1107:        return self.calculate(
+1115:    def calculate_from_mapping(
+1200:            return self.calculate(
+1313:        return self.calculate(
+1500:            equation=self.IMBALANCE_EQUATION,
+1502:            equation_id=EQUATION_ID,
+1565:            equation=self.IMBALANCE_EQUATION,
+1567:            equation_id=EQUATION_ID,
+1579:def calculate_pfs(
+1583:    return PFSEngine().calculate(
+1588:def calculate_pfs_interval(
+1593:    return PFSEngine().calculate_interval(
+1603:def _run_self_tests() -> None:
+1609:    result = calculate_pfs_interval(
+1634:    result = calculate_pfs_interval(
+1652:    result = calculate_pfs_interval(
+1670:    result = calculate_pfs_interval(
+1698:    result = calculate_pfs_interval(
+1719:    result = calculate_pfs(
+1766:    result = calculate_pfs(
+1796:    result = calculate_pfs(
+1818:    result = calculate_pfs(
+1841:    result = calculate_pfs(
+1928:    result = calculate_pfs([])
+1939:    result = calculate_pfs_interval(
+1957:        in PFSEngine.INSTANTANEOUS_EQUATION
+1962:        in PFSEngine.IMBALANCE_EQUATION
+1969:    result = PFSEngine().calculate_from_mapping(
+1992:    result = PFSEngine().calculate_from_mapping(
+2022:    result = calculate_pfs_interval(
+2036:    result = calculate_pfs_interval(
+2111:__all__ = [
+2114:    "EQUATION_ID",
+2129:    "calculate_pfs",
+2130:    "calculate_pfs_interval",
+===== TPS =====
+19:    It calculates the mathematically observable trend-pressure
+50:class TPSStatus(str, Enum):
+56:class TrendDirection(str, Enum):
+63:class PriceObservation:
+90:class TPSResult:
+180:class TPSEngine:
+194:    calculates the dimensionless log-return rate:
+206:    EQUATION = (
+210:    DRIFT_EQUATION = (
+214:    LOG_DRIFT_EQUATION = (
+222:    def calculate(
+330:                equation=self.EQUATION,
+371:                equation=self.EQUATION,
+405:                equation=self.EQUATION,
+496:                "net drift remains calculated from the complete "
+513:            equation=self.EQUATION,
+518:                "drift_equation": self.DRIFT_EQUATION,
+519:                "log_drift_equation": self.LOG_DRIFT_EQUATION,
+531:    def calculate_from_mapping(
+629:                equation=self.EQUATION,
+635:        return self.calculate(converted)
+672:            equation=self.EQUATION,
+683:def calculate_tps(
+690:    return TPSEngine().calculate(observations)
+697:def _run_self_tests() -> None:
+714:    result = calculate_tps(
+738:    result = calculate_tps(
+760:    result = calculate_tps(
+782:    fast = calculate_tps(
+795:    slow = calculate_tps(
+818:    result = calculate_tps(
+850:    result = calculate_tps([])
+860:    result = calculate_tps(
+881:    result = calculate_tps(
+901:    result = calculate_tps(
+921:    result = calculate_tps(
+957:__all__ = [
+966:    "calculate_tps",
