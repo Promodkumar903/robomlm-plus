@@ -1,0 +1,17 @@
+# Ignore backend files during frontend deploy
+app/
+data/
+web/
+robomlm_data/
+installer/
+scripts/
+tests/
+docs/
+registries/
+schemas/
+*.py
+*.txt
+*.jsonl
+*.csv
+*.zip
+*.rar
